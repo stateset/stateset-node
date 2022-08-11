@@ -1,0 +1,19 @@
+{
+  "name": "stateset-node",
+  "version": "0.0.2",
+  "description": "node.js library for the Stateset API",
+  "keywords": [
+    "stateset",
+    "commerce operations",
+    "logistics"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "domsteil",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "^1.0.1"
+  }
+}
