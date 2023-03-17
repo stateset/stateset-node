@@ -26,3 +26,59 @@ stateset.customers.create({
   .catch(error => console.error(error));
 
 ```
+
+### Returns Example
+
+```
+
+// Define the parameters for the new return
+const returnParams = {
+  order_id: '123456',
+  items: [
+    { sku: 'SKU-123', qty: 2 },
+    { sku: 'SKU-456', qty: 1 },
+  ],
+  reason: 'Defective',
+  note: 'This product was damaged during shipping.',
+};
+
+// Call the "create" method with the parameters
+stateset.returns.create(returnParams)
+  .then((response) => {
+    console.log(response);
+    // Do something with the response, like show a success message
+  })
+  .catch((error) => {
+    console.error(error);
+    // Handle the error, like showing an error message to the user
+  });
+
+  // Retrieve a return by its ID
+stateset.returns.retrieve('return-123')
+  .then((response) => {
+    console.log(response);
+    // Do something with the retrieved return, like show its details to the user
+  })
+  .catch((error) => {
+    console.error(error);
+    // Handle the error, like showing an error message to the user
+  });
+
+// Update an existing return with new parameters
+const updatedParams = {
+  reason: 'Changed my mind',
+  note: 'I no longer want this product.',
+};
+stateset.returns.update('return-123', updatedParams)
+  .then((response) => {
+    console.log(response);
+    // Do something with the updated return, like show a success message
+  })
+  .catch((error) => {
+    console.error(error);
+    // Handle the error, like showing an error message to the user
+  });
+
+  ```
+
+
