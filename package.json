@@ -1,21 +1,39 @@
 {
   "name": "stateset-node",
-  "version": "0.0.3",
-  "description": "node.js library for the Stateset API",
+  "version": "0.0.4",
+  "description": "TypeScript/Node.js library for the Stateset API",
   "keywords": [
     "stateset",
     "commerce operations",
-    "logistics"
+    "logistics",
+    "typescript"
   ],
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "prepublishOnly": "npm run build"
   },
   "author": "domsteil",
   "license": "ISC",
   "dependencies": {
-    "crypto": "^1.0.1",
-    "qs": "^6.11.1",
-    "request-promise": "^4.2.6"
+    "axios": "^0.27.2",
+    "qs": "^6.11.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.4",
+    "@types/node": "^16.11.7",
+    "@types/qs": "^6.9.7",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "@typescript-eslint/parser": "^5.30.0",
+    "eslint": "^8.18.0",
+    "jest": "^28.1.3",
+    "ts-jest": "^28.0.5",
+    "typescript": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=12.0.0"
   }
 }
