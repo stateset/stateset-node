@@ -1,9 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-const qs = require('qs');
+import * as qs from 'qs';
 
 interface StatesetOptions {
-  arrayFormat: 'brackets';
-  encode: boolean;
+  apiKey: string;
+  baseUrl?: string;
 }
 
 interface RequestOptions extends AxiosRequestConfig {
@@ -14,59 +14,44 @@ interface RequestOptions extends AxiosRequestConfig {
   };
   data?: any;
   params?: any;
-  paramsSerializer?: (params: any) => string;
 }
 
 class Stateset {
-  private apiKey: string;
-  private baseUri: string;
   private client: AxiosInstance;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.baseUri = `https://api.stateset.com/v1`;
+  constructor(private readonly options: StatesetOptions) {
+    const baseURL = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
 
     this.client = axios.create({
-      baseURL: this.baseUri,
+      baseURL,
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${options.apiKey}`,
       },
       paramsSerializer: (params) =>
         qs.stringify(params, { arrayFormat: 'brackets', encode: false }),
     });
 
-    // Interceptors for request/response (optional)
+    this.setupInterceptors();
+  }
+
+  private setupInterceptors(): void {
     this.client.interceptors.request.use(
-      (config) => {
-        // Add logic before request is sent
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (config) => config,
+      (error) => Promise.reject(error)
     );
 
     this.client.interceptors.response.use(
-      (response) => {
-        // Any status code that lies within the range of 2xx cause this function to trigger
-        return response;
-      },
-      (error) => {
-        // Any status codes that falls outside the range of 2xx cause this function to trigger
-        return Promise.reject(this.handleError(error));
-      }
+      (response) => response,
+      (error) => Promise.reject(this.handleError(error))
     );
   }
 
   private handleError(error: any): any {
     if (error.response) {
-      // Server responded with a status other than 2xx
       console.error('API Error:', error.response.data);
     } else if (error.request) {
-      // No response received
       console.error('No response received:', error.request);
     } else {
-      // Other errors (e.g., configuration)
       console.error('Error:', error.message);
     }
     return error;
@@ -77,7 +62,7 @@ class Stateset {
       method,
       url: path,
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.options.apiKey}`,
       },
     };
 
@@ -90,22 +75,17 @@ class Stateset {
     return options;
   }
 
-  // Example of a converted resource method
-  accounts = {
-    create: (params: any) => this.client(this.createOptions('POST', '/accounts', params)),
-    retrieve: (id: string) => this.client(this.createOptions('GET', `/accounts/${id}`)),
-    update: (id: string, params: any) => this.client(this.createOptions('PUT', `/accounts/${id}`, params)),
-    list: (params: any) => this.client(this.createOptions('GET', '/accounts', params)),
+  returns = {
+    create: (params: any): Promise<AxiosResponse> => 
+      this.client(this.createOptions('POST', '/returns', params)),
+    retrieve: (id: string): Promise<AxiosResponse> => 
+      this.client(this.createOptions('GET', `/returns/${id}`)),
+    update: (id: string, params: any): Promise<AxiosResponse> => 
+      this.client(this.createOptions('PUT', `/returns/${id}`, params)),
+    list: (params?: any): Promise<AxiosResponse> => 
+      this.client(this.createOptions('GET', '/returns', params)),
   };
-
-  // Add other resources here...
-  transactions = {
-    create: (params: any) => this.client(this.createOptions('POST', '/transactions', params)),
-    retrieve: (id: string) => this.client(this.createOptions('GET', `/transactions/${id}`)),
-    list: (params: any) => this.client(this.createOptions('GET', '/transactions', params)),
-  };
-
-
+  
 }
 
-export = (apiKey: string) => new Stateset(apiKey);
+export default Stateset;

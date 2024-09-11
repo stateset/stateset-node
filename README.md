@@ -29,7 +29,7 @@ stateset.customers.create({
 
 ### Returns Example
 
-```
+```javascript
 
 // Define the parameters for the new return
 const returnParams = {

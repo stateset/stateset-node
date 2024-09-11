@@ -1,10 +1,23 @@
-'use strict';
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const StatesetResource_1 = __importDefault(require("../../StatesetResource"));
-exports.default = StatesetResource_1.default.extend({
-    path: 'orders/',
-    operations: ['create', 'list', 'retrieve'],
-});
+class Orders {
+    constructor(stateset) {
+        this.stateset = stateset;
+    }
+    async list() {
+        return this.stateset.request('GET', 'orders');
+    }
+    async get(orderId) {
+        return this.stateset.request('GET', `orders/${orderId}`);
+    }
+    async create(orderData) {
+        return this.stateset.request('POST', 'orders', orderData);
+    }
+    async update(orderId, orderData) {
+        return this.stateset.request('PUT', `orders/${orderId}`, orderData);
+    }
+    async delete(orderId) {
+        return this.stateset.request('DELETE', `orders/${orderId}`);
+    }
+}
+exports.default = Orders;
