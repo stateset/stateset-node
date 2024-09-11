@@ -15,6 +15,22 @@ class Returns {
     return this.stateset.request('POST', 'returns', returnData);
   }
 
+  async approve(returnId: string) {
+    return this.stateset.request('POST', `returns/approve/${returnId}`);
+  }
+
+  async cancel(returnId: string) {
+    return this.stateset.request('POST', `returns/cancel/${returnId}`);
+  }
+
+  async close(returnId: string) {
+    return this.stateset.request('POST', `returns/close/${returnId}`);
+  }
+
+  async reopen(returnId: string) {
+    return this.stateset.request('POST', `returns/reopen/${returnId}`);
+  }
+
   async update(returnId: string, returnData: any) {
     return this.stateset.request('PUT', `returns/${returnId}`, returnData);
   }
