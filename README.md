@@ -8,15 +8,13 @@ Install the package with:
 
 ```sh
 npm install stateset-node --save
-# or
-yarn add stateset-node
 ```
 
 ## Usage
-The package needs to be configured with your account's secret key, which is available in the Stateset Dashboard. Require it with the key's value:
+The package needs to be configured with your account's secret key, which is available in the Stateset Cloud Platform Dashboard. Require it with the key's value:
 
+```jsx
 
-```
 const stateset = require('stateset')('sk_test_...');
 
 stateset.customers.create({
@@ -29,7 +27,7 @@ stateset.customers.create({
 
 ### Returns Example
 
-```javascript
+```jsx
 
 // Define the parameters for the new return
 const returnParams = {
