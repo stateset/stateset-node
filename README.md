@@ -31,18 +31,11 @@ export default async function handler(req: NextRequest) {
 
     // Initialize the stateset client
     const apiKey = process.env.STATESET_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error('STATESET_API_KEY is not set');
-    }
-
-    console.log('Initializing Stateset client with API key:', apiKey.substring(0, 5) + '...');
 
     const _stateset = new stateset({apiKey});
+
     // Fetch returns
-    const response = await _stateset.returns.list();
-    
-    console.log('Response received:', response);
+    const response = await stateset.returns.list();
 
     const returns = response.returns;
 
