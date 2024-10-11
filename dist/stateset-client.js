@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.stateset = void 0;
 const Return_1 = __importDefault(require("./lib/resources/Return"));
 const Warranty_1 = __importDefault(require("./lib/resources/Warranty"));
+const Product_1 = __importDefault(require("./lib/resources/Product"));
 const Order_1 = __importDefault(require("./lib/resources/Order"));
 const Shipment_1 = __importDefault(require("./lib/resources/Shipment"));
 const Inventory_1 = __importDefault(require("./lib/resources/Inventory"));
@@ -28,6 +29,22 @@ const ShipmentLine_1 = __importDefault(require("./lib/resources/ShipmentLine"));
 const WorkOrderLine_1 = __importDefault(require("./lib/resources/WorkOrderLine"));
 const PurchaseOrderLine_1 = __importDefault(require("./lib/resources/PurchaseOrderLine"));
 const ManufactureOrderLine_1 = __importDefault(require("./lib/resources/ManufactureOrderLine"));
+const Settlement_1 = __importDefault(require("./lib/resources/Settlement"));
+const Payout_1 = __importDefault(require("./lib/resources/Payout"));
+const Pick_1 = __importDefault(require("./lib/resources/Pick"));
+const CycleCount_1 = __importDefault(require("./lib/resources/CycleCount"));
+const Machine_1 = __importDefault(require("./lib/resources/Machine"));
+const WasteAndScrap_1 = __importDefault(require("./lib/resources/WasteAndScrap"));
+const Supplier_1 = __importDefault(require("./lib/resources/Supplier"));
+const Location_1 = __importDefault(require("./lib/resources/Location"));
+const Vendor_1 = __importDefault(require("./lib/resources/Vendor"));
+const Invoice_1 = __importDefault(require("./lib/resources/Invoice"));
+const InvoiceLine_1 = __importDefault(require("./lib/resources/InvoiceLine"));
+const Compliance_1 = __importDefault(require("./lib/resources/Compliance"));
+const Lead_1 = __importDefault(require("./lib/resources/Lead"));
+const Asset_1 = __importDefault(require("./lib/resources/Asset"));
+const Contract_1 = __importDefault(require("./lib/resources/Contract"));
+const Promotion_1 = __importDefault(require("./lib/resources/Promotion"));
 class stateset {
     constructor(options) {
         this.apiKey = options.apiKey;
@@ -36,6 +53,7 @@ class stateset {
         this.returnItems = new ReturnLine_1.default(this);
         this.warranties = new Warranty_1.default(this);
         this.warrantyItems = new WarrantyLine_1.default(this);
+        this.products = new Product_1.default(this);
         this.orders = new Order_1.default(this);
         this.orderItems = new OrderLine_1.default(this);
         this.shipments = new Shipment_1.default(this);
@@ -56,6 +74,22 @@ class stateset {
         this.attributes = new Attribute_1.default(this);
         this.workflows = new Workflow_1.default(this);
         this.users = new User_1.default(this);
+        this.settlements = new Settlement_1.default(this);
+        this.payouts = new Payout_1.default(this);
+        this.picks = new Pick_1.default(this);
+        this.cycleCounts = new CycleCount_1.default(this);
+        this.machines = new Machine_1.default(this);
+        this.wasteAndScrap = new WasteAndScrap_1.default(this);
+        this.suppliers = new Supplier_1.default(this);
+        this.locations = new Location_1.default(this);
+        this.vendors = new Vendor_1.default(this);
+        this.invoices = new Invoice_1.default(this);
+        this.invoiceLines = new InvoiceLine_1.default(this);
+        this.compliance = new Compliance_1.default(this);
+        this.leads = new Lead_1.default(this);
+        this.assets = new Asset_1.default(this);
+        this.contracts = new Contract_1.default(this);
+        this.promotions = new Promotion_1.default(this);
     }
     async request(method, path, data) {
         const url = `${this.baseUrl}/${path}`;

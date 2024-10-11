@@ -1,0 +1,38 @@
+import BaseIntegration from './BaseIntegration';
+export default class NetsuiteIntegration extends BaseIntegration {
+    constructor(apiKey: string);
+    getProducts(): Promise<any>;
+    createProduct(data: any): Promise<any>;
+    getOrders(): Promise<any>;
+    createOrder(data: any): Promise<any>;
+    getCustomers(): Promise<any>;
+    createCustomer(data: any): Promise<any>;
+    getInventory(): Promise<any>;
+    createInventory(data: any): Promise<any>;
+    getSalesOrders(): Promise<any>;
+    createSalesOrder(data: any): Promise<any>;
+    getInvoices(): Promise<any>;
+    createInvoice(data: any): Promise<any>;
+    getPayments(): Promise<any>;
+    createPayment(data: any): Promise<any>;
+    getShipments(): Promise<any>;
+    createShipment(data: any): Promise<any>;
+    getCarriers(): Promise<any>;
+    getRates(data: any): Promise<any>;
+    getTrackingNumbers(): Promise<any>;
+    createTrackingNumber(data: any): Promise<any>;
+    getReturns(): Promise<any>;
+    createReturn(data: any): Promise<any>;
+    getWarranties(): Promise<any>;
+    createWarranty(data: any): Promise<any>;
+    getWarrantyItems(): Promise<any>;
+    createWarrantyItem(data: any): Promise<any>;
+    getWorkOrders(): Promise<any>;
+    createWorkOrder(data: any): Promise<any>;
+    getWorkOrderItems(): Promise<any>;
+    createWorkOrderItem(data: any): Promise<any>;
+    getPurchaseOrders(): Promise<any>;
+    createPurchaseOrder(data: any): Promise<any>;
+    getPurchaseOrderItems(): Promise<any>;
+    createPurchaseOrderItem(data: any): Promise<any>;
+}
