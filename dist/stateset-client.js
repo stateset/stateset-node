@@ -45,6 +45,7 @@ const Lead_1 = __importDefault(require("./lib/resources/Lead"));
 const Asset_1 = __importDefault(require("./lib/resources/Asset"));
 const Contract_1 = __importDefault(require("./lib/resources/Contract"));
 const Promotion_1 = __importDefault(require("./lib/resources/Promotion"));
+const Schedule_1 = __importDefault(require("./lib/resources/Schedule"));
 class stateset {
     constructor(options) {
         this.apiKey = options.apiKey;
@@ -73,6 +74,7 @@ class stateset {
         this.rules = new Rule_1.default(this);
         this.attributes = new Attribute_1.default(this);
         this.workflows = new Workflow_1.default(this);
+        this.schedules = new Schedule_1.default(this);
         this.users = new User_1.default(this);
         this.settlements = new Settlement_1.default(this);
         this.payouts = new Payout_1.default(this);

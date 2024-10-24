@@ -1,160 +1,446 @@
 import { stateset } from '../../stateset-client';
 
-type ShipmentStatus = 'PENDING' | 'SHIPPED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+// Enums for shipment management
+export enum ShipmentStatus {
+  PENDING = 'PENDING',
+  LABEL_CREATED = 'LABEL_CREATED',
+  PICKING = 'PICKING',
+  PICKED = 'PICKED',
+  PACKING = 'PACKING',
+  PACKED = 'PACKED',
+  SHIPPED = 'SHIPPED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+  ATTEMPTED_DELIVERY = 'ATTEMPTED_DELIVERY',
+  DELIVERED = 'DELIVERED',
+  EXCEPTION = 'EXCEPTION',
+  CANCELLED = 'CANCELLED'
+}
 
+export enum ShippingCarrier {
+  FEDEX = 'fedex',
+  UPS = 'ups',
+  USPS = 'usps',
+  DHL = 'dhl',
+  ONTRAC = 'ontrac'
+}
+
+export enum ServiceLevel {
+  GROUND = 'ground',
+  TWO_DAY = 'two_day',
+  OVERNIGHT = 'overnight',
+  INTERNATIONAL = 'international',
+  ECONOMY = 'economy'
+}
+
+export enum PackageType {
+  CUSTOM = 'custom',
+  ENVELOPE = 'envelope',
+  PAK = 'pak',
+  TUBE = 'tube',
+  BOX_SMALL = 'box_small',
+  BOX_MEDIUM = 'box_medium',
+  BOX_LARGE = 'box_large',
+  PALLET = 'pallet'
+}
+
+// Interfaces for shipment data structures
+export interface ShipmentItem {
+  item_id: string;
+  order_item_id: string;
+  quantity: number;
+  sku?: string;
+  description?: string;
+  weight?: {
+    value: number;
+    unit: 'lb' | 'kg' | 'oz';
+  };
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+    unit: 'in' | 'cm';
+  };
+  value?: number;
+  currency?: string;
+  serial_numbers?: string[];
+  lot_numbers?: string[];
+  package_id?: string;
+}
+
+export interface Address {
+  name: string;
+  company?: string;
+  street1: string;
+  street2?: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  email?: string;
+  is_residential?: boolean;
+  delivery_instructions?: string;
+}
+
+export interface Package {
+  id: string;
+  type: PackageType;
+  weight: {
+    value: number;
+    unit: 'lb' | 'kg' | 'oz';
+  };
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+    unit: 'in' | 'cm';
+  };
+  items: string[]; // item_ids
+  tracking_number?: string;
+  label_url?: string;
+  customs_info?: {
+    contents_type: string;
+    contents_explanation?: string;
+    customs_certify?: boolean;
+    customs_signer?: string;
+    non_delivery_option?: 'return' | 'abandon';
+    restriction_type?: 'none' | 'other' | 'dangerous_goods';
+    eel_pfc?: string;
+  };
+}
+
+export interface TrackingEvent {
+  timestamp: string;
+  status: string;
+  message: string;
+  location: {
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
+  };
+  exception_details?: {
+    code: string;
+    message: string;
+    resolution?: string;
+  };
+}
+
+export interface ShipmentData {
+  order_id: string;
+  customer_id: string;
+  carrier: ShippingCarrier;
+  service_level: ServiceLevel;
+  shipping_address: Address;
+  return_address?: Address;
+  items: ShipmentItem[];
+  packages: Package[];
+  estimated_delivery_date?: string;
+  shipping_date?: string;
+  signature_required?: boolean;
+  insurance_amount?: number;
+  customs_info?: {
+    contents_type: string;
+    customs_certify: boolean;
+    customs_signer: string;
+    eel_pfc?: string;
+    non_delivery_option: 'return' | 'abandon';
+    restriction_type: 'none' | 'other' | 'dangerous_goods';
+  };
+  metadata?: Record<string, any>;
+  org_id?: string;
+}
+
+export interface Rate {
+  carrier: ShippingCarrier;
+  service_level: ServiceLevel;
+  rate: {
+    amount: number;
+    currency: string;
+  };
+  estimated_days: number;
+  guaranteed_delivery?: boolean;
+}
+
+// Response Interfaces
 interface BaseShipmentResponse {
   id: string;
   object: 'shipment';
+  created_at: string;
+  updated_at: string;
   status: ShipmentStatus;
+  data: ShipmentData;
 }
 
 interface PendingShipmentResponse extends BaseShipmentResponse {
-  status: 'PENDING';
+  status: ShipmentStatus.PENDING;
   pending: true;
 }
 
+interface LabelCreatedShipmentResponse extends BaseShipmentResponse {
+  status: ShipmentStatus.LABEL_CREATED;
+  labelCreated: true;
+  label_info: {
+    tracking_number: string;
+    label_url: string;
+    created_at: string;
+  };
+}
+
 interface ShippedShipmentResponse extends BaseShipmentResponse {
-  status: 'SHIPPED';
+  status: ShipmentStatus.SHIPPED;
   shipped: true;
+  shipping_info: {
+    carrier: ShippingCarrier;
+    tracking_numbers: string[];
+    shipped_at: string;
+  };
 }
 
 interface InTransitShipmentResponse extends BaseShipmentResponse {
-  status: 'IN_TRANSIT';
+  status: ShipmentStatus.IN_TRANSIT;
   inTransit: true;
+  tracking_events: TrackingEvent[];
 }
 
 interface DeliveredShipmentResponse extends BaseShipmentResponse {
-  status: 'DELIVERED';
+  status: ShipmentStatus.DELIVERED;
   delivered: true;
-}
-
-interface CancelledShipmentResponse extends BaseShipmentResponse {
-  status: 'CANCELLED';
-  cancelled: true;
-}
-
-type ShipmentResponse = PendingShipmentResponse | ShippedShipmentResponse | InTransitShipmentResponse | DeliveredShipmentResponse | CancelledShipmentResponse;
-
-interface ApiResponse {
-  update_shipments_by_pk: {
-    id: string;
-    status: ShipmentStatus;
-    [key: string]: any;
+  delivery_info: {
+    delivered_at: string;
+    signed_by?: string;
+    proof_of_delivery_url?: string;
   };
 }
 
-interface ShipmentData {
-  order_id: string;
-  carrier: string;
-  tracking_number: string;
-  estimated_delivery_date: string;
-  items: {
-    item_id: string;
-    quantity: number;
-  }[];
-  shipping_address: {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
+interface ExceptionShipmentResponse extends BaseShipmentResponse {
+  status: ShipmentStatus.EXCEPTION;
+  exception: true;
+  exception_details: {
+    code: string;
+    message: string;
+    timestamp: string;
+    resolution?: string;
   };
-  [key: string]: any;
 }
 
+export type ShipmentResponse =
+  | PendingShipmentResponse
+  | LabelCreatedShipmentResponse
+  | ShippedShipmentResponse
+  | InTransitShipmentResponse
+  | DeliveredShipmentResponse
+  | ExceptionShipmentResponse;
+
+// Custom Error Classes
+export class ShipmentNotFoundError extends Error {
+  constructor(shipmentId: string) {
+    super(`Shipment with ID ${shipmentId} not found`);
+    this.name = 'ShipmentNotFoundError';
+  }
+}
+
+export class ShipmentValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ShipmentValidationError';
+  }
+}
+
+export class CarrierApiError extends Error {
+  constructor(message: string, public readonly carrier: string, public readonly code: string) {
+    super(message);
+    this.name = 'CarrierApiError';
+  }
+}
+
+// Main Shipments Class
 class Shipments {
-  constructor(private stateset: stateset) {}
+  constructor(private readonly stateset: stateset) {}
 
-  private handleCommandResponse(response: any): ShipmentResponse {
-    if (response.error) {
-      throw new Error(response.error);
+  /**
+   * List shipments with optional filtering
+   */
+  async list(params?: {
+    status?: ShipmentStatus;
+    carrier?: ShippingCarrier;
+    order_id?: string;
+    customer_id?: string;
+    date_from?: Date;
+    date_to?: Date;
+    org_id?: string;
+  }): Promise<ShipmentResponse[]> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.carrier) queryParams.append('carrier', params.carrier);
+    if (params?.order_id) queryParams.append('order_id', params.order_id);
+    if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
+    if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
+    if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
+    if (params?.org_id) queryParams.append('org_id', params.org_id);
+
+    const response = await this.stateset.request('GET', `shipments?${queryParams.toString()}`);
+    return response.shipments;
+  }
+
+  /**
+   * Get shipping rates
+   */
+  async getRates(
+    shipmentData: Omit<ShipmentData, 'carrier' | 'service_level'>
+  ): Promise<Rate[]> {
+    const response = await this.stateset.request('POST', 'shipments/rates', shipmentData);
+    return response.rates;
+  }
+
+  /**
+   * Create shipment and generate label
+   */
+  async create(shipmentData: ShipmentData): Promise<LabelCreatedShipmentResponse> {
+    try {
+      const response = await this.stateset.request('POST', 'shipments', shipmentData);
+      return response.shipment;
+    } catch (error: any) {
+      if (error.status === 400) {
+        throw new ShipmentValidationError(error.message);
+      }
+      if (error.carrier_error) {
+        throw new CarrierApiError(error.message, error.carrier, error.carrier_code);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update shipment
+   */
+  async update(
+    shipmentId: string, 
+    shipmentData: Partial<ShipmentData>
+  ): Promise<ShipmentResponse> {
+    try {
+      const response = await this.stateset.request(
+        'PUT',
+        `shipments/${shipmentId}`,
+        shipmentData
+      );
+      return response.shipment;
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new ShipmentNotFoundError(shipmentId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Package management methods
+   */
+  async addPackage(
+    shipmentId: string,
+    packageData: Omit<Package, 'id'>
+  ): Promise<ShipmentResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `shipments/${shipmentId}/packages`,
+      packageData
+    );
+    return response.shipment;
+  }
+
+  async updatePackage(
+    shipmentId: string,
+    packageId: string,
+    packageData: Partial<Package>
+  ): Promise<ShipmentResponse> {
+    const response = await this.stateset.request(
+      'PUT',
+      `shipments/${shipmentId}/packages/${packageId}`,
+      packageData
+    );
+    return response.shipment;
+  }
+
+  /**
+   * Generate return label
+   */
+  async generateReturnLabel(
+    shipmentId: string,
+    returnData?: {
+      return_address?: Address;
+      service_level?: ServiceLevel;
+    }
+  ): Promise<{
+    tracking_number: string;
+    label_url: string;
+    carrier: ShippingCarrier;
+  }> {
+    const response = await this.stateset.request(
+      'POST',
+      `shipments/${shipmentId}/return-label`,
+      returnData
+    );
+    return response.label;
+  }
+
+  /**
+   * Tracking methods
+   */
+  async getTrackingDetails(
+    shipmentId: string,
+    params?: {
+      include_proof_of_delivery?: boolean;
+    }
+  ): Promise<{
+    status: ShipmentStatus;
+    estimated_delivery_date?: string;
+    actual_delivery_date?: string;
+    events: TrackingEvent[];
+    proof_of_delivery_url?: string;
+  }> {
+    const queryParams = new URLSearchParams();
+    if (params?.include_proof_of_delivery) {
+      queryParams.append('include_pod', 'true');
     }
 
-    if (!response.update_shipments_by_pk) {
-      throw new Error('Unexpected response format');
-    }
-
-    const shipmentData = response.update_shipments_by_pk;
-
-    const baseResponse: BaseShipmentResponse = {
-      id: shipmentData.id,
-      object: 'shipment',
-      status: shipmentData.status,
-    };
-
-    switch (shipmentData.status) {
-      case 'PENDING':
-        return { ...baseResponse, status: 'PENDING', pending: true };
-      case 'SHIPPED':
-        return { ...baseResponse, status: 'SHIPPED', shipped: true };
-      case 'IN_TRANSIT':
-        return { ...baseResponse, status: 'IN_TRANSIT', inTransit: true };
-      case 'DELIVERED':
-        return { ...baseResponse, status: 'DELIVERED', delivered: true };
-      case 'CANCELLED':
-        return { ...baseResponse, status: 'CANCELLED', cancelled: true };
-      default:
-        throw new Error(`Unexpected shipment status: ${shipmentData.status}`);
-    }
+    const response = await this.stateset.request(
+      'GET',
+      `shipments/${shipmentId}/tracking?${queryParams.toString()}`
+    );
+    return response.tracking;
   }
 
-  async list(): Promise<ShipmentResponse[]> {
-    const response = await this.stateset.request('GET', 'shipments');
-    return response.map((shipment: any) => this.handleCommandResponse({ update_shipments_by_pk: shipment }));
-  }
+  /**
+   * Get shipment metrics
+   */
+  async getMetrics(params?: {
+    start_date?: Date;
+    end_date?: Date;
+    carrier?: ShippingCarrier;
+    org_id?: string;
+  }): Promise<{
+    total_shipments: number;
+    average_delivery_time: number;
+    on_time_delivery_rate: number;
+    exception_rate: number;
+    average_shipping_cost: number;
+    carrier_breakdown: Record<ShippingCarrier, number>;
+    status_breakdown: Record<ShipmentStatus, number>;
+  }> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
+    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
+    if (params?.carrier) queryParams.append('carrier', params.carrier);
+    if (params?.org_id) queryParams.append('org_id', params.org_id);
 
-  async get(shipmentId: string): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('GET', `shipments/${shipmentId}`);
-    return this.handleCommandResponse({ update_shipments_by_pk: response });
-  }
-
-  async create(shipmentData: ShipmentData): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('POST', 'shipments', shipmentData);
-    return this.handleCommandResponse(response);
-  }
-
-  async update(shipmentId: string, shipmentData: Partial<ShipmentData>): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('PUT', `shipments/${shipmentId}`, shipmentData);
-    return this.handleCommandResponse(response);
-  }
-
-  async delete(shipmentId: string): Promise<void> {
-    await this.stateset.request('DELETE', `shipments/${shipmentId}`);
-  }
-
-  async ship(shipmentId: string): Promise<ShippedShipmentResponse> {
-    const response = await this.stateset.request('POST', `shipments/${shipmentId}/ship`);
-    return this.handleCommandResponse(response) as ShippedShipmentResponse;
-  }
-
-  async markInTransit(shipmentId: string): Promise<InTransitShipmentResponse> {
-    const response = await this.stateset.request('POST', `shipments/${shipmentId}/in-transit`);
-    return this.handleCommandResponse(response) as InTransitShipmentResponse;
-  }
-
-  async markDelivered(shipmentId: string): Promise<DeliveredShipmentResponse> {
-    const response = await this.stateset.request('POST', `shipments/${shipmentId}/delivered`);
-    return this.handleCommandResponse(response) as DeliveredShipmentResponse;
-  }
-
-  async cancel(shipmentId: string): Promise<CancelledShipmentResponse> {
-    const response = await this.stateset.request('POST', `shipments/${shipmentId}/cancel`);
-    return this.handleCommandResponse(response) as CancelledShipmentResponse;
-  }
-
-  async updateTracking(shipmentId: string, trackingNumber: string): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('PUT', `shipments/${shipmentId}/tracking`, { tracking_number: trackingNumber });
-    return this.handleCommandResponse(response);
-  }
-
-  async addItem(shipmentId: string, item: ShipmentData['items'][0]): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('POST', `shipments/${shipmentId}/items`, item);
-    return this.handleCommandResponse(response);
-  }
-
-  async removeItem(shipmentId: string, itemId: string): Promise<ShipmentResponse> {
-    const response = await this.stateset.request('DELETE', `shipments/${shipmentId}/items/${itemId}`);
-    return this.handleCommandResponse(response);
+    const response = await this.stateset.request(
+      'GET',
+      `shipments/metrics?${queryParams.toString()}`
+    );
+    return response.metrics;
   }
 }
 

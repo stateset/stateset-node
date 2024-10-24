@@ -39,6 +39,7 @@ import Leads from './lib/resources/Lead';
 import Assets from './lib/resources/Asset';
 import Contracts from './lib/resources/Contract';
 import Promotions from './lib/resources/Promotion';
+import Schedule from './lib/resources/Schedule';
 interface StatesetOptions {
     apiKey: string;
     baseUrl?: string;
@@ -70,6 +71,7 @@ export declare class stateset {
     rules: Rules;
     attributes: Attributes;
     workflows: Workflows;
+    schedules: Schedule;
     users: Users;
     settlements: Settlements;
     payouts: Payouts;

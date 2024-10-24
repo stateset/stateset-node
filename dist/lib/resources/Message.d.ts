@@ -1,11 +1,200 @@
 import { stateset } from '../../stateset-client';
+export declare enum MessageType {
+    TEXT = "text",
+    CODE = "code",
+    CHART = "chart",
+    IMAGE = "image",
+    VOICE = "voice",
+    COMMERCE = "commerce",
+    SYSTEM = "system",
+    ERROR = "error"
+}
+export declare enum MessageStatus {
+    QUEUED = "queued",
+    SENT = "sent",
+    DELIVERED = "delivered",
+    READ = "read",
+    FAILED = "failed"
+}
+export declare enum MessagePriority {
+    HIGH = "high",
+    NORMAL = "normal",
+    LOW = "low"
+}
+export declare enum VoiceModelProvider {
+    ELEVEN_LABS = "eleven_labs",
+    AMAZON_POLLY = "amazon_polly",
+    GOOGLE_CLOUD = "google_cloud",
+    MICROSOFT_AZURE = "microsoft_azure"
+}
+export interface MessageReceipt {
+    status: MessageStatus;
+    timestamp: string;
+    attempt?: number;
+    error?: string;
+}
+export interface MessageDelivery {
+    sent_receipt?: MessageReceipt;
+    delivered_receipt?: MessageReceipt;
+    read_receipt?: MessageReceipt;
+}
+export interface CodeContent {
+    code: string;
+    language?: string;
+    title?: string;
+    line_numbers?: boolean;
+}
+export interface ChartContent {
+    type: 'line' | 'bar' | 'pie' | 'scatter' | 'custom';
+    data: any;
+    config?: any;
+    chartJSON?: any;
+}
+export interface CommerceContent {
+    product_id?: string;
+    order_id?: string;
+    return_id?: string;
+    warranty_id?: string;
+    action?: string;
+    details?: Record<string, any>;
+}
+export interface VoiceContent {
+    text: string;
+    model_id: string;
+    provider: VoiceModelProvider;
+    voice_url?: string;
+    duration?: number;
+    language?: string;
+    settings?: Record<string, any>;
+}
+export interface MessageMetadata {
+    channel_id?: number;
+    chat_id?: string;
+    session_id?: string;
+    thread_id?: string;
+    references?: string[];
+    tags?: string[];
+    context?: Record<string, any>;
+}
+export interface MessageAnalytics {
+    likes: number;
+    points: number;
+    interactions: number;
+    response_time?: number;
+    sentiment_score?: number;
+    relevance_score?: number;
+}
+export interface MessageData {
+    body: string;
+    type: MessageType;
+    from: string;
+    to: string;
+    fromMe?: boolean;
+    fromAgent?: boolean;
+    is_public?: boolean;
+    priority?: MessagePriority;
+    code_content?: CodeContent;
+    chart_content?: ChartContent;
+    commerce_content?: CommerceContent;
+    voice_content?: VoiceContent;
+    image_url?: string;
+    metadata?: MessageMetadata;
+    analytics?: MessageAnalytics;
+    delivery?: MessageDelivery;
+    org_id?: string;
+    user_id?: string;
+    agent_id?: string;
+}
+export interface MessageResponse {
+    id: string;
+    message_number: number;
+    created_at: string;
+    date: string;
+    time: string;
+    timestamp: string;
+    data: MessageData;
+}
+export declare class MessageNotFoundError extends Error {
+    constructor(messageId: string);
+}
+export declare class MessageValidationError extends Error {
+    constructor(message: string);
+}
+export declare class MessageDeliveryError extends Error {
+    readonly messageId: string;
+    constructor(message: string, messageId: string);
+}
 declare class Messages {
-    private stateset;
+    private readonly stateset;
     constructor(stateset: stateset);
-    list(): Promise<any>;
-    get(messageId: string): Promise<any>;
-    create(messageData: any): Promise<any>;
-    update(messageId: string, messageData: any): Promise<any>;
-    delete(messageId: string): Promise<any>;
+    /**
+     * List messages with optional filtering
+     */
+    list(params?: {
+        type?: MessageType;
+        from?: string;
+        to?: string;
+        chat_id?: string;
+        channel_id?: number;
+        date_from?: Date;
+        date_to?: Date;
+        fromAgent?: boolean;
+        is_public?: boolean;
+        org_id?: string;
+    }): Promise<MessageResponse[]>;
+    /**
+     * Get specific message by ID
+     */
+    get(messageId: string): Promise<MessageResponse>;
+    /**
+     * Create new message
+     */
+    create(messageData: MessageData): Promise<MessageResponse>;
+    /**
+     * Update existing message
+     */
+    update(messageId: string, messageData: Partial<MessageData>): Promise<MessageResponse>;
+    /**
+     * Delete message
+     */
+    delete(messageId: string): Promise<void>;
+    /**
+     * Like message
+     */
+    like(messageId: string): Promise<MessageResponse>;
+    /**
+     * Unlike message
+     */
+    unlike(messageId: string): Promise<MessageResponse>;
+    /**
+     * Mark message as read
+     */
+    markAsRead(messageId: string): Promise<MessageResponse>;
+    /**
+     * Get message analytics
+     */
+    getAnalytics(messageId: string): Promise<MessageAnalytics>;
+    /**
+     * Search messages
+     */
+    search(query: string, params?: {
+        type?: MessageType;
+        date_from?: Date;
+        date_to?: Date;
+        channel_id?: number;
+        chat_id?: string;
+        org_id?: string;
+    }): Promise<MessageResponse[]>;
+    /**
+     * Get conversation thread
+     */
+    getThread(messageId: string, params?: {
+        limit?: number;
+        include_context?: boolean;
+    }): Promise<MessageResponse[]>;
+    /**
+     * Validate message data
+     */
+    private validateMessageData;
 }
 export default Messages;

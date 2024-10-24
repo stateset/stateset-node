@@ -1,139 +1,453 @@
 import { stateset } from '../../stateset-client';
 
-type ManufacturerOrderStatus = 'DRAFT' | 'SUBMITTED' | 'IN_PRODUCTION' | 'COMPLETED' | 'CANCELLED';
-
-interface BaseManufacturerOrderResponse {
-  id: string;
-  object: 'manufacturerorder';
-  status: ManufacturerOrderStatus;
+// Enums for manufacturing management
+export enum ManufacturerOrderStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  IN_PRODUCTION = 'IN_PRODUCTION',
+  QUALITY_CHECK = 'QUALITY_CHECK',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  ON_HOLD = 'ON_HOLD'
 }
 
-interface DraftManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-  status: 'DRAFT';
-  draft: true;
+export enum ProductionPriority {
+  URGENT = 'urgent',
+  HIGH = 'high',
+  NORMAL = 'normal',
+  LOW = 'low'
 }
 
-interface SubmittedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-  status: 'SUBMITTED';
-  submitted: true;
+export enum QualityCheckStatus {
+  PENDING = 'pending',
+  PASSED = 'passed',
+  FAILED = 'failed',
+  CONDITIONAL = 'conditional'
 }
 
-interface InProductionManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-  status: 'IN_PRODUCTION';
-  inProduction: true;
-}
-
-interface CompletedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-  status: 'COMPLETED';
-  completed: true;
-}
-
-interface CancelledManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-  status: 'CANCELLED';
-  cancelled: true;
-}
-
-type ManufacturerOrderResponse = DraftManufacturerOrderResponse | SubmittedManufacturerOrderResponse | InProductionManufacturerOrderResponse | CompletedManufacturerOrderResponse | CancelledManufacturerOrderResponse;
-
-interface ApiResponse {
-  update_manufacturerorders_by_pk: {
-    id: string;
-    status: ManufacturerOrderStatus;
-    [key: string]: any;
+// Interfaces for manufacturing data structures
+export interface ProductionSchedule {
+  start_date: string;
+  end_date: string;
+  shifts: Array<{
+    shift_id: string;
+    start_time: string;
+    end_time: string;
+    machine_id?: string;
+    operator_id?: string;
+  }>;
+  milestone_dates: {
+    materials_ready?: string;
+    production_start?: string;
+    quality_check?: string;
+    packaging_start?: string;
+    shipping_ready?: string;
   };
 }
 
-interface ManufacturerOrderData {
+export interface MaterialRequirement {
+  material_id: string;
+  quantity: number;
+  unit: string;
+  allocated: boolean;
+  warehouse_location?: string;
+  substitute_materials?: string[];
+  cost_per_unit?: number;
+}
+
+export interface QualitySpecification {
+  parameter: string;
+  minimum?: number;
+  maximum?: number;
+  target?: number;
+  unit?: string;
+  tolerance?: number;
+  measurement_method?: string;
+  critical: boolean;
+}
+
+export interface ProductionCosts {
+  materials: number;
+  labor: number;
+  overhead: number;
+  machine_time: number;
+  additional_costs?: Record<string, number>;
+  total: number;
+  currency: string;
+}
+
+export interface ManufacturerOrderData {
   manufacturer_id: string;
   product_id: string;
   quantity: number;
   expected_completion_date: string;
-  [key: string]: any;
+  priority: ProductionPriority;
+  production_schedule?: ProductionSchedule;
+  material_requirements: MaterialRequirement[];
+  quality_specifications: QualitySpecification[];
+  packaging_requirements?: {
+    packaging_type: string;
+    units_per_package: number;
+    special_instructions?: string[];
+  };
+  shipping_information?: {
+    destination: string;
+    shipping_method: string;
+    tracking_number?: string;
+  };
+  production_notes?: string[];
+  estimated_costs?: ProductionCosts;
+  customer_id?: string;
+  order_reference?: string;
+  org_id?: string;
 }
 
+export interface ProductionUpdate {
+  timestamp: string;
+  stage: string;
+  completed_quantity: number;
+  quality_metrics?: {
+    inspected: number;
+    passed: number;
+    failed: number;
+    rework: number;
+  };
+  machine_id?: string;
+  operator_id?: string;
+  notes?: string;
+  issues?: Array<{
+    type: string;
+    description: string;
+    severity: string;
+    resolution?: string;
+  }>;
+}
+
+export interface QualityCheckResult {
+  status: QualityCheckStatus;
+  inspector_id: string;
+  inspection_date: string;
+  measurements: Array<{
+    parameter: string;
+    value: number;
+    unit: string;
+    passed: boolean;
+    notes?: string;
+  }>;
+  defects_found?: Array<{
+    type: string;
+    quantity: number;
+    severity: string;
+    images?: string[];
+  }>;
+  overall_notes?: string;
+  corrective_actions?: string[];
+}
+
+// Response Interfaces
+interface BaseManufacturerOrderResponse {
+  id: string;
+  object: 'manufacturerorder';
+  created_at: string;
+  updated_at: string;
+  status: ManufacturerOrderStatus;
+  data: ManufacturerOrderData;
+}
+
+interface DraftManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.DRAFT;
+  draft: true;
+}
+
+interface SubmittedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.SUBMITTED;
+  submitted: true;
+}
+
+interface InProductionManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.IN_PRODUCTION;
+  inProduction: true;
+  production_updates: ProductionUpdate[];
+}
+
+interface QualityCheckManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.QUALITY_CHECK;
+  qualityCheck: true;
+  quality_results?: QualityCheckResult;
+}
+
+interface CompletedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.COMPLETED;
+  completed: true;
+  final_costs: ProductionCosts;
+  quality_results: QualityCheckResult;
+}
+
+interface CancelledManufacturerOrderResponse extends BaseManufacturerOrderResponse {
+  status: ManufacturerOrderStatus.CANCELLED;
+  cancelled: true;
+  cancellation_reason: string;
+  cancellation_costs?: ProductionCosts;
+}
+
+export type ManufacturerOrderResponse = 
+  | DraftManufacturerOrderResponse 
+  | SubmittedManufacturerOrderResponse 
+  | InProductionManufacturerOrderResponse 
+  | QualityCheckManufacturerOrderResponse
+  | CompletedManufacturerOrderResponse 
+  | CancelledManufacturerOrderResponse;
+
+// Custom Error Classes
+export class ManufacturerOrderNotFoundError extends Error {
+  constructor(orderId: string) {
+    super(`Manufacturer order with ID ${orderId} not found`);
+    this.name = 'ManufacturerOrderNotFoundError';
+  }
+}
+
+export class ManufacturerOrderStateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ManufacturerOrderStateError';
+  }
+}
+
+export class MaterialRequirementError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MaterialRequirementError';
+  }
+}
+
+// Main ManufacturerOrders Class
 class ManufacturerOrders {
-  constructor(private stateset: stateset) {}
+  constructor(private readonly stateset: stateset) {}
 
-  private handleCommandResponse(response: any): ManufacturerOrderResponse {
-    if (response.error) {
-      throw new Error(response.error);
+  /**
+   * List manufacturer orders with optional filtering
+   */
+  async list(params?: {
+    status?: ManufacturerOrderStatus;
+    manufacturer_id?: string;
+    product_id?: string;
+    priority?: ProductionPriority;
+    from_date?: Date;
+    to_date?: Date;
+    org_id?: string;
+  }): Promise<ManufacturerOrderResponse[]> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.manufacturer_id) queryParams.append('manufacturer_id', params.manufacturer_id);
+    if (params?.product_id) queryParams.append('product_id', params.product_id);
+    if (params?.priority) queryParams.append('priority', params.priority);
+    if (params?.from_date) queryParams.append('from_date', params.from_date.toISOString());
+    if (params?.to_date) queryParams.append('to_date', params.to_date.toISOString());
+    if (params?.org_id) queryParams.append('org_id', params.org_id);
+
+    const response = await this.stateset.request('GET', `manufacturerorders?${queryParams.toString()}`);
+    return response.orders;
+  }
+
+  /**
+   * Get specific manufacturer order by ID
+   */
+  async get(orderId: string): Promise<ManufacturerOrderResponse> {
+    try {
+      const response = await this.stateset.request('GET', `manufacturerorders/${orderId}`);
+      return response.order;
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new ManufacturerOrderNotFoundError(orderId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Create new manufacturer order
+   */
+  async create(orderData: ManufacturerOrderData): Promise<ManufacturerOrderResponse> {
+    // Validate material requirements
+    for (const material of orderData.material_requirements) {
+      if (material.quantity <= 0) {
+        throw new MaterialRequirementError(
+          `Invalid quantity ${material.quantity} for material ${material.material_id}`
+        );
+      }
     }
 
-    if (!response.update_manufacturerorders_by_pk) {
-      throw new Error('Unexpected response format');
-    }
+    const response = await this.stateset.request('POST', 'manufacturerorders', orderData);
+    return response.order;
+  }
 
-    const orderData = response.update_manufacturerorders_by_pk;
-
-    const baseResponse: BaseManufacturerOrderResponse = {
-      id: orderData.id,
-      object: 'manufacturerorder',
-      status: orderData.status,
-    };
-
-    switch (orderData.status) {
-      case 'DRAFT':
-        return { ...baseResponse, status: 'DRAFT', draft: true };
-      case 'SUBMITTED':
-        return { ...baseResponse, status: 'SUBMITTED', submitted: true };
-      case 'IN_PRODUCTION':
-        return { ...baseResponse, status: 'IN_PRODUCTION', inProduction: true };
-      case 'COMPLETED':
-        return { ...baseResponse, status: 'COMPLETED', completed: true };
-      case 'CANCELLED':
-        return { ...baseResponse, status: 'CANCELLED', cancelled: true };
-      default:
-        throw new Error(`Unexpected manufacturer order status: ${orderData.status}`);
+  /**
+   * Update existing manufacturer order
+   */
+  async update(
+    orderId: string, 
+    orderData: Partial<ManufacturerOrderData>
+  ): Promise<ManufacturerOrderResponse> {
+    try {
+      const response = await this.stateset.request('PUT', `manufacturerorders/${orderId}`, orderData);
+      return response.order;
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new ManufacturerOrderNotFoundError(orderId);
+      }
+      throw error;
     }
   }
 
-  async list(): Promise<ManufacturerOrderResponse[]> {
-    const response = await this.stateset.request('GET', 'manufacturerorders');
-    return response.map((order: any) => this.handleCommandResponse({ update_manufacturerorders_by_pk: order }));
+  /**
+   * Delete manufacturer order
+   */
+  async delete(orderId: string): Promise<void> {
+    try {
+      await this.stateset.request('DELETE', `manufacturerorders/${orderId}`);
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new ManufacturerOrderNotFoundError(orderId);
+      }
+      throw error;
+    }
   }
 
-  async get(manufacturerOrderId: string): Promise<ManufacturerOrderResponse> {
-    const response = await this.stateset.request('GET', `manufacturerorders/${manufacturerOrderId}`);
-    return this.handleCommandResponse({ update_manufacturerorders_by_pk: response });
+  /**
+   * Status management methods
+   */
+  async submit(orderId: string): Promise<SubmittedManufacturerOrderResponse> {
+    const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/submit`);
+    return response.order as SubmittedManufacturerOrderResponse;
   }
 
-  async create(manufacturerOrderData: ManufacturerOrderData): Promise<ManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', 'manufacturerorders', manufacturerOrderData);
-    return this.handleCommandResponse(response);
+  async startProduction(
+    orderId: string,
+    startData?: {
+      machine_id?: string;
+      operator_id?: string;
+      start_notes?: string;
+    }
+  ): Promise<InProductionManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST', 
+      `manufacturerorders/${orderId}/start-production`,
+      startData
+    );
+    return response.order as InProductionManufacturerOrderResponse;
   }
 
-  async update(manufacturerOrderId: string, manufacturerOrderData: Partial<ManufacturerOrderData>): Promise<ManufacturerOrderResponse> {
-    const response = await this.stateset.request('PUT', `manufacturerorders/${manufacturerOrderId}`, manufacturerOrderData);
-    return this.handleCommandResponse(response);
+  async submitQualityCheck(
+    orderId: string,
+    qualityData: QualityCheckResult
+  ): Promise<QualityCheckManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/quality-check`,
+      qualityData
+    );
+    return response.order as QualityCheckManufacturerOrderResponse;
   }
 
-  async delete(manufacturerOrderId: string): Promise<void> {
-    await this.stateset.request('DELETE', `manufacturerorders/${manufacturerOrderId}`);
+  async complete(
+    orderId: string,
+    completionData: {
+      final_quantity: number;
+      completion_notes?: string;
+    }
+  ): Promise<CompletedManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/complete`,
+      completionData
+    );
+    return response.order as CompletedManufacturerOrderResponse;
   }
 
-  async submit(manufacturerOrderId: string): Promise<SubmittedManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', `manufacturerorders/${manufacturerOrderId}/submit`);
-    return this.handleCommandResponse(response) as SubmittedManufacturerOrderResponse;
+  async cancel(
+    orderId: string,
+    cancellationData: {
+      reason: string;
+      cancellation_costs?: ProductionCosts;
+    }
+  ): Promise<CancelledManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/cancel`,
+      cancellationData
+    );
+    return response.order as CancelledManufacturerOrderResponse;
   }
 
-  async startProduction(manufacturerOrderId: string): Promise<InProductionManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', `manufacturerorders/${manufacturerOrderId}/start-production`);
-    return this.handleCommandResponse(response) as InProductionManufacturerOrderResponse;
+  /**
+   * Production management methods
+   */
+  async updateProductionStatus(
+    orderId: string, 
+    update: ProductionUpdate
+  ): Promise<InProductionManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/production-status`,
+      update
+    );
+    return response.order as InProductionManufacturerOrderResponse;
   }
 
-  async complete(manufacturerOrderId: string): Promise<CompletedManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', `manufacturerorders/${manufacturerOrderId}/complete`);
-    return this.handleCommandResponse(response) as CompletedManufacturerOrderResponse;
+  async getProductionHistory(
+    orderId: string,
+    params?: {
+      from_date?: Date;
+      to_date?: Date;
+      stage?: string;
+    }
+  ): Promise<ProductionUpdate[]> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.from_date) queryParams.append('from_date', params.from_date.toISOString());
+    if (params?.to_date) queryParams.append('to_date', params.to_date.toISOString());
+    if (params?.stage) queryParams.append('stage', params.stage);
+
+    const response = await this.stateset.request(
+      'GET',
+      `manufacturerorders/${orderId}/production-history?${queryParams.toString()}`
+    );
+    return response.history;
   }
 
-  async cancel(manufacturerOrderId: string): Promise<CancelledManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', `manufacturerorders/${manufacturerOrderId}/cancel`);
-    return this.handleCommandResponse(response) as CancelledManufacturerOrderResponse;
+  /**
+   * Cost tracking methods
+   */
+  async updateCosts(
+    orderId: string,
+    costs: ProductionCosts
+  ): Promise<ManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/costs`,
+      costs
+    );
+    return response.order;
   }
 
-  async updateProductionStatus(manufacturerOrderId: string, statusUpdate: string): Promise<ManufacturerOrderResponse> {
-    const response = await this.stateset.request('POST', `manufacturerorders/${manufacturerOrderId}/production-status`, { status_update: statusUpdate });
-    return this.handleCommandResponse(response);
+  /**
+   * Material management methods
+   */
+  async allocateMaterials(
+    orderId: string,
+    materialAllocations: Array<{
+      material_id: string;
+      quantity: number;
+      warehouse_location: string;
+    }>
+  ): Promise<ManufacturerOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `manufacturerorders/${orderId}/allocate-materials`,
+      { allocations: materialAllocations }
+    );
+    return response.order;
   }
 }
 

@@ -39,7 +39,7 @@ import Leads from './lib/resources/Lead';
 import Assets from './lib/resources/Asset';
 import Contracts from './lib/resources/Contract';
 import Promotions from './lib/resources/Promotion';
-
+import Schedule from './lib/resources/Schedule';
 interface StatesetOptions {
   apiKey: string;
   baseUrl?: string;
@@ -72,6 +72,7 @@ export class stateset {
   public rules: Rules;
   public attributes: Attributes;
   public workflows: Workflows;
+  public schedules: Schedule;
   public users: Users;
   public settlements: Settlements;
   public payouts: Payouts;
@@ -117,6 +118,7 @@ export class stateset {
     this.rules = new Rules(this);
     this.attributes = new Attributes(this);
     this.workflows = new Workflows(this);
+    this.schedules = new Schedule(this);
     this.users = new Users(this);
     this.settlements = new Settlements(this);
     this.payouts = new Payouts(this);
