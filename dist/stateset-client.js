@@ -29,6 +29,10 @@ const ShipmentLine_1 = __importDefault(require("./lib/resources/ShipmentLine"));
 const WorkOrderLine_1 = __importDefault(require("./lib/resources/WorkOrderLine"));
 const PurchaseOrderLine_1 = __importDefault(require("./lib/resources/PurchaseOrderLine"));
 const ManufactureOrderLine_1 = __importDefault(require("./lib/resources/ManufactureOrderLine"));
+const PackingList_1 = __importDefault(require("./lib/resources/PackingList"));
+const PackingListLine_1 = __importDefault(require("./lib/resources/PackingListLine"));
+const AdvancedShippingNotice_1 = __importDefault(require("./lib/resources/AdvancedShippingNotice"));
+const AdvancedShippingNoticeLine_1 = __importDefault(require("./lib/resources/AdvancedShippingNoticeLine"));
 const Settlement_1 = __importDefault(require("./lib/resources/Settlement"));
 const Payout_1 = __importDefault(require("./lib/resources/Payout"));
 const Pick_1 = __importDefault(require("./lib/resources/Pick"));
@@ -46,6 +50,8 @@ const Asset_1 = __importDefault(require("./lib/resources/Asset"));
 const Contract_1 = __importDefault(require("./lib/resources/Contract"));
 const Promotion_1 = __importDefault(require("./lib/resources/Promotion"));
 const Schedule_1 = __importDefault(require("./lib/resources/Schedule"));
+const ShipTo_1 = __importDefault(require("./lib/resources/ShipTo"));
+const Log_1 = __importDefault(require("./lib/resources/Log"));
 class stateset {
     constructor(options) {
         this.apiKey = options.apiKey;
@@ -59,6 +65,7 @@ class stateset {
         this.orderItems = new OrderLine_1.default(this);
         this.shipments = new Shipment_1.default(this);
         this.shipmentItems = new ShipmentLine_1.default(this);
+        this.shipTo = new ShipTo_1.default(this);
         this.inventory = new Inventory_1.default(this);
         this.customers = new Customer_1.default(this);
         this.workorders = new WorkOrder_1.default(this);
@@ -68,6 +75,10 @@ class stateset {
         this.purchaseorderItems = new PurchaseOrderLine_1.default(this);
         this.manufacturerorders = new ManufactureOrder_1.default(this);
         this.manufacturerorderItems = new ManufactureOrderLine_1.default(this);
+        this.packinglists = new PackingList_1.default(this);
+        this.packinglistItems = new PackingListLine_1.default(this);
+        this.asns = new AdvancedShippingNotice_1.default(this);
+        this.asnItems = new AdvancedShippingNoticeLine_1.default(this);
         this.channels = new Channel_1.default(this);
         this.messages = new Message_1.default(this);
         this.agents = new Agent_1.default(this);
@@ -92,6 +103,7 @@ class stateset {
         this.assets = new Asset_1.default(this);
         this.contracts = new Contract_1.default(this);
         this.promotions = new Promotion_1.default(this);
+        this.logs = new Log_1.default(this);
     }
     async request(method, path, data) {
         const url = `${this.baseUrl}/${path}`;

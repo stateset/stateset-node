@@ -23,6 +23,10 @@ import ShipmentLines from './lib/resources/ShipmentLine';
 import WorkOrderLines from './lib/resources/WorkOrderLine';
 import PurchaseOrderLines from './lib/resources/PurchaseOrderLine';
 import ManufactureOrderLines from './lib/resources/ManufactureOrderLine';
+import PackingList from './lib/resources/PackingList';
+import PackingListLines from './lib/resources/PackingListLine';
+import ASN from './lib/resources/AdvancedShippingNotice';
+import ASNLine from './lib/resources/AdvancedShippingNoticeLine';
 import Settlements from './lib/resources/Settlement';
 import Payouts from './lib/resources/Payout';
 import Picks from './lib/resources/Pick';
@@ -40,6 +44,8 @@ import Assets from './lib/resources/Asset';
 import Contracts from './lib/resources/Contract';
 import Promotions from './lib/resources/Promotion';
 import Schedule from './lib/resources/Schedule';
+import ShipTo from './lib/resources/ShipTo';
+import Logs from './lib/resources/Log';
 interface StatesetOptions {
     apiKey: string;
     baseUrl?: string;
@@ -56,6 +62,7 @@ export declare class stateset {
     orderItems: OrderLines;
     shipments: Shipments;
     shipmentItems: ShipmentLines;
+    shipTo: ShipTo;
     inventory: Inventory;
     customers: Customers;
     workorders: Workorders;
@@ -65,6 +72,10 @@ export declare class stateset {
     purchaseorderItems: PurchaseOrderLines;
     manufacturerorders: ManufacturerOrders;
     manufacturerorderItems: ManufactureOrderLines;
+    packinglists: PackingList;
+    packinglistItems: PackingListLines;
+    asns: ASN;
+    asnItems: ASNLine;
     channels: Channels;
     messages: Messages;
     agents: Agents;
@@ -89,6 +100,7 @@ export declare class stateset {
     assets: Assets;
     contracts: Contracts;
     promotions: Promotions;
+    logs: Logs;
     constructor(options: StatesetOptions);
     request(method: string, path: string, data?: any): Promise<any>;
 }

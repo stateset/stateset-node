@@ -23,6 +23,10 @@ import ShipmentLines from './lib/resources/ShipmentLine';
 import WorkOrderLines from './lib/resources/WorkOrderLine';
 import PurchaseOrderLines from './lib/resources/PurchaseOrderLine';
 import ManufactureOrderLines from './lib/resources/ManufactureOrderLine';
+import PackingList from './lib/resources/PackingList';
+import PackingListLines from './lib/resources/PackingListLine';
+import ASN from './lib/resources/AdvancedShippingNotice';
+import ASNLine from './lib/resources/AdvancedShippingNoticeLine';
 import Settlements from './lib/resources/Settlement';
 import Payouts from './lib/resources/Payout';
 import Picks from './lib/resources/Pick';
@@ -40,6 +44,9 @@ import Assets from './lib/resources/Asset';
 import Contracts from './lib/resources/Contract';
 import Promotions from './lib/resources/Promotion';
 import Schedule from './lib/resources/Schedule';
+import ShipTo from './lib/resources/ShipTo';
+import Logs from './lib/resources/Log';
+
 interface StatesetOptions {
   apiKey: string;
   baseUrl?: string;
@@ -57,6 +64,7 @@ export class stateset {
   public orderItems: OrderLines;
   public shipments: Shipments;
   public shipmentItems: ShipmentLines;
+  public shipTo: ShipTo;
   public inventory: Inventory;
   public customers: Customers;
   public workorders: Workorders;
@@ -66,6 +74,10 @@ export class stateset {
   public purchaseorderItems: PurchaseOrderLines;
   public manufacturerorders: ManufacturerOrders;
   public manufacturerorderItems: ManufactureOrderLines;
+  public packinglists: PackingList;
+  public packinglistItems: PackingListLines;
+  public asns: ASN;
+  public asnItems: ASNLine;
   public channels: Channels;
   public messages: Messages;
   public agents: Agents;
@@ -90,6 +102,7 @@ export class stateset {
   public assets: Assets;
   public contracts: Contracts;
   public promotions: Promotions;
+  public logs: Logs;
 
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey;
@@ -103,6 +116,7 @@ export class stateset {
     this.orderItems = new OrderLines(this);
     this.shipments = new Shipments(this);
     this.shipmentItems = new ShipmentLines(this);
+    this.shipTo = new ShipTo(this);
     this.inventory = new Inventory(this);
     this.customers = new Customers(this);
     this.workorders = new Workorders(this);
@@ -112,6 +126,10 @@ export class stateset {
     this.purchaseorderItems = new PurchaseOrderLines(this);
     this.manufacturerorders = new ManufacturerOrders(this);
     this.manufacturerorderItems = new ManufactureOrderLines(this);
+    this.packinglists = new PackingList(this);
+    this.packinglistItems = new PackingListLines(this);
+    this.asns = new ASN(this);
+    this.asnItems = new ASNLine(this);
     this.channels = new Channels(this);
     this.messages = new Messages(this);
     this.agents = new Agents(this);
@@ -136,6 +154,7 @@ export class stateset {
     this.assets = new Assets(this);
     this.contracts = new Contracts(this);
     this.promotions = new Promotions(this);
+    this.logs = new Logs(this);
   }
 
   async request(method: string, path: string, data?: any) {
