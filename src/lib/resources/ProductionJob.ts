@@ -223,6 +223,8 @@ class ProductionJob {
 
   /**
    * Get a specific production job by ID
+   * @param jobId - Production job ID
+   * @returns JobResponse object
    */
   async get(jobId: string): Promise<JobResponse> {
     try {
@@ -238,6 +240,8 @@ class ProductionJob {
 
   /**
    * Create a new production job
+   * @param jobData - JobData object
+   * @returns JobResponse object
    */
   async create(jobData: JobData): Promise<JobResponse> {
     this.validateJobData(jobData);
@@ -247,6 +251,9 @@ class ProductionJob {
 
   /**
    * Update an existing production job
+   * @param jobId - Production job ID
+   * @param jobData - Partial<JobData> object
+   * @returns JobResponse object
    */
   async update(jobId: string, jobData: Partial<JobData>): Promise<JobResponse> {
     try {
@@ -262,6 +269,7 @@ class ProductionJob {
 
   /**
    * Delete a production job
+   * @param jobId - Production job ID
    */
   async delete(jobId: string): Promise<void> {
     try {
@@ -276,12 +284,20 @@ class ProductionJob {
 
   /**
    * Status management methods
+   * @param jobId - Production job ID
+   * @returns InProgressJobResponse object
    */
   async start(jobId: string): Promise<InProgressJobResponse> {
     const response = await this.stateset.request('POST', `productionjob/${jobId}/start`);
     return this.handleCommandResponse(response) as InProgressJobResponse;
   }
 
+  /**
+   * Complete a production job
+   * @param jobId - Production job ID
+   * @param results - Results object
+   * @returns CompletedJobResponse object
+   */
   async complete(jobId: string, results: { 
     yield_quantity: number;
     scrap_quantity?: number;
@@ -291,16 +307,33 @@ class ProductionJob {
     return this.handleCommandResponse(response) as CompletedJobResponse;
   }
 
+  /**
+   * Cancel a production job
+   * @param jobId - Production job ID
+   * @param reason - Reason for cancellation
+   * @returns CancelledJobResponse object
+   */
   async cancel(jobId: string, reason: string): Promise<CancelledJobResponse> {
     const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, { reason });
     return this.handleCommandResponse(response) as CancelledJobResponse;
   }
 
+  /**
+   * Hold a production job
+   * @param jobId - Production job ID
+   * @param reason - Reason for holding
+   * @returns OnHoldJobResponse object
+   */
   async hold(jobId: string, reason: string): Promise<OnHoldJobResponse> {
     const response = await this.stateset.request('POST', `productionjob/${jobId}/hold`, { reason });
     return this.handleCommandResponse(response) as OnHoldJobResponse;
   }
 
+  /**
+   * Resume a production job
+   * @param jobId - Production job ID
+   * @returns InProgressJobResponse object
+   */
   async resume(jobId: string): Promise<InProgressJobResponse> {
     const response = await this.stateset.request('POST', `productionjob/${jobId}/resume`);
     return this.handleCommandResponse(response) as InProgressJobResponse;
@@ -318,6 +351,9 @@ class ProductionJob {
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Record material usage
+   */
   async recordMaterialUsage(jobId: string, materialId: string, usage: {
     quantity_used: number;
     scrap_quantity?: number;
@@ -335,6 +371,9 @@ class ProductionJob {
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update a quality check
+   */
   async updateQualityCheck(jobId: string, checkId: string, result: {
     result: 'PASS' | 'FAIL';
     inspector: string;

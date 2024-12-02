@@ -55,6 +55,8 @@ class Machines {
     }
     /**
      * List machines with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of MachineResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -73,6 +75,8 @@ class Machines {
     }
     /**
      * Get specific machine by ID
+     * @param machineId - Machine ID
+     * @returns MachineResponse object
      */
     async get(machineId) {
         try {
@@ -88,6 +92,8 @@ class Machines {
     }
     /**
      * Create new machine
+     * @param machineData - MachineData object
+     * @returns MachineResponse object
      */
     async create(machineData) {
         try {
@@ -103,6 +109,9 @@ class Machines {
     }
     /**
      * Update existing machine
+     * @param machineId - Machine ID
+     * @param machineData - Partial<MachineData> object
+     * @returns MachineResponse object
      */
     async update(machineId, machineData) {
         try {
@@ -118,6 +127,7 @@ class Machines {
     }
     /**
      * Delete machine
+     * @param machineId - Machine ID
      */
     async delete(machineId) {
         try {
@@ -132,6 +142,9 @@ class Machines {
     }
     /**
      * Log machine runtime
+     * @param machineId - Machine ID
+     * @param data - RuntimeData object
+     * @returns MachineResponse object
      */
     async logRuntime(machineId, data) {
         if (new Date(data.end_time) <= new Date(data.start_time)) {
@@ -150,6 +163,9 @@ class Machines {
     }
     /**
      * Schedule maintenance
+     * @param machineId - Machine ID
+     * @param data - MaintenanceData object
+     * @returns MaintenanceMachineResponse object
      */
     async scheduleMaintenance(machineId, data) {
         try {
@@ -165,6 +181,9 @@ class Machines {
     }
     /**
      * Get performance metrics
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns PerformanceMetrics object
      */
     async getPerformanceMetrics(machineId, params) {
         const queryParams = new URLSearchParams();
@@ -177,7 +196,9 @@ class Machines {
         return this.stateset.request('GET', `machines/${machineId}/performance?${queryParams.toString()}`);
     }
     /**
-     * Machine status management methods
+     * Set machine status to operational
+     * @param machineId - Machine ID
+     * @returns OperationalMachineResponse object
      */
     async setOperational(machineId) {
         const response = await this.stateset.request('POST', `machines/${machineId}/set-operational`);
@@ -193,6 +214,9 @@ class Machines {
     }
     /**
      * Get maintenance history
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MaintenanceData objects
      */
     async getMaintenanceHistory(machineId, params) {
         const queryParams = new URLSearchParams();
@@ -209,6 +233,9 @@ class Machines {
     }
     /**
      * Get machine alerts
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MalfunctionAlert objects
      */
     async getAlerts(machineId, params) {
         const queryParams = new URLSearchParams();

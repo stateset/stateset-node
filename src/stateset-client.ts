@@ -33,6 +33,7 @@ import Picks from './lib/resources/Pick';
 import CycleCounts from './lib/resources/CycleCount';
 import Machines from './lib/resources/Machine';
 import WasteAndScrap from './lib/resources/WasteAndScrap';
+import Warehouses from './lib/resources/Warehouse';
 import Suppliers from './lib/resources/Supplier';
 import Locations from './lib/resources/Location';
 import Vendors from './lib/resources/Vendor';
@@ -92,6 +93,7 @@ export class stateset {
   public cycleCounts: CycleCounts;
   public machines: Machines;
   public wasteAndScrap: WasteAndScrap;
+  public warehouses: Warehouses;
   public suppliers: Suppliers;
   public locations: Locations;
   public vendors: Vendors;
@@ -144,6 +146,7 @@ export class stateset {
     this.cycleCounts = new CycleCounts(this);
     this.machines = new Machines(this);
     this.wasteAndScrap = new WasteAndScrap(this);
+    this.warehouses = new Warehouses(this);
     this.suppliers = new Suppliers(this);
     this.locations = new Locations(this);
     this.vendors = new Vendors(this);

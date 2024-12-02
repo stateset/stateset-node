@@ -212,6 +212,8 @@ class Workflows {
 
   /**
    * List workflows with optional filtering
+   * @param params - Filtering parameters
+   * @returns Array of WorkflowResponse objects
    */
   async list(params?: {
     type?: WorkflowType;
@@ -234,6 +236,8 @@ class Workflows {
 
   /**
    * Get specific workflow
+   * @param workflowId - Workflow ID
+   * @returns WorkflowResponse object
    */
   async get(workflowId: string): Promise<WorkflowResponse> {
     try {
@@ -249,6 +253,8 @@ class Workflows {
 
   /**
    * Create new workflow
+   * @param workflowData - WorkflowData object
+   * @returns WorkflowResponse object
    */
   async create(workflowData: WorkflowData): Promise<WorkflowResponse> {
     this.validateWorkflowData(workflowData);
@@ -266,6 +272,9 @@ class Workflows {
 
   /**
    * Update workflow
+   * @param workflowId - Workflow ID
+   * @param workflowData - Partial<WorkflowData> object
+   * @returns WorkflowResponse object
    */
   async update(
     workflowId: string,
@@ -284,6 +293,7 @@ class Workflows {
 
   /**
    * Delete workflow
+   * @param workflowId - Workflow ID
    */
   async delete(workflowId: string): Promise<void> {
     try {
@@ -298,6 +308,9 @@ class Workflows {
 
   /**
    * Execute workflow
+   * @param workflowId - Workflow ID
+   * @param input - Input data
+   * @returns WorkflowExecution object
    */
   async execute(
     workflowId: string,
@@ -317,6 +330,9 @@ class Workflows {
 
   /**
    * Get workflow execution status
+   * @param workflowId - Workflow ID
+   * @param executionId - Execution ID
+   * @returns WorkflowExecution object
    */
   async getExecutionStatus(
     workflowId: string,
@@ -331,6 +347,9 @@ class Workflows {
 
   /**
    * Get workflow execution history
+   * @param workflowId - Workflow ID
+   * @param params - Filtering parameters
+   * @returns Array of WorkflowExecution objects
    */
   async getExecutionHistory(
     workflowId: string,
@@ -357,6 +376,9 @@ class Workflows {
 
   /**
    * Clone workflow
+   * @param workflowId - Workflow ID
+   * @param options - Cloning options
+   * @returns WorkflowResponse object
    */
   async cloneWorkflow(
     workflowId: string,
@@ -375,6 +397,7 @@ class Workflows {
 
   /**
    * Validate workflow data
+   * @param data - WorkflowData object
    */
   private validateWorkflowData(data: WorkflowData): void {
     if (!data.name) {

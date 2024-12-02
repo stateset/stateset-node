@@ -184,6 +184,8 @@ declare class Workflows {
     constructor(stateset: stateset);
     /**
      * List workflows with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of WorkflowResponse objects
      */
     list(params?: {
         type?: WorkflowType;
@@ -194,30 +196,47 @@ declare class Workflows {
     }): Promise<WorkflowResponse[]>;
     /**
      * Get specific workflow
+     * @param workflowId - Workflow ID
+     * @returns WorkflowResponse object
      */
     get(workflowId: string): Promise<WorkflowResponse>;
     /**
      * Create new workflow
+     * @param workflowData - WorkflowData object
+     * @returns WorkflowResponse object
      */
     create(workflowData: WorkflowData): Promise<WorkflowResponse>;
     /**
      * Update workflow
+     * @param workflowId - Workflow ID
+     * @param workflowData - Partial<WorkflowData> object
+     * @returns WorkflowResponse object
      */
     update(workflowId: string, workflowData: Partial<WorkflowData>): Promise<WorkflowResponse>;
     /**
      * Delete workflow
+     * @param workflowId - Workflow ID
      */
     delete(workflowId: string): Promise<void>;
     /**
      * Execute workflow
+     * @param workflowId - Workflow ID
+     * @param input - Input data
+     * @returns WorkflowExecution object
      */
     execute(workflowId: string, input: Record<string, any>): Promise<WorkflowExecution>;
     /**
      * Get workflow execution status
+     * @param workflowId - Workflow ID
+     * @param executionId - Execution ID
+     * @returns WorkflowExecution object
      */
     getExecutionStatus(workflowId: string, executionId: string): Promise<WorkflowExecution>;
     /**
      * Get workflow execution history
+     * @param workflowId - Workflow ID
+     * @param params - Filtering parameters
+     * @returns Array of WorkflowExecution objects
      */
     getExecutionHistory(workflowId: string, params?: {
         start_date?: Date;
@@ -227,6 +246,9 @@ declare class Workflows {
     }): Promise<WorkflowExecution[]>;
     /**
      * Clone workflow
+     * @param workflowId - Workflow ID
+     * @param options - Cloning options
+     * @returns WorkflowResponse object
      */
     cloneWorkflow(workflowId: string, options?: {
         new_name?: string;
@@ -234,6 +256,7 @@ declare class Workflows {
     }): Promise<WorkflowResponse>;
     /**
      * Validate workflow data
+     * @param data - WorkflowData object
      */
     private validateWorkflowData;
 }

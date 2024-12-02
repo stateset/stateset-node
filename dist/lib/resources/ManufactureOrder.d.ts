@@ -184,6 +184,8 @@ declare class ManufacturerOrders {
     constructor(stateset: stateset);
     /**
      * List manufacturer orders with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ManufacturerOrderResponse objects
      */
     list(params?: {
         status?: ManufacturerOrderStatus;
@@ -196,34 +198,66 @@ declare class ManufacturerOrders {
     }): Promise<ManufacturerOrderResponse[]>;
     /**
      * Get specific manufacturer order by ID
+     * @param orderId - Manufacturer order ID
+     * @returns ManufacturerOrderResponse object
      */
     get(orderId: string): Promise<ManufacturerOrderResponse>;
     /**
      * Create new manufacturer order
+     * @param orderData - ManufacturerOrderData object
+     * @returns ManufacturerOrderResponse object
      */
     create(orderData: ManufacturerOrderData): Promise<ManufacturerOrderResponse>;
     /**
      * Update existing manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param orderData - Partial<ManufacturerOrderData> object
+     * @returns ManufacturerOrderResponse object
      */
     update(orderId: string, orderData: Partial<ManufacturerOrderData>): Promise<ManufacturerOrderResponse>;
     /**
      * Delete manufacturer order
+     * @param orderId - Manufacturer order ID
      */
     delete(orderId: string): Promise<void>;
     /**
      * Status management methods
      */
     submit(orderId: string): Promise<SubmittedManufacturerOrderResponse>;
+    /**
+     * Start production for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param startData - Optional start data
+     * @returns InProductionManufacturerOrderResponse object
+     */
     startProduction(orderId: string, startData?: {
         machine_id?: string;
         operator_id?: string;
         start_notes?: string;
     }): Promise<InProductionManufacturerOrderResponse>;
+    /**
+     * Submit quality check for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param qualityData - QualityCheckResult object
+     * @returns QualityCheckManufacturerOrderResponse object
+     */
     submitQualityCheck(orderId: string, qualityData: QualityCheckResult): Promise<QualityCheckManufacturerOrderResponse>;
+    /**
+     * Complete a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param completionData - Completion data
+     * @returns CompletedManufacturerOrderResponse object
+     */
     complete(orderId: string, completionData: {
         final_quantity: number;
         completion_notes?: string;
     }): Promise<CompletedManufacturerOrderResponse>;
+    /**
+     * Cancel a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param cancellationData - Cancellation data
+     * @returns CancelledManufacturerOrderResponse object
+     */
     cancel(orderId: string, cancellationData: {
         reason: string;
         cancellation_costs?: ProductionCosts;
@@ -232,6 +266,12 @@ declare class ManufacturerOrders {
      * Production management methods
      */
     updateProductionStatus(orderId: string, update: ProductionUpdate): Promise<InProductionManufacturerOrderResponse>;
+    /**
+     * Get production history for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param params - Optional filtering parameters
+     * @returns Array of ProductionUpdate objects
+     */
     getProductionHistory(orderId: string, params?: {
         from_date?: Date;
         to_date?: Date;

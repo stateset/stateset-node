@@ -181,6 +181,8 @@ class Channels {
 
   /**
    * List channels with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of ChannelResponse objects
    */
   async list(params?: {
     type?: ChannelType;
@@ -203,6 +205,8 @@ class Channels {
 
   /**
    * Get specific channel
+   * @param channelId - Channel ID
+   * @returns ChannelResponse object
    */
   async get(channelId: string): Promise<ChannelResponse> {
     try {
@@ -218,6 +222,8 @@ class Channels {
 
   /**
    * Create new channel
+   * @param channelData - ChannelData object
+   * @returns ChannelResponse object
    */
   async create(channelData: ChannelData): Promise<ChannelResponse> {
     this.validateChannelData(channelData);
@@ -235,6 +241,9 @@ class Channels {
 
   /**
    * Update channel
+   * @param channelId - Channel ID
+   * @param channelData - Partial<ChannelData> object
+   * @returns ChannelResponse object
    */
   async update(
     channelId: string,
@@ -253,6 +262,7 @@ class Channels {
 
   /**
    * Delete channel
+   * @param channelId - Channel ID
    */
   async delete(channelId: string): Promise<void> {
     try {
@@ -267,6 +277,10 @@ class Channels {
 
   /**
    * Update channel status
+   * @param channelId - Channel ID
+   * @param status - ChannelStatus
+   * @param reason - Optional reason for status change
+   * @returns ChannelResponse object
    */
   async updateStatus(
     channelId: string,
@@ -283,6 +297,9 @@ class Channels {
 
   /**
    * Get channel metrics
+   * @param channelId - Channel ID
+   * @param params - Optional filtering parameters
+   * @returns ChannelMetrics object
    */
   async getMetrics(
     channelId: string,
@@ -305,6 +322,9 @@ class Channels {
 
   /**
    * Test channel configuration
+   * @param channelId - Channel ID
+   * @param testData - Optional test data
+   * @returns Object containing success, latency, and error (if any)
    */
   async testChannel(
     channelId: string,
@@ -327,6 +347,9 @@ class Channels {
 
   /**
    * Update channel voice configuration
+   * @param channelId - Channel ID
+   * @param voiceConfig - VoiceConfig object
+   * @returns ChannelResponse object
    */
   async updateVoiceConfig(
     channelId: string,
@@ -342,6 +365,9 @@ class Channels {
 
   /**
    * Update channel response configuration
+   * @param channelId - Channel ID
+   * @param responseConfig - ResponseConfig object
+   * @returns ChannelResponse object
    */
   async updateResponseConfig(
     channelId: string,
@@ -357,6 +383,7 @@ class Channels {
 
   /**
    * Validate channel data
+   * @param data - ChannelData object
    */
   private validateChannelData(data: ChannelData): void {
     if (!data.name) {

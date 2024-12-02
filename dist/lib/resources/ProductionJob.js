@@ -116,6 +116,8 @@ class ProductionJob {
     }
     /**
      * Get a specific production job by ID
+     * @param jobId - Production job ID
+     * @returns JobResponse object
      */
     async get(jobId) {
         try {
@@ -131,6 +133,8 @@ class ProductionJob {
     }
     /**
      * Create a new production job
+     * @param jobData - JobData object
+     * @returns JobResponse object
      */
     async create(jobData) {
         this.validateJobData(jobData);
@@ -139,6 +143,9 @@ class ProductionJob {
     }
     /**
      * Update an existing production job
+     * @param jobId - Production job ID
+     * @param jobData - Partial<JobData> object
+     * @returns JobResponse object
      */
     async update(jobId, jobData) {
         try {
@@ -154,6 +161,7 @@ class ProductionJob {
     }
     /**
      * Delete a production job
+     * @param jobId - Production job ID
      */
     async delete(jobId) {
         try {
@@ -168,23 +176,48 @@ class ProductionJob {
     }
     /**
      * Status management methods
+     * @param jobId - Production job ID
+     * @returns InProgressJobResponse object
      */
     async start(jobId) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/start`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * Complete a production job
+     * @param jobId - Production job ID
+     * @param results - Results object
+     * @returns CompletedJobResponse object
+     */
     async complete(jobId, results) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/complete`, results);
         return this.handleCommandResponse(response);
     }
+    /**
+     * Cancel a production job
+     * @param jobId - Production job ID
+     * @param reason - Reason for cancellation
+     * @returns CancelledJobResponse object
+     */
     async cancel(jobId, reason) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, { reason });
         return this.handleCommandResponse(response);
     }
+    /**
+     * Hold a production job
+     * @param jobId - Production job ID
+     * @param reason - Reason for holding
+     * @returns OnHoldJobResponse object
+     */
     async hold(jobId, reason) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/hold`, { reason });
         return this.handleCommandResponse(response);
     }
+    /**
+     * Resume a production job
+     * @param jobId - Production job ID
+     * @returns InProgressJobResponse object
+     */
     async resume(jobId) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/resume`);
         return this.handleCommandResponse(response);
@@ -196,6 +229,9 @@ class ProductionJob {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/materials/${materialId}/allocate`, allocation);
         return this.handleCommandResponse(response);
     }
+    /**
+     * Record material usage
+     */
     async recordMaterialUsage(jobId, materialId, usage) {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/materials/${materialId}/usage`, usage);
         return this.handleCommandResponse(response);
@@ -207,6 +243,9 @@ class ProductionJob {
         const response = await this.stateset.request('POST', `productionjob/${jobId}/quality-checks`, check);
         return this.handleCommandResponse(response);
     }
+    /**
+     * Update a quality check
+     */
     async updateQualityCheck(jobId, checkId, result) {
         const response = await this.stateset.request('PUT', `productionjob/${jobId}/quality-checks/${checkId}`, result);
         return this.handleCommandResponse(response);

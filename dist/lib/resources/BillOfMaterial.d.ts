@@ -106,10 +106,15 @@ declare class BillOfMaterials {
     get(bomId: string): Promise<BOMResponse>;
     /**
      * Create a new BOM
+     * @param bomData - BOMData object
+     * @returns BOMResponse object
      */
     create(bomData: BOMData): Promise<BOMResponse>;
     /**
      * Update an existing BOM
+     * @param bomId - BOM ID
+     * @param bomData - Partial<BOMData> object
+     * @returns BOMResponse object
      */
     update(bomId: string, bomData: Partial<BOMData>): Promise<BOMResponse>;
     /**

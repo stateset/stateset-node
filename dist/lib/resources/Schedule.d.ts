@@ -159,6 +159,8 @@ declare class Schedule {
     constructor(stateset: stateset);
     /**
      * List schedules with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of ScheduleResponse objects
      */
     list(params?: {
         status?: ScheduleStatus;
@@ -169,30 +171,45 @@ declare class Schedule {
     }): Promise<ScheduleResponse[]>;
     /**
      * Get specific schedule by ID
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     get(scheduleId: string): Promise<ScheduleResponse>;
     /**
      * Create new schedule
+     * @param scheduleData - ScheduleData object
+     * @returns ScheduleResponse object
      */
     create(scheduleData: ScheduleData): Promise<ScheduleResponse>;
     /**
      * Update existing schedule
+     * @param scheduleId - Schedule ID
+     * @param scheduleData - Partial<ScheduleData> object
+     * @returns ScheduleResponse object
      */
     update(scheduleId: string, scheduleData: Partial<ScheduleData>): Promise<ScheduleResponse>;
     /**
      * Delete schedule
+     * @param scheduleId - Schedule ID
      */
     delete(scheduleId: string): Promise<void>;
     /**
      * Pause schedule
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     pause(scheduleId: string): Promise<ScheduleResponse>;
     /**
      * Resume schedule
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     resume(scheduleId: string): Promise<ScheduleResponse>;
     /**
      * Trigger immediate execution
+     * @param scheduleId - Schedule ID
+     * @param params - Parameters object
+     * @returns ExecutionResult object
      */
     triggerExecution(scheduleId: string, params?: {
         override_params?: Record<string, any>;
@@ -200,6 +217,9 @@ declare class Schedule {
     }): Promise<ExecutionResult>;
     /**
      * Get execution history
+     * @param scheduleId - Schedule ID
+     * @param params - Filtering parameters
+     * @returns Array of ExecutionResult objects
      */
     getExecutionHistory(scheduleId: string, params?: {
         start_date?: Date;
@@ -209,6 +229,9 @@ declare class Schedule {
     }): Promise<ExecutionResult[]>;
     /**
      * Get next scheduled executions
+     * @param scheduleId - Schedule ID
+     * @param limit - Number of executions to return
+     * @returns Array of objects with scheduled_time and estimation_basis
      */
     getNextExecutions(scheduleId: string, limit?: number): Promise<Array<{
         scheduled_time: string;
@@ -216,6 +239,8 @@ declare class Schedule {
     }>>;
     /**
      * Validate schedule data
+     * @param data - ScheduleData object
+     * @param isUpdate - Boolean value
      */
     private validateScheduleData;
 }

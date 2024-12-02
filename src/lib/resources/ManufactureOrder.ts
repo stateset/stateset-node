@@ -226,6 +226,8 @@ class ManufacturerOrders {
 
   /**
    * List manufacturer orders with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of ManufacturerOrderResponse objects
    */
   async list(params?: {
     status?: ManufacturerOrderStatus;
@@ -252,6 +254,8 @@ class ManufacturerOrders {
 
   /**
    * Get specific manufacturer order by ID
+   * @param orderId - Manufacturer order ID
+   * @returns ManufacturerOrderResponse object
    */
   async get(orderId: string): Promise<ManufacturerOrderResponse> {
     try {
@@ -267,6 +271,8 @@ class ManufacturerOrders {
 
   /**
    * Create new manufacturer order
+   * @param orderData - ManufacturerOrderData object
+   * @returns ManufacturerOrderResponse object
    */
   async create(orderData: ManufacturerOrderData): Promise<ManufacturerOrderResponse> {
     // Validate material requirements
@@ -284,6 +290,9 @@ class ManufacturerOrders {
 
   /**
    * Update existing manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param orderData - Partial<ManufacturerOrderData> object
+   * @returns ManufacturerOrderResponse object
    */
   async update(
     orderId: string, 
@@ -302,6 +311,7 @@ class ManufacturerOrders {
 
   /**
    * Delete manufacturer order
+   * @param orderId - Manufacturer order ID
    */
   async delete(orderId: string): Promise<void> {
     try {
@@ -317,11 +327,17 @@ class ManufacturerOrders {
   /**
    * Status management methods
    */
-  async submit(orderId: string): Promise<SubmittedManufacturerOrderResponse> {
+    async submit(orderId: string): Promise<SubmittedManufacturerOrderResponse> {
     const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/submit`);
     return response.order as SubmittedManufacturerOrderResponse;
   }
 
+  /**
+   * Start production for a manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param startData - Optional start data
+   * @returns InProductionManufacturerOrderResponse object
+   */
   async startProduction(
     orderId: string,
     startData?: {
@@ -338,6 +354,12 @@ class ManufacturerOrders {
     return response.order as InProductionManufacturerOrderResponse;
   }
 
+  /**
+   * Submit quality check for a manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param qualityData - QualityCheckResult object
+   * @returns QualityCheckManufacturerOrderResponse object
+   */
   async submitQualityCheck(
     orderId: string,
     qualityData: QualityCheckResult
@@ -350,6 +372,12 @@ class ManufacturerOrders {
     return response.order as QualityCheckManufacturerOrderResponse;
   }
 
+  /**
+   * Complete a manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param completionData - Completion data
+   * @returns CompletedManufacturerOrderResponse object
+   */
   async complete(
     orderId: string,
     completionData: {
@@ -365,6 +393,12 @@ class ManufacturerOrders {
     return response.order as CompletedManufacturerOrderResponse;
   }
 
+  /**
+   * Cancel a manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param cancellationData - Cancellation data
+   * @returns CancelledManufacturerOrderResponse object
+   */
   async cancel(
     orderId: string,
     cancellationData: {
@@ -395,6 +429,12 @@ class ManufacturerOrders {
     return response.order as InProductionManufacturerOrderResponse;
   }
 
+  /**
+   * Get production history for a manufacturer order
+   * @param orderId - Manufacturer order ID
+   * @param params - Optional filtering parameters
+   * @returns Array of ProductionUpdate objects
+   */ 
   async getProductionHistory(
     orderId: string,
     params?: {

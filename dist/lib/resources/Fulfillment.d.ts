@@ -56,15 +56,68 @@ export default class Fulfillment {
     private client;
     constructor(client: any);
     private handleCommandResponse;
+    /**
+     * Create fulfillment
+     * @param data - FulfillmentData object
+     * @returns FulfillmentResponse object
+     */
     create(data: FulfillmentData): Promise<FulfillmentResponse>;
+    /**
+     * Get fulfillment
+     * @param id - Fulfillment ID
+     * @returns FulfillmentResponse object
+     */
     get(id: string): Promise<FulfillmentResponse>;
+    /**
+     * Update fulfillment
+     * @param id - Fulfillment ID
+     * @param data - Partial<FulfillmentData> object
+     * @returns FulfillmentResponse object
+     */
     update(id: string, data: Partial<FulfillmentData>): Promise<FulfillmentResponse>;
+    /**
+     * List fulfillments
+     * @param params - Optional filtering parameters
+     * @returns Array of FulfillmentResponse objects
+     */
     list(params?: any): Promise<FulfillmentResponse[]>;
+    /**
+     * Cancel fulfillment
+     * @param id - Fulfillment ID
+     * @returns CancelledFulfillmentResponse object
+     */
     cancel(id: string): Promise<CancelledFulfillmentResponse>;
+    /**
+     * Create shipment
+     * @param id - Fulfillment ID
+     * @param data - ShipmentData object
+     * @returns ShippedFulfillmentResponse object
+     */
     createShipment(id: string, data: ShipmentData): Promise<ShippedFulfillmentResponse>;
+    /**
+     * Get shipments
+     * @param id - Fulfillment ID
+     * @returns Array of ShipmentData objects
+     */
     getShipments(id: string): Promise<ShipmentData[]>;
+    /**
+     * Update tracking information
+     * @param id - Fulfillment ID
+     * @param data - TrackingData object
+     * @returns FulfillmentResponse object
+     */
     updateTracking(id: string, data: TrackingData): Promise<FulfillmentResponse>;
+    /**
+     * Process fulfillment
+     * @param id - Fulfillment ID
+     * @returns ProcessingFulfillmentResponse object
+     */
     process(id: string): Promise<ProcessingFulfillmentResponse>;
+    /**
+     * Mark fulfillment as delivered
+     * @param id - Fulfillment ID
+     * @returns DeliveredFulfillmentResponse object
+     */
     markAsDelivered(id: string): Promise<DeliveredFulfillmentResponse>;
 }
 export {};

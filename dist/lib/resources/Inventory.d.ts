@@ -126,26 +126,39 @@ declare class Inventory {
     }): Promise<InventoryResponse[]>;
     /**
      * Get specific inventory by ID
+     * @param inventoryId - Inventory ID
+     * @returns InventoryResponse object
      */
     get(inventoryId: string): Promise<InventoryResponse>;
     /**
      * Create new inventory
+     * @param inventoryData - InventoryData object
+     * @returns InventoryResponse object
      */
     create(inventoryData: InventoryData): Promise<InventoryResponse>;
     /**
      * Update existing inventory
+     * @param inventoryId - Inventory ID
+     * @param inventoryData - Partial<InventoryData> object
+     * @returns InventoryResponse object
      */
     update(inventoryId: string, inventoryData: Partial<InventoryData>): Promise<InventoryResponse>;
     /**
      * Delete inventory
+     * @param inventoryId - Inventory ID
      */
     delete(inventoryId: string): Promise<void>;
     /**
      * Adjust inventory quantity
+     * @param inventoryId - Inventory ID
+     * @param adjustment - InventoryAdjustment object
+     * @returns InventoryResponse object
      */
     adjustQuantity(inventoryId: string, adjustment: InventoryAdjustment): Promise<InventoryResponse>;
     /**
      * Transfer inventory between locations
+     * @param transfer - InventoryTransfer object
+     * @returns Object with source, destination, and transfer_id
      */
     transfer(transfer: InventoryTransfer): Promise<{
         source: InventoryResponse;
@@ -154,6 +167,9 @@ declare class Inventory {
     }>;
     /**
      * Get inventory history
+     * @param inventoryId - Inventory ID
+     * @param params - Optional filtering parameters
+     * @returns Array of InventoryHistoryEntry objects
      */
     getHistory(inventoryId: string, params?: {
         start_date?: Date;
@@ -163,6 +179,10 @@ declare class Inventory {
     }): Promise<InventoryHistoryEntry[]>;
     /**
      * Reserve inventory
+     * @param inventoryId - Inventory ID
+     * @param quantity - Number of items to reserve
+     * @param params - Optional reservation parameters
+     * @returns InventoryResponse object
      */
     reserve(inventoryId: string, quantity: number, params?: {
         order_id?: string;
@@ -171,10 +191,15 @@ declare class Inventory {
     }): Promise<InventoryResponse>;
     /**
      * Release reserved inventory
+     * @param inventoryId - Inventory ID
+     * @param reservationId - Reservation ID
+     * @returns InventoryResponse object
      */
     releaseReservation(inventoryId: string, reservationId: string): Promise<InventoryResponse>;
     /**
      * Get low stock alerts
+     * @param params - Optional filtering parameters
+     * @returns Array of InventoryResponse objects with threshold
      */
     getLowStockAlerts(params?: {
         org_id?: string;

@@ -100,6 +100,8 @@ class Agents {
     }
     /**
      * Create a new agent
+     * @param params - AgentCreateParams object
+     * @returns AgentResponse object
      */
     async create(params) {
         const response = await this.stateset.request('POST', 'agents', params);
@@ -107,6 +109,9 @@ class Agents {
     }
     /**
      * Update an existing agent
+     * @param agentId - Agent ID
+     * @param params - AgentUpdateParams object
+     * @returns AgentResponse object
      */
     async update(agentId, params) {
         try {
@@ -122,6 +127,7 @@ class Agents {
     }
     /**
      * Delete an agent
+     * @param agentId - Agent ID
      */
     async delete(agentId) {
         try {
@@ -136,6 +142,8 @@ class Agents {
     }
     /**
      * Set agent status methods
+     * @param agentId - Agent ID
+     * @returns AgentResponse object
      */
     async setAvailable(agentId) {
         const response = await this.stateset.request('POST', `agents/${agentId}/set-available`);
@@ -154,7 +162,7 @@ class Agents {
         return this.handleCommandResponse(response);
     }
     /**
-     * Task management methods
+    * Task management methods
      */
     async assignTask(agentId, taskData) {
         const response = await this.stateset.request('POST', `agents/${agentId}/assign-task`, taskData);
@@ -166,12 +174,19 @@ class Agents {
     }
     /**
      * Get agent performance metrics
+     * @param agentId - Agent ID
+     * @param timeframe - Timeframe for metrics ('day', 'week', 'month')
+     * @returns Object containing metrics
      */
     async getMetrics(agentId, timeframe = 'day') {
         return this.stateset.request('GET', `agents/${agentId}/metrics?timeframe=${timeframe}`);
     }
     /**
      * Get agent availability schedule
+     * @param agentId - Agent ID
+     * @param startDate - Start date
+     * @param endDate - End date
+     * @returns Object containing schedule
      */
     async getSchedule(agentId, startDate, endDate) {
         const params = new URLSearchParams({

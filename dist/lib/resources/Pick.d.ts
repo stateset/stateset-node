@@ -144,22 +144,33 @@ declare class Picks {
     }): Promise<PickResponse[]>;
     /**
      * Get specific pick
+     * @param pickId - Pick ID
+     * @returns PickResponse object
      */
     get(pickId: string): Promise<PickResponse>;
     /**
      * Create new pick
+     * @param pickData - PickData object
+     * @returns PickResponse object
      */
     create(pickData: PickData): Promise<PickResponse>;
     /**
      * Update pick
+     * @param pickId - Pick ID
+     * @param pickData - Partial<PickData> object
+     * @returns PickResponse object
      */
     update(pickId: string, pickData: Partial<PickData>): Promise<PickResponse>;
     /**
      * Delete pick
+     * @param pickId - Pick ID
      */
     delete(pickId: string): Promise<void>;
     /**
      * Optimize pick route
+     * @param pickId - Pick ID
+     * @param params - Optional parameters
+     * @returns PickRoute object
      */
     optimizeRoute(pickId: string, params?: {
         algorithm?: 'shortest_path' | 'nearest_neighbor' | 'genetic';
@@ -171,6 +182,9 @@ declare class Picks {
     }): Promise<PickRoute>;
     /**
      * Start pick operation
+     * @param pickId - Pick ID
+     * @param startData - Start data object
+     * @returns PickResponse object
      */
     start(pickId: string, startData: {
         picker_id: string;
@@ -178,6 +192,9 @@ declare class Picks {
     }): Promise<PickResponse>;
     /**
      * Record item pick
+     * @param pickId - Pick ID
+     * @param itemData - Item data object
+     * @returns PickResponse object
      */
     recordItemPick(pickId: string, itemData: {
         item_id: string;
@@ -188,10 +205,16 @@ declare class Picks {
     }): Promise<PickResponse>;
     /**
      * Complete quality check
+     * @param pickId - Pick ID
+     * @param checkData - Quality check data object
+     * @returns PickResponse object
      */
     completeQualityCheck(pickId: string, checkData: QualityCheck): Promise<PickResponse>;
     /**
      * Complete pick
+     * @param pickId - Pick ID
+     * @param completionData - Completion data object
+     * @returns PickResponse object
      */
     complete(pickId: string, completionData: {
         end_time: string;
@@ -200,10 +223,13 @@ declare class Picks {
     }): Promise<PickResponse>;
     /**
      * Get pick metrics
+     * @param pickId - Pick ID
+     * @returns PickMetrics object
      */
     getMetrics(pickId: string): Promise<PickMetrics>;
     /**
      * Validate pick data
+     * @param data - PickData object
      */
     private validatePickData;
 }

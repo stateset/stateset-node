@@ -89,6 +89,8 @@ class Picks {
     }
     /**
      * Get specific pick
+     * @param pickId - Pick ID
+     * @returns PickResponse object
      */
     async get(pickId) {
         try {
@@ -104,6 +106,8 @@ class Picks {
     }
     /**
      * Create new pick
+     * @param pickData - PickData object
+     * @returns PickResponse object
      */
     async create(pickData) {
         this.validatePickData(pickData);
@@ -120,6 +124,9 @@ class Picks {
     }
     /**
      * Update pick
+     * @param pickId - Pick ID
+     * @param pickData - Partial<PickData> object
+     * @returns PickResponse object
      */
     async update(pickId, pickData) {
         try {
@@ -135,6 +142,7 @@ class Picks {
     }
     /**
      * Delete pick
+     * @param pickId - Pick ID
      */
     async delete(pickId) {
         try {
@@ -149,6 +157,9 @@ class Picks {
     }
     /**
      * Optimize pick route
+     * @param pickId - Pick ID
+     * @param params - Optional parameters
+     * @returns PickRoute object
      */
     async optimizeRoute(pickId, params) {
         const response = await this.stateset.request('POST', `picks/${pickId}/optimize-route`, params);
@@ -156,6 +167,9 @@ class Picks {
     }
     /**
      * Start pick operation
+     * @param pickId - Pick ID
+     * @param startData - Start data object
+     * @returns PickResponse object
      */
     async start(pickId, startData) {
         const response = await this.stateset.request('POST', `picks/${pickId}/start`, startData);
@@ -163,6 +177,9 @@ class Picks {
     }
     /**
      * Record item pick
+     * @param pickId - Pick ID
+     * @param itemData - Item data object
+     * @returns PickResponse object
      */
     async recordItemPick(pickId, itemData) {
         const response = await this.stateset.request('POST', `picks/${pickId}/items/${itemData.item_id}/pick`, itemData);
@@ -170,6 +187,9 @@ class Picks {
     }
     /**
      * Complete quality check
+     * @param pickId - Pick ID
+     * @param checkData - Quality check data object
+     * @returns PickResponse object
      */
     async completeQualityCheck(pickId, checkData) {
         const response = await this.stateset.request('POST', `picks/${pickId}/quality-check`, checkData);
@@ -177,6 +197,9 @@ class Picks {
     }
     /**
      * Complete pick
+     * @param pickId - Pick ID
+     * @param completionData - Completion data object
+     * @returns PickResponse object
      */
     async complete(pickId, completionData) {
         const response = await this.stateset.request('POST', `picks/${pickId}/complete`, completionData);
@@ -184,6 +207,8 @@ class Picks {
     }
     /**
      * Get pick metrics
+     * @param pickId - Pick ID
+     * @returns PickMetrics object
      */
     async getMetrics(pickId) {
         const response = await this.stateset.request('GET', `picks/${pickId}/metrics`);
@@ -191,6 +216,7 @@ class Picks {
     }
     /**
      * Validate pick data
+     * @param data - PickData object
      */
     validatePickData(data) {
         if (!data.warehouse_id) {

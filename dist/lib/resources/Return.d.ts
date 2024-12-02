@@ -165,6 +165,8 @@ declare class Returns {
     constructor(stateset: stateset);
     /**
      * List returns with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of ReturnResponse objects
      */
     list(params?: {
         status?: ReturnStatus;
@@ -176,36 +178,73 @@ declare class Returns {
     }): Promise<ReturnResponse[]>;
     /**
      * Get specific return by ID
+     * @param returnId - Return ID
+     * @returns ReturnResponse object
      */
     get(returnId: string): Promise<ReturnResponse>;
     /**
      * Create new return request
+     * @param returnData - ReturnData object
+     * @returns ReturnResponse object
      */
     create(returnData: ReturnData): Promise<ReturnResponse>;
     /**
      * Update return request
+     * @param returnId - Return ID
+     * @param returnData - Partial<ReturnData> object
+     * @returns ReturnResponse object
      */
     update(returnId: string, returnData: Partial<ReturnData>): Promise<ReturnResponse>;
     /**
      * Process return status changes
+     * @param returnId - Return ID
+     * @param approvalData - Approval data object
+     * @returns ApprovedReturnResponse object
      */
     approve(returnId: string, approvalData: {
         shipping_label: ShippingLabel;
         notes?: string;
     }): Promise<ApprovedReturnResponse>;
+    /**
+     * Mark return as received
+     * @param returnId - Return ID
+     * @param receiptData - Receipt data object
+     * @returns ReceivedReturnResponse object
+     */
     markReceived(returnId: string, receiptData: {
         received_by: string;
         condition_notes?: string;
         images?: string[];
     }): Promise<ReceivedReturnResponse>;
+    /**
+     * Submit return inspection
+     * @param returnId - Return ID
+     * @param inspection - QualityInspection object
+     * @returns InspectingReturnResponse object
+     */
     submitInspection(returnId: string, inspection: QualityInspection): Promise<InspectingReturnResponse>;
+    /**
+     * Process return refund
+     * @param returnId - Return ID
+     * @param refundDetails - RefundDetails object
+     * @returns CompletedReturnResponse object
+     */
     processRefund(returnId: string, refundDetails: RefundDetails): Promise<CompletedReturnResponse>;
+    /**
+     * Reject return
+     * @param returnId - Return ID
+     * @param rejectionData - Rejection data object
+     * @returns RejectedReturnResponse object
+     */
     reject(returnId: string, rejectionData: {
         reason: string;
         notes?: string;
     }): Promise<RejectedReturnResponse>;
     /**
      * Generate shipping label
+     * @param returnId - Return ID
+     * @param shippingData - Shipping data object
+     * @returns ShippingLabel object
      */
     generateShippingLabel(returnId: string, shippingData?: {
         carrier?: string;
@@ -214,6 +253,8 @@ declare class Returns {
     }): Promise<ShippingLabel>;
     /**
      * Get return metrics
+     * @param params - Filtering parameters
+     * @returns Metrics object
      */
     getMetrics(params?: {
         start_date?: Date;

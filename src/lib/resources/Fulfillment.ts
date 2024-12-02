@@ -109,50 +109,103 @@ export default class Fulfillment {
     }
   }
 
+  /**
+   * Create fulfillment
+   * @param data - FulfillmentData object
+   * @returns FulfillmentResponse object
+   */
   async create(data: FulfillmentData): Promise<FulfillmentResponse> {
     const response = await this.client.request('POST', 'fulfillments', data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Get fulfillment
+   * @param id - Fulfillment ID
+   * @returns FulfillmentResponse object
+   */
   async get(id: string): Promise<FulfillmentResponse> {
     const response = await this.client.request('GET', `fulfillments/${id}`);
     return this.handleCommandResponse({ update_fulfillments_by_pk: response });
   }
 
+  /**
+   * Update fulfillment
+   * @param id - Fulfillment ID
+   * @param data - Partial<FulfillmentData> object
+   * @returns FulfillmentResponse object
+   */
   async update(id: string, data: Partial<FulfillmentData>): Promise<FulfillmentResponse> {
     const response = await this.client.request('PUT', `fulfillments/${id}`, data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * List fulfillments
+   * @param params - Optional filtering parameters
+   * @returns Array of FulfillmentResponse objects
+   */
   async list(params?: any): Promise<FulfillmentResponse[]> {
     const response = await this.client.request('GET', 'fulfillments', params);
     return response.map((fulfillment: any) => this.handleCommandResponse({ update_fulfillments_by_pk: fulfillment }));
   }
 
+  /**
+   * Cancel fulfillment
+   * @param id - Fulfillment ID
+   * @returns CancelledFulfillmentResponse object
+   */
   async cancel(id: string): Promise<CancelledFulfillmentResponse> {
     const response = await this.client.request('POST', `fulfillments/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledFulfillmentResponse;
   }
 
+  /**
+   * Create shipment
+   * @param id - Fulfillment ID
+   * @param data - ShipmentData object
+   * @returns ShippedFulfillmentResponse object
+   */
   async createShipment(id: string, data: ShipmentData): Promise<ShippedFulfillmentResponse> {
     const response = await this.client.request('POST', `fulfillments/${id}/shipments`, data);
     return this.handleCommandResponse(response) as ShippedFulfillmentResponse;
   }
 
+  /**
+   * Get shipments
+   * @param id - Fulfillment ID
+   * @returns Array of ShipmentData objects
+   */
   async getShipments(id: string): Promise<ShipmentData[]> {
     return this.client.request('GET', `fulfillments/${id}/shipments`);
   }
 
+  /**
+   * Update tracking information
+   * @param id - Fulfillment ID
+   * @param data - TrackingData object
+   * @returns FulfillmentResponse object
+   */
   async updateTracking(id: string, data: TrackingData): Promise<FulfillmentResponse> {
     const response = await this.client.request('PUT', `fulfillments/${id}/tracking`, data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Process fulfillment
+   * @param id - Fulfillment ID
+   * @returns ProcessingFulfillmentResponse object
+   */
   async process(id: string): Promise<ProcessingFulfillmentResponse> {
     const response = await this.client.request('POST', `fulfillments/${id}/process`);
     return this.handleCommandResponse(response) as ProcessingFulfillmentResponse;
   }
 
+  /**
+   * Mark fulfillment as delivered
+   * @param id - Fulfillment ID
+   * @returns DeliveredFulfillmentResponse object
+   */
   async markAsDelivered(id: string): Promise<DeliveredFulfillmentResponse> {
     const response = await this.client.request('POST', `fulfillments/${id}/deliver`);
     return this.handleCommandResponse(response) as DeliveredFulfillmentResponse;

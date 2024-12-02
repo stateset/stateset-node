@@ -129,6 +129,8 @@ declare class Messages {
     constructor(stateset: stateset);
     /**
      * List messages with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     list(params?: {
         type?: MessageType;
@@ -144,38 +146,57 @@ declare class Messages {
     }): Promise<MessageResponse[]>;
     /**
      * Get specific message by ID
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     get(messageId: string): Promise<MessageResponse>;
     /**
      * Create new message
+     * @param messageData - MessageData object
+     * @returns MessageResponse object
      */
     create(messageData: MessageData): Promise<MessageResponse>;
     /**
      * Update existing message
+     * @param messageId - Message ID
+     * @param messageData - Partial<MessageData> object
+     * @returns MessageResponse object
      */
     update(messageId: string, messageData: Partial<MessageData>): Promise<MessageResponse>;
     /**
      * Delete message
+     * @param messageId - Message ID
      */
     delete(messageId: string): Promise<void>;
     /**
      * Like message
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     like(messageId: string): Promise<MessageResponse>;
     /**
      * Unlike message
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     unlike(messageId: string): Promise<MessageResponse>;
     /**
      * Mark message as read
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     markAsRead(messageId: string): Promise<MessageResponse>;
     /**
      * Get message analytics
+     * @param messageId - Message ID
+     * @returns MessageAnalytics object
      */
     getAnalytics(messageId: string): Promise<MessageAnalytics>;
     /**
      * Search messages
+     * @param query - Search query
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     search(query: string, params?: {
         type?: MessageType;
@@ -187,6 +208,9 @@ declare class Messages {
     }): Promise<MessageResponse[]>;
     /**
      * Get conversation thread
+     * @param messageId - Message ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     getThread(messageId: string, params?: {
         limit?: number;
@@ -194,6 +218,7 @@ declare class Messages {
     }): Promise<MessageResponse[]>;
     /**
      * Validate message data
+     * @param data - MessageData object
      */
     private validateMessageData;
 }

@@ -209,6 +209,8 @@ class Machines {
 
   /**
    * List machines with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of MachineResponse objects
    */
   async list(params?: {
     status?: MachineStatus;
@@ -231,6 +233,8 @@ class Machines {
 
   /**
    * Get specific machine by ID
+   * @param machineId - Machine ID
+   * @returns MachineResponse object
    */
   async get(machineId: string): Promise<MachineResponse> {
     try {
@@ -246,6 +250,8 @@ class Machines {
 
   /**
    * Create new machine
+   * @param machineData - MachineData object
+   * @returns MachineResponse object
    */
   async create(machineData: MachineData): Promise<MachineResponse> {
     try {
@@ -261,6 +267,9 @@ class Machines {
 
   /**
    * Update existing machine
+   * @param machineId - Machine ID
+   * @param machineData - Partial<MachineData> object
+   * @returns MachineResponse object
    */
   async update(machineId: string, machineData: Partial<MachineData>): Promise<MachineResponse> {
     try {
@@ -276,6 +285,7 @@ class Machines {
 
   /**
    * Delete machine
+   * @param machineId - Machine ID
    */
   async delete(machineId: string): Promise<void> {
     try {
@@ -290,6 +300,9 @@ class Machines {
 
   /**
    * Log machine runtime
+   * @param machineId - Machine ID
+   * @param data - RuntimeData object
+   * @returns MachineResponse object
    */
   async logRuntime(machineId: string, data: RuntimeData): Promise<MachineResponse> {
     if (new Date(data.end_time) <= new Date(data.start_time)) {
@@ -309,9 +322,12 @@ class Machines {
 
   /**
    * Schedule maintenance
+   * @param machineId - Machine ID
+   * @param data - MaintenanceData object
+   * @returns MaintenanceMachineResponse object
    */
   async scheduleMaintenance(
-    machineId: string, 
+        machineId: string, 
     data: MaintenanceData
   ): Promise<MaintenanceMachineResponse> {
     try {
@@ -331,6 +347,9 @@ class Machines {
 
   /**
    * Get performance metrics
+   * @param machineId - Machine ID
+   * @param params - Optional filtering parameters
+   * @returns PerformanceMetrics object
    */
   async getPerformanceMetrics(
     machineId: string,
@@ -350,7 +369,9 @@ class Machines {
   }
 
   /**
-   * Machine status management methods
+   * Set machine status to operational
+   * @param machineId - Machine ID
+   * @returns OperationalMachineResponse object
    */
   async setOperational(machineId: string): Promise<OperationalMachineResponse> {
     const response = await this.stateset.request('POST', `machines/${machineId}/set-operational`);
@@ -376,6 +397,9 @@ class Machines {
 
   /**
    * Get maintenance history
+   * @param machineId - Machine ID
+   * @param params - Optional filtering parameters
+   * @returns Array of MaintenanceData objects
    */
   async getMaintenanceHistory(
     machineId: string,
@@ -402,6 +426,9 @@ class Machines {
 
   /**
    * Get machine alerts
+   * @param machineId - Machine ID
+   * @param params - Optional filtering parameters
+   * @returns Array of MalfunctionAlert objects
    */
   async getAlerts(machineId: string, params?: {
     severity?: MalfunctionSeverity;

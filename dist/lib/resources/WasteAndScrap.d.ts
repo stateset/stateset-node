@@ -45,15 +45,56 @@ export default class WasteAndScrap {
     private client;
     constructor(client: any);
     private handleCommandResponse;
+    /**
+     * @param data - WasteAndScrapData object
+     * @returns WasteAndScrapResponse object
+     */
     create(data: WasteAndScrapData): Promise<WasteAndScrapResponse>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @returns WasteAndScrapResponse object
+     */
     get(id: string): Promise<WasteAndScrapResponse>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @param data - Partial<WasteAndScrapData> object
+     * @returns WasteAndScrapResponse object
+     */
     update(id: string, data: Partial<WasteAndScrapData>): Promise<WasteAndScrapResponse>;
+    /**
+     * @param params - Filtering parameters
+     * @returns Array of WasteAndScrapResponse objects
+     */
     list(params?: any): Promise<WasteAndScrapResponse[]>;
+    /**
+     * @param id - WasteAndScrap ID
+     */
     delete(id: string): Promise<void>;
+    /**
+     * @param params - Filtering parameters
+     * @returns Array of WasteAndScrapResponse objects
+     */
     generateReport(params: ReportParams): Promise<any>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @param data - DisposalData object
+     * @returns DisposedWasteAndScrapResponse object
+     */
     recordDisposal(id: string, data: DisposalData): Promise<DisposedWasteAndScrapResponse>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @returns ProcessedWasteAndScrapResponse object
+     */
     markAsProcessed(id: string): Promise<ProcessedWasteAndScrapResponse>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @returns RecycledWasteAndScrapResponse object
+     */
     markAsRecycled(id: string): Promise<RecycledWasteAndScrapResponse>;
+    /**
+     * @param id - WasteAndScrap ID
+     * @returns Array of DisposalData objects
+     */
     getDisposalHistory(id: string): Promise<DisposalData[]>;
 }
 export {};

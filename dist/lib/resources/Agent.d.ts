@@ -87,34 +87,49 @@ declare class Agents {
     get(agentId: string): Promise<AgentResponse>;
     /**
      * Create a new agent
+     * @param params - AgentCreateParams object
+     * @returns AgentResponse object
      */
     create(params: AgentCreateParams): Promise<AgentResponse>;
     /**
      * Update an existing agent
+     * @param agentId - Agent ID
+     * @param params - AgentUpdateParams object
+     * @returns AgentResponse object
      */
     update(agentId: string, params: AgentUpdateParams): Promise<AgentResponse>;
     /**
      * Delete an agent
+     * @param agentId - Agent ID
      */
     delete(agentId: string): Promise<void>;
     /**
      * Set agent status methods
+     * @param agentId - Agent ID
+     * @returns AgentResponse object
      */
     setAvailable(agentId: string): Promise<AvailableAgentResponse>;
     setBusy(agentId: string): Promise<BusyAgentResponse>;
     setOffline(agentId: string): Promise<OfflineAgentResponse>;
     setOnBreak(agentId: string): Promise<OnBreakAgentResponse>;
     /**
-     * Task management methods
+    * Task management methods
      */
     assignTask(agentId: string, taskData: TaskData): Promise<BusyAgentResponse>;
     completeTask(agentId: string, taskId: string): Promise<AvailableAgentResponse>;
     /**
      * Get agent performance metrics
+     * @param agentId - Agent ID
+     * @param timeframe - Timeframe for metrics ('day', 'week', 'month')
+     * @returns Object containing metrics
      */
     getMetrics(agentId: string, timeframe?: 'day' | 'week' | 'month'): Promise<any>;
     /**
      * Get agent availability schedule
+     * @param agentId - Agent ID
+     * @param startDate - Start date
+     * @param endDate - End date
+     * @returns Object containing schedule
      */
     getSchedule(agentId: string, startDate: Date, endDate: Date): Promise<any>;
 }

@@ -123,31 +123,64 @@ declare class ProductionJob {
     }): Promise<JobResponse[]>;
     /**
      * Get a specific production job by ID
+     * @param jobId - Production job ID
+     * @returns JobResponse object
      */
     get(jobId: string): Promise<JobResponse>;
     /**
      * Create a new production job
+     * @param jobData - JobData object
+     * @returns JobResponse object
      */
     create(jobData: JobData): Promise<JobResponse>;
     /**
      * Update an existing production job
+     * @param jobId - Production job ID
+     * @param jobData - Partial<JobData> object
+     * @returns JobResponse object
      */
     update(jobId: string, jobData: Partial<JobData>): Promise<JobResponse>;
     /**
      * Delete a production job
+     * @param jobId - Production job ID
      */
     delete(jobId: string): Promise<void>;
     /**
      * Status management methods
+     * @param jobId - Production job ID
+     * @returns InProgressJobResponse object
      */
     start(jobId: string): Promise<InProgressJobResponse>;
+    /**
+     * Complete a production job
+     * @param jobId - Production job ID
+     * @param results - Results object
+     * @returns CompletedJobResponse object
+     */
     complete(jobId: string, results: {
         yield_quantity: number;
         scrap_quantity?: number;
         labor_hours?: number;
     }): Promise<CompletedJobResponse>;
+    /**
+     * Cancel a production job
+     * @param jobId - Production job ID
+     * @param reason - Reason for cancellation
+     * @returns CancelledJobResponse object
+     */
     cancel(jobId: string, reason: string): Promise<CancelledJobResponse>;
+    /**
+     * Hold a production job
+     * @param jobId - Production job ID
+     * @param reason - Reason for holding
+     * @returns OnHoldJobResponse object
+     */
     hold(jobId: string, reason: string): Promise<OnHoldJobResponse>;
+    /**
+     * Resume a production job
+     * @param jobId - Production job ID
+     * @returns InProgressJobResponse object
+     */
     resume(jobId: string): Promise<InProgressJobResponse>;
     /**
      * Material management methods
@@ -157,6 +190,9 @@ declare class ProductionJob {
         warehouse_location?: string;
         batch_number?: string;
     }): Promise<JobResponse>;
+    /**
+     * Record material usage
+     */
     recordMaterialUsage(jobId: string, materialId: string, usage: {
         quantity_used: number;
         scrap_quantity?: number;
@@ -166,6 +202,9 @@ declare class ProductionJob {
      * Quality management methods
      */
     addQualityCheck(jobId: string, check: QualityCheck): Promise<JobResponse>;
+    /**
+     * Update a quality check
+     */
     updateQualityCheck(jobId: string, checkId: string, result: {
         result: 'PASS' | 'FAIL';
         inspector: string;

@@ -205,7 +205,8 @@ declare class Workorders {
     private readonly stateset;
     constructor(stateset: stateset);
     /**
-     * Original CRUD Operations
+     * @param params - Filtering parameters
+     * @returns Array of WorkorderResponse objects
      */
     list(params?: {
         status?: WorkorderStatus;
@@ -218,37 +219,86 @@ declare class Workorders {
         date_to?: Date;
         org_id?: string;
     }): Promise<WorkorderResponse[]>;
+    /**
+     * @param workorderId - Workorder ID
+     * @returns WorkorderResponse object
+     */
     get(workorderId: string): Promise<WorkorderResponse>;
+    /**
+     * @param workorderData - WorkorderData object
+     * @returns WorkorderResponse object
+     */
     create(workorderData: WorkorderData): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param workorderData - Partial<WorkorderData> object
+     * @returns WorkorderResponse object
+     */
     update(workorderId: string, workorderData: Partial<WorkorderData>): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     */
     delete(workorderId: string): Promise<void>;
     /**
-     * Original Status Management Methods
+     * @param workorderId - Workorder ID
+     * @returns InProgressWorkorderResponse object
      */
     startWork(workorderId: string): Promise<InProgressWorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param completionData - Completion data
+     * @returns CompletedWorkorderResponse object
+     */
     completeWork(workorderId: string, completionData?: {
         notes?: string;
         final_cost?: number;
         actual_duration?: number;
     }): Promise<CompletedWorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param cancellationData - Cancellation data
+     * @returns WorkorderResponse object
+     */
     cancelWork(workorderId: string, cancellationData?: {
         reason: string;
         notes?: string;
     }): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param holdData - Hold data
+     * @returns WorkorderResponse object
+     */
     putOnHold(workorderId: string, holdData?: {
         reason: string;
         estimated_resume_date?: string;
     }): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @returns InProgressWorkorderResponse object
+     */
     resumeWork(workorderId: string): Promise<InProgressWorkorderResponse>;
     /**
-     * Original Assignment Methods
+     * @param workorderId - Workorder ID
+     * @param workerId - Worker ID
+     * @returns WorkorderResponse object
      */
     assignWorker(workorderId: string, workerId: string): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param note - Note
+     * @returns WorkorderResponse object
+     */
     addNote(workorderId: string, note: string): Promise<WorkorderResponse>;
     /**
      * Task management methods
      */
     updateTask(workorderId: string, taskId: string, taskData: Partial<Task>): Promise<WorkorderResponse>;
+    /**
+     * @param workorderId - Workorder ID
+     * @param taskId - Task ID
+     * @param completionData - Completion data
+     * @returns WorkorderResponse object
+     */
     completeTask(workorderId: string, taskId: string, completionData: {
         actual_duration: number;
         quality_check_results?: Array<{
@@ -259,15 +309,20 @@ declare class Workorders {
         notes?: string;
     }): Promise<WorkorderResponse>;
     /**
-     * Resource management methods
+     * @param workorderId - Workorder ID
+     * @param resourceData - ResourceData object
+     * @returns WorkorderResponse object
      */
     assignResource(workorderId: string, resourceData: Resource): Promise<WorkorderResponse>;
     /**
-     * Quality control methods
+     * @param workorderId - Workorder ID
+     * @param qualityChecks - QualityCheck[] object
+     * @returns WorkorderResponse object
      */
     submitQualityCheck(workorderId: string, qualityChecks: QualityCheck[]): Promise<WorkorderResponse>;
     /**
-     * Metrics and reporting
+     * @param params - Filtering parameters
+     * @returns Metrics object
      */
     getMetrics(params?: {
         start_date?: Date;

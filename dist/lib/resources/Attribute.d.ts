@@ -18,6 +18,9 @@ export declare enum AttributeImpact {
     MEDIUM = "medium",
     LOW = "low"
 }
+export interface AttributeResponse {
+    attributes: AttributeData[];
+}
 export interface AttributeData {
     id: string;
     attribute_name: string;

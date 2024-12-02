@@ -160,6 +160,8 @@ class Rules {
 
   /**
    * List rules with optional filtering
+   * @param params - Filtering parameters
+   * @returns Array of RuleResponse objects
    */
   async list(params?: {
     rule_type?: RuleType;
@@ -182,7 +184,9 @@ class Rules {
 
   /**
    * Get specific rule by ID
-   */
+   * @param ruleId - Rule ID
+   * @returns RuleResponse object
+    */
   async get(ruleId: string): Promise<RuleResponse> {
     try {
       const response = await this.stateset.request('GET', `rules/${ruleId}`);
@@ -197,6 +201,8 @@ class Rules {
 
   /**
    * Create new rule
+   * @param ruleData - RuleData object
+   * @returns RuleResponse object
    */
   async create(ruleData: RuleData): Promise<RuleResponse> {
     // Validate rule conditions
@@ -218,6 +224,9 @@ class Rules {
 
   /**
    * Update existing rule
+   * @param ruleId - Rule ID
+   * @param ruleData - Partial<RuleData> object
+   * @returns RuleResponse object
    */
   async update(ruleId: string, ruleData: Partial<RuleData>): Promise<RuleResponse> {
     if (ruleData.conditions) {
@@ -241,6 +250,7 @@ class Rules {
 
   /**
    * Delete rule
+   * @param ruleId - Rule ID
    */
   async delete(ruleId: string): Promise<void> {
     try {
@@ -255,6 +265,9 @@ class Rules {
 
   /**
    * Activate/Deactivate rule
+   * @param ruleId - Rule ID
+   * @param activated - Boolean value
+   * @returns RuleResponse object
    */
   async setActivation(ruleId: string, activated: boolean): Promise<RuleResponse> {
     const response = await this.stateset.request(
@@ -267,6 +280,9 @@ class Rules {
 
   /**
    * Test rule execution
+   * @param ruleId - Rule ID
+   * @param testData - Record<string, any> object
+   * @returns RuleExecutionResult object
    */
   async testRule(
     ruleId: string,
@@ -286,6 +302,9 @@ class Rules {
 
   /**
    * Get rule execution history
+   * @param ruleId - Rule ID
+   * @param params - Filtering parameters
+   * @returns Array of RuleExecutionResult objects
    */
   async getExecutionHistory(
     ruleId: string,
@@ -312,6 +331,9 @@ class Rules {
 
   /**
    * Clone existing rule
+   * @param ruleId - Rule ID
+   * @param options - Options object
+   * @returns RuleResponse object
    */
   async cloneRule(
     ruleId: string,
@@ -330,6 +352,7 @@ class Rules {
 
   /**
    * Validate rule conditions
+   * @param conditions - Array of Condition objects
    */
   private validateConditions(conditions: Condition[]): void {
     for (const condition of conditions) {
@@ -345,6 +368,7 @@ class Rules {
 
   /**
    * Validate rule actions
+   * @param actions - Array of Action objects
    */
   private validateActions(actions: Action[]): void {
     if (!actions.length) {

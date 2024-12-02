@@ -203,6 +203,8 @@ declare class Warehouses {
     constructor(stateset: stateset);
     /**
      * List warehouses with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of WarehouseResponse objects
      */
     list(params?: {
         status?: WarehouseStatus;
@@ -213,22 +215,33 @@ declare class Warehouses {
     }): Promise<WarehouseResponse[]>;
     /**
      * Get specific warehouse
+     * @param warehouseId - Warehouse ID
+     * @returns WarehouseResponse object
      */
     get(warehouseId: string): Promise<WarehouseResponse>;
     /**
      * Create new warehouse
+     * @param warehouseData - WarehouseData object
+     * @returns WarehouseResponse object
      */
     create(warehouseData: WarehouseData): Promise<WarehouseResponse>;
     /**
      * Update warehouse
+     * @param warehouseId - Warehouse ID
+     * @param warehouseData - Partial<WarehouseData> object
+     * @returns WarehouseResponse object
      */
     update(warehouseId: string, warehouseData: Partial<WarehouseData>): Promise<WarehouseResponse>;
     /**
      * Delete warehouse
+     * @param warehouseId - Warehouse ID
      */
     delete(warehouseId: string): Promise<void>;
     /**
      * Inventory management methods
+     * @param warehouseId - Warehouse ID
+     * @param params - Filtering parameters
+     * @returns Array of InventoryItem objects
      */
     getInventory(warehouseId: string, params?: {
         zone_id?: string;
@@ -237,18 +250,32 @@ declare class Warehouses {
     }): Promise<InventoryItem[]>;
     /**
      * Zone management methods
+     * @param warehouseId - Warehouse ID
+     * @param zoneData - Zone object
+     * @returns WarehouseResponse object
      */
     addZone(warehouseId: string, zoneData: Zone): Promise<WarehouseResponse>;
     /**
      * Equipment management methods
+     * @param warehouseId - Warehouse ID
+     * @param equipmentId - Equipment ID
+     * @param status - Equipment status
+     * @returns Equipment object
      */
     updateEquipmentStatus(warehouseId: string, equipmentId: string, status: string): Promise<Equipment>;
     /**
      * Staff management methods
+     * @param warehouseId - Warehouse ID
+     * @param staffId - Staff ID
+     * @param zoneId - Zone ID
+     * @returns StaffMember object
      */
     assignStaffToZone(warehouseId: string, staffId: string, zoneId: string): Promise<StaffMember>;
     /**
      * Metrics and reporting
+     * @param warehouseId - Warehouse ID
+     * @param params - Filtering parameters
+     * @returns WarehouseMetrics object
      */
     getMetrics(warehouseId: string, params?: {
         start_date?: Date;
@@ -256,6 +283,7 @@ declare class Warehouses {
     }): Promise<WarehouseMetrics>;
     /**
      * Validate warehouse data
+     * @param data - WarehouseData object
      */
     private validateWarehouseData;
 }

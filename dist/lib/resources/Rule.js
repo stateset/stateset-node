@@ -70,6 +70,8 @@ class Rules {
     }
     /**
      * List rules with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of RuleResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -88,7 +90,9 @@ class Rules {
     }
     /**
      * Get specific rule by ID
-     */
+     * @param ruleId - Rule ID
+     * @returns RuleResponse object
+      */
     async get(ruleId) {
         try {
             const response = await this.stateset.request('GET', `rules/${ruleId}`);
@@ -103,6 +107,8 @@ class Rules {
     }
     /**
      * Create new rule
+     * @param ruleData - RuleData object
+     * @returns RuleResponse object
      */
     async create(ruleData) {
         // Validate rule conditions
@@ -122,6 +128,9 @@ class Rules {
     }
     /**
      * Update existing rule
+     * @param ruleId - Rule ID
+     * @param ruleData - Partial<RuleData> object
+     * @returns RuleResponse object
      */
     async update(ruleId, ruleData) {
         if (ruleData.conditions) {
@@ -143,6 +152,7 @@ class Rules {
     }
     /**
      * Delete rule
+     * @param ruleId - Rule ID
      */
     async delete(ruleId) {
         try {
@@ -157,6 +167,9 @@ class Rules {
     }
     /**
      * Activate/Deactivate rule
+     * @param ruleId - Rule ID
+     * @param activated - Boolean value
+     * @returns RuleResponse object
      */
     async setActivation(ruleId, activated) {
         const response = await this.stateset.request('POST', `rules/${ruleId}/activation`, { activated });
@@ -164,6 +177,9 @@ class Rules {
     }
     /**
      * Test rule execution
+     * @param ruleId - Rule ID
+     * @param testData - Record<string, any> object
+     * @returns RuleExecutionResult object
      */
     async testRule(ruleId, testData) {
         try {
@@ -176,6 +192,9 @@ class Rules {
     }
     /**
      * Get rule execution history
+     * @param ruleId - Rule ID
+     * @param params - Filtering parameters
+     * @returns Array of RuleExecutionResult objects
      */
     async getExecutionHistory(ruleId, params) {
         const queryParams = new URLSearchParams();
@@ -192,6 +211,9 @@ class Rules {
     }
     /**
      * Clone existing rule
+     * @param ruleId - Rule ID
+     * @param options - Options object
+     * @returns RuleResponse object
      */
     async cloneRule(ruleId, options) {
         const response = await this.stateset.request('POST', `rules/${ruleId}/clone`, options);
@@ -199,6 +221,7 @@ class Rules {
     }
     /**
      * Validate rule conditions
+     * @param conditions - Array of Condition objects
      */
     validateConditions(conditions) {
         for (const condition of conditions) {
@@ -212,6 +235,7 @@ class Rules {
     }
     /**
      * Validate rule actions
+     * @param actions - Array of Action objects
      */
     validateActions(actions) {
         if (!actions.length) {

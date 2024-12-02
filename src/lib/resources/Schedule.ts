@@ -189,6 +189,8 @@ class Schedule {
 
   /**
    * List schedules with optional filtering
+   * @param params - Filtering parameters
+   * @returns Array of ScheduleResponse objects
    */
   async list(params?: {
     status?: ScheduleStatus;
@@ -211,6 +213,8 @@ class Schedule {
 
   /**
    * Get specific schedule by ID
+   * @param scheduleId - Schedule ID
+   * @returns ScheduleResponse object
    */
   async get(scheduleId: string): Promise<ScheduleResponse> {
     try {
@@ -226,6 +230,8 @@ class Schedule {
 
   /**
    * Create new schedule
+   * @param scheduleData - ScheduleData object
+   * @returns ScheduleResponse object
    */
   async create(scheduleData: ScheduleData): Promise<ScheduleResponse> {
     this.validateScheduleData(scheduleData);
@@ -243,6 +249,9 @@ class Schedule {
 
   /**
    * Update existing schedule
+   * @param scheduleId - Schedule ID
+   * @param scheduleData - Partial<ScheduleData> object
+   * @returns ScheduleResponse object
    */
   async update(
     scheduleId: string, 
@@ -265,6 +274,7 @@ class Schedule {
 
   /**
    * Delete schedule
+   * @param scheduleId - Schedule ID
    */
   async delete(scheduleId: string): Promise<void> {
     try {
@@ -279,6 +289,8 @@ class Schedule {
 
   /**
    * Pause schedule
+   * @param scheduleId - Schedule ID
+   * @returns ScheduleResponse object
    */
   async pause(scheduleId: string): Promise<ScheduleResponse> {
     const response = await this.stateset.request('POST', `schedules/${scheduleId}/pause`);
@@ -287,6 +299,8 @@ class Schedule {
 
   /**
    * Resume schedule
+   * @param scheduleId - Schedule ID
+   * @returns ScheduleResponse object
    */
   async resume(scheduleId: string): Promise<ScheduleResponse> {
     const response = await this.stateset.request('POST', `schedules/${scheduleId}/resume`);
@@ -295,6 +309,9 @@ class Schedule {
 
   /**
    * Trigger immediate execution
+   * @param scheduleId - Schedule ID
+   * @param params - Parameters object
+   * @returns ExecutionResult object
    */
   async triggerExecution(
     scheduleId: string,
@@ -317,6 +334,9 @@ class Schedule {
 
   /**
    * Get execution history
+   * @param scheduleId - Schedule ID
+   * @param params - Filtering parameters
+   * @returns Array of ExecutionResult objects
    */
   async getExecutionHistory(
     scheduleId: string,
@@ -343,6 +363,9 @@ class Schedule {
 
   /**
    * Get next scheduled executions
+   * @param scheduleId - Schedule ID
+   * @param limit - Number of executions to return
+   * @returns Array of objects with scheduled_time and estimation_basis
    */
   async getNextExecutions(
     scheduleId: string,
@@ -357,6 +380,8 @@ class Schedule {
 
   /**
    * Validate schedule data
+   * @param data - ScheduleData object
+   * @param isUpdate - Boolean value
    */
   private validateScheduleData(data: ScheduleData, isUpdate: boolean = false): void {
     if (!isUpdate) {

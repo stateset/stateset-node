@@ -251,6 +251,8 @@ class Orders {
 
   /**
    * List orders with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of OrderResponse objects
    */
   async list(params?: {
     status?: OrderStatus;
@@ -277,6 +279,8 @@ class Orders {
 
   /**
    * Get specific order by ID
+   * @param orderId - Order ID
+   * @returns OrderResponse object
    */
   async get(orderId: string): Promise<OrderResponse> {
     try {
@@ -292,6 +296,8 @@ class Orders {
 
   /**
    * Create new order
+   * @param orderData - OrderData object
+   * @returns OrderResponse object
    */
   async create(orderData: OrderData): Promise<OrderResponse> {
     // Validate order totals
@@ -313,6 +319,9 @@ class Orders {
 
   /**
    * Update existing order
+   * @param orderId - Order ID
+   * @param orderData - Partial<OrderData> object
+   * @returns OrderResponse object
    */
   async update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse> {
     try {
@@ -328,22 +337,41 @@ class Orders {
 
   /**
    * Process order status changes
+   * @param orderId - Order ID
+   * @returns ConfirmedOrderResponse object
    */
   async confirm(orderId: string): Promise<ConfirmedOrderResponse> {
     const response = await this.stateset.request('POST', `orders/${orderId}/confirm`);
     return response.order as ConfirmedOrderResponse;
   }
 
+  /**
+   * Start processing an order
+   * @param orderId - Order ID
+   * @returns ProcessingOrderResponse object
+   */
   async process(orderId: string): Promise<ProcessingOrderResponse> {
     const response = await this.stateset.request('POST', `orders/${orderId}/process`);
     return response.order as ProcessingOrderResponse;
   }
 
+  /**
+   * Ship an order
+   * @param orderId - Order ID
+   * @param shippingDetails - ShippingDetails object
+   * @returns ShippedOrderResponse object
+   */
   async ship(orderId: string, shippingDetails: ShippingDetails): Promise<ShippedOrderResponse> {
     const response = await this.stateset.request('POST', `orders/${orderId}/ship`, shippingDetails);
     return response.order as ShippedOrderResponse;
   }
 
+  /**
+   * Mark an order as delivered
+   * @param orderId - Order ID
+   * @param confirmation - Optional confirmation object
+   * @returns DeliveredOrderResponse object
+   */
   async markDelivered(
     orderId: string, 
     confirmation?: { signature?: string; photo?: string }
@@ -352,6 +380,12 @@ class Orders {
     return response.order as DeliveredOrderResponse;
   }
 
+  /**
+   * Cancel an order
+   * @param orderId - Order ID
+   * @param cancellationData - Cancellation data
+   * @returns CancelledOrderResponse object
+   */
   async cancel(
     orderId: string, 
     cancellationData: { reason: string }
@@ -360,6 +394,12 @@ class Orders {
     return response.order as CancelledOrderResponse;
   }
 
+  /**
+   * Process a return for an order
+   * @param orderId - Order ID
+   * @param returnData - Return data
+   * @returns ReturnedOrderResponse object
+   */
   async processReturn(
     orderId: string, 
     returnData: {
@@ -372,6 +412,12 @@ class Orders {
     return response.order as ReturnedOrderResponse;
   }
 
+  /**
+   * Process a refund for an order
+   * @param orderId - Order ID
+   * @param refundData - Refund data
+   * @returns RefundedOrderResponse object
+   */
   async processRefund(
     orderId: string,
     refundData: {
@@ -384,7 +430,10 @@ class Orders {
   }
 
   /**
-   * Fulfillment tracking
+   * Add a fulfillment event to an order
+   * @param orderId - Order ID
+   * @param event - FulfillmentEvent object
+   * @returns OrderResponse object
    */
   async addFulfillmentEvent(
     orderId: string,
@@ -398,6 +447,12 @@ class Orders {
     return response.order;
   }
 
+  /**
+   * Get fulfillment history for an order
+   * @param orderId - Order ID
+   * @param params - Optional filtering parameters
+   * @returns Array of FulfillmentEvent objects
+   */
   async getFulfillmentHistory(
     orderId: string,
     params?: {
@@ -418,7 +473,9 @@ class Orders {
   }
 
   /**
-   * Order tracking
+   * Get tracking information for an order
+   * @param orderId - Order ID
+   * @returns Tracking information object
    */
   async getTracking(orderId: string): Promise<{
     tracking_number: string;
@@ -438,7 +495,9 @@ class Orders {
   }
 
   /**
-   * Order metrics
+   * Get order metrics
+   * @param params - Optional filtering parameters
+   * @returns Metrics object
    */
   async getMetrics(params?: {
     start_date?: Date;

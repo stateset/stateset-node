@@ -129,6 +129,8 @@ class BillOfMaterials {
     }
     /**
      * Create a new BOM
+     * @param bomData - BOMData object
+     * @returns BOMResponse object
      */
     async create(bomData) {
         // Validate all components
@@ -138,6 +140,9 @@ class BillOfMaterials {
     }
     /**
      * Update an existing BOM
+     * @param bomId - BOM ID
+     * @param bomData - Partial<BOMData> object
+     * @returns BOMResponse object
      */
     async update(bomId, bomData) {
         if (bomData.components) {

@@ -93,6 +93,8 @@ class Inventory {
     }
     /**
      * Get specific inventory by ID
+     * @param inventoryId - Inventory ID
+     * @returns InventoryResponse object
      */
     async get(inventoryId) {
         try {
@@ -108,6 +110,8 @@ class Inventory {
     }
     /**
      * Create new inventory
+     * @param inventoryData - InventoryData object
+     * @returns InventoryResponse object
      */
     async create(inventoryData) {
         this.validateInventoryData(inventoryData);
@@ -116,6 +120,9 @@ class Inventory {
     }
     /**
      * Update existing inventory
+     * @param inventoryId - Inventory ID
+     * @param inventoryData - Partial<InventoryData> object
+     * @returns InventoryResponse object
      */
     async update(inventoryId, inventoryData) {
         this.validateInventoryData(inventoryData);
@@ -132,6 +139,7 @@ class Inventory {
     }
     /**
      * Delete inventory
+     * @param inventoryId - Inventory ID
      */
     async delete(inventoryId) {
         try {
@@ -146,6 +154,9 @@ class Inventory {
     }
     /**
      * Adjust inventory quantity
+     * @param inventoryId - Inventory ID
+     * @param adjustment - InventoryAdjustment object
+     * @returns InventoryResponse object
      */
     async adjustQuantity(inventoryId, adjustment) {
         if (adjustment.quantity === 0) {
@@ -164,6 +175,8 @@ class Inventory {
     }
     /**
      * Transfer inventory between locations
+     * @param transfer - InventoryTransfer object
+     * @returns Object with source, destination, and transfer_id
      */
     async transfer(transfer) {
         if (transfer.quantity <= 0) {
@@ -178,6 +191,9 @@ class Inventory {
     }
     /**
      * Get inventory history
+     * @param inventoryId - Inventory ID
+     * @param params - Optional filtering parameters
+     * @returns Array of InventoryHistoryEntry objects
      */
     async getHistory(inventoryId, params) {
         const queryParams = new URLSearchParams();
@@ -194,6 +210,10 @@ class Inventory {
     }
     /**
      * Reserve inventory
+     * @param inventoryId - Inventory ID
+     * @param quantity - Number of items to reserve
+     * @param params - Optional reservation parameters
+     * @returns InventoryResponse object
      */
     async reserve(inventoryId, quantity, params = {}) {
         const response = await this.stateset.request('POST', `inventory/${inventoryId}/reserve`, {
@@ -204,6 +224,9 @@ class Inventory {
     }
     /**
      * Release reserved inventory
+     * @param inventoryId - Inventory ID
+     * @param reservationId - Reservation ID
+     * @returns InventoryResponse object
      */
     async releaseReservation(inventoryId, reservationId) {
         const response = await this.stateset.request('POST', `inventory/${inventoryId}/release-reservation/${reservationId}`);
@@ -211,6 +234,8 @@ class Inventory {
     }
     /**
      * Get low stock alerts
+     * @param params - Optional filtering parameters
+     * @returns Array of InventoryResponse objects with threshold
      */
     async getLowStockAlerts(params) {
         const queryParams = new URLSearchParams();

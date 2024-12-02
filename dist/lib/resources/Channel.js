@@ -80,6 +80,8 @@ class Channels {
     }
     /**
      * List channels with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ChannelResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -98,6 +100,8 @@ class Channels {
     }
     /**
      * Get specific channel
+     * @param channelId - Channel ID
+     * @returns ChannelResponse object
      */
     async get(channelId) {
         try {
@@ -113,6 +117,8 @@ class Channels {
     }
     /**
      * Create new channel
+     * @param channelData - ChannelData object
+     * @returns ChannelResponse object
      */
     async create(channelData) {
         this.validateChannelData(channelData);
@@ -129,6 +135,9 @@ class Channels {
     }
     /**
      * Update channel
+     * @param channelId - Channel ID
+     * @param channelData - Partial<ChannelData> object
+     * @returns ChannelResponse object
      */
     async update(channelId, channelData) {
         try {
@@ -144,6 +153,7 @@ class Channels {
     }
     /**
      * Delete channel
+     * @param channelId - Channel ID
      */
     async delete(channelId) {
         try {
@@ -158,6 +168,10 @@ class Channels {
     }
     /**
      * Update channel status
+     * @param channelId - Channel ID
+     * @param status - ChannelStatus
+     * @param reason - Optional reason for status change
+     * @returns ChannelResponse object
      */
     async updateStatus(channelId, status, reason) {
         const response = await this.stateset.request('POST', `channels/${channelId}/status`, { status, reason });
@@ -165,6 +179,9 @@ class Channels {
     }
     /**
      * Get channel metrics
+     * @param channelId - Channel ID
+     * @param params - Optional filtering parameters
+     * @returns ChannelMetrics object
      */
     async getMetrics(channelId, params) {
         const queryParams = new URLSearchParams();
@@ -177,6 +194,9 @@ class Channels {
     }
     /**
      * Test channel configuration
+     * @param channelId - Channel ID
+     * @param testData - Optional test data
+     * @returns Object containing success, latency, and error (if any)
      */
     async testChannel(channelId, testData) {
         const response = await this.stateset.request('POST', `channels/${channelId}/test`, testData);
@@ -184,6 +204,9 @@ class Channels {
     }
     /**
      * Update channel voice configuration
+     * @param channelId - Channel ID
+     * @param voiceConfig - VoiceConfig object
+     * @returns ChannelResponse object
      */
     async updateVoiceConfig(channelId, voiceConfig) {
         const response = await this.stateset.request('PUT', `channels/${channelId}/voice-config`, voiceConfig);
@@ -191,6 +214,9 @@ class Channels {
     }
     /**
      * Update channel response configuration
+     * @param channelId - Channel ID
+     * @param responseConfig - ResponseConfig object
+     * @returns ChannelResponse object
      */
     async updateResponseConfig(channelId, responseConfig) {
         const response = await this.stateset.request('PUT', `channels/${channelId}/response-config`, responseConfig);
@@ -198,6 +224,7 @@ class Channels {
     }
     /**
      * Validate channel data
+     * @param data - ChannelData object
      */
     validateChannelData(data) {
         var _a;

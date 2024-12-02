@@ -23,6 +23,11 @@ export enum AttributeImpact {
   LOW = 'low'
 }
 
+// Response Interfaces
+export interface AttributeResponse {
+  attributes: AttributeData[];
+}
+
 // Interface for attribute data
 export interface AttributeData {
   id: string;

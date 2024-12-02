@@ -245,7 +245,8 @@ class Workorders {
   constructor(private readonly stateset: stateset) {}
 
   /**
-   * Original CRUD Operations
+   * @param params - Filtering parameters
+   * @returns Array of WorkorderResponse objects
    */
   async list(params?: {
     status?: WorkorderStatus;
@@ -272,6 +273,10 @@ class Workorders {
     return response.workorders;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @returns WorkorderResponse object
+   */
   async get(workorderId: string): Promise<WorkorderResponse> {
     try {
       const response = await this.stateset.request('GET', `workorders/${workorderId}`);
@@ -284,6 +289,10 @@ class Workorders {
     }
   }
 
+  /**
+   * @param workorderData - WorkorderData object
+   * @returns WorkorderResponse object
+   */
   async create(workorderData: WorkorderData): Promise<WorkorderResponse> {
     try {
       const response = await this.stateset.request('POST', 'workorders', workorderData);
@@ -296,6 +305,11 @@ class Workorders {
     }
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @param workorderData - Partial<WorkorderData> object
+   * @returns WorkorderResponse object
+   */
   async update(workorderId: string, workorderData: Partial<WorkorderData>): Promise<WorkorderResponse> {
     try {
       const response = await this.stateset.request('PUT', `workorders/${workorderId}`, workorderData);
@@ -308,6 +322,9 @@ class Workorders {
     }
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   */
   async delete(workorderId: string): Promise<void> {
     try {
       await this.stateset.request('DELETE', `workorders/${workorderId}`);
@@ -320,13 +337,19 @@ class Workorders {
   }
 
   /**
-   * Original Status Management Methods
+   * @param workorderId - Workorder ID
+   * @returns InProgressWorkorderResponse object
    */
   async startWork(workorderId: string): Promise<InProgressWorkorderResponse> {
     const response = await this.stateset.request('POST', `workorders/${workorderId}/start`);
     return response.workorder as InProgressWorkorderResponse;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @param completionData - Completion data
+   * @returns CompletedWorkorderResponse object
+   */
   async completeWork(
     workorderId: string,
     completionData?: {
@@ -339,6 +362,11 @@ class Workorders {
     return response.workorder as CompletedWorkorderResponse;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @param cancellationData - Cancellation data
+   * @returns WorkorderResponse object
+   */
   async cancelWork(
     workorderId: string,
     cancellationData?: {
@@ -350,6 +378,11 @@ class Workorders {
     return response.workorder;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @param holdData - Hold data
+   * @returns WorkorderResponse object
+   */
   async putOnHold(
     workorderId: string,
     holdData?: {
@@ -361,13 +394,19 @@ class Workorders {
     return response.workorder;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @returns InProgressWorkorderResponse object
+   */
   async resumeWork(workorderId: string): Promise<InProgressWorkorderResponse> {
     const response = await this.stateset.request('POST', `workorders/${workorderId}/resume`);
     return response.workorder as InProgressWorkorderResponse;
   }
 
   /**
-   * Original Assignment Methods
+   * @param workorderId - Workorder ID
+   * @param workerId - Worker ID
+   * @returns WorkorderResponse object
    */
   async assignWorker(workorderId: string, workerId: string): Promise<WorkorderResponse> {
     const response = await this.stateset.request('POST', `workorders/${workorderId}/assign`, {
@@ -376,13 +415,19 @@ class Workorders {
     return response.workorder;
   }
 
+
+  /**
+   * @param workorderId - Workorder ID
+   * @param note - Note
+   * @returns WorkorderResponse object
+   */
   async addNote(workorderId: string, note: string): Promise<WorkorderResponse> {
     const response = await this.stateset.request('POST', `workorders/${workorderId}/notes`, {
       note
     });
     return response.workorder;
   }
-  
+
   /**
    * Task management methods
    */
@@ -399,6 +444,12 @@ class Workorders {
     return response.workorder;
   }
 
+  /**
+   * @param workorderId - Workorder ID
+   * @param taskId - Task ID
+   * @param completionData - Completion data
+   * @returns WorkorderResponse object
+   */
   async completeTask(
     workorderId: string,
     taskId: string,
@@ -421,7 +472,9 @@ class Workorders {
   }
 
   /**
-   * Resource management methods
+   * @param workorderId - Workorder ID
+   * @param resourceData - ResourceData object
+   * @returns WorkorderResponse object
    */
   async assignResource(
     workorderId: string,
@@ -443,7 +496,9 @@ class Workorders {
   }
 
   /**
-   * Quality control methods
+   * @param workorderId - Workorder ID
+   * @param qualityChecks - QualityCheck[] object
+   * @returns WorkorderResponse object
    */
   async submitQualityCheck(
     workorderId: string,
@@ -458,7 +513,8 @@ class Workorders {
   }
 
   /**
-   * Metrics and reporting
+   * @param params - Filtering parameters
+   * @returns Metrics object
    */
   async getMetrics(params?: {
     start_date?: Date;

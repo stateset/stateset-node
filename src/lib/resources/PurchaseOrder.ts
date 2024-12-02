@@ -90,55 +90,112 @@ class PurchaseOrders {
     }
   }
 
+  /**
+   * List all purchase orders
+   * @returns Array of PurchaseOrderResponse objects
+   */
   async list(): Promise<PurchaseOrderResponse[]> {
     const response = await this.stateset.request('GET', 'purchaseorders');
     return response.map((purchaseOrder: any) => this.handleCommandResponse({ update_purchaseorders_by_pk: purchaseOrder }));
   }
 
+  /**
+   * Get a purchase order by ID
+   * @param purchaseOrderId - Purchase order ID
+   * @returns PurchaseOrderResponse object
+   */
   async get(purchaseOrderId: string): Promise<PurchaseOrderResponse> {
     const response = await this.stateset.request('GET', `purchaseorders/${purchaseOrderId}`);
     return this.handleCommandResponse({ update_purchaseorders_by_pk: response });
   }
 
+  /**
+   * Create a new purchase order
+   * @param purchaseOrderData - PurchaseOrderData object
+   * @returns PurchaseOrderResponse object
+   */
   async create(purchaseOrderData: PurchaseOrderData): Promise<PurchaseOrderResponse> {
     const response = await this.stateset.request('POST', 'purchaseorders', purchaseOrderData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @param purchaseOrderData - Partial<PurchaseOrderData> object
+   * @returns PurchaseOrderResponse object
+   */
   async update(purchaseOrderId: string, purchaseOrderData: Partial<PurchaseOrderData>): Promise<PurchaseOrderResponse> {
     const response = await this.stateset.request('PUT', `purchaseorders/${purchaseOrderId}`, purchaseOrderData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Delete a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   */
   async delete(purchaseOrderId: string): Promise<void> {
     await this.stateset.request('DELETE', `purchaseorders/${purchaseOrderId}`);
   }
 
+  /**
+   * Submit a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @returns SubmittedPurchaseOrderResponse object
+   */
   async submit(purchaseOrderId: string): Promise<SubmittedPurchaseOrderResponse> {
     const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/submit`);
     return this.handleCommandResponse(response) as SubmittedPurchaseOrderResponse;
   }
 
+  /**
+   * Approve a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @returns ApprovedPurchaseOrderResponse object
+   */
   async approve(purchaseOrderId: string): Promise<ApprovedPurchaseOrderResponse> {
     const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/approve`);
     return this.handleCommandResponse(response) as ApprovedPurchaseOrderResponse;
   }
 
+  /**
+   * Receive a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @param receivedItems - Array of received items
+   * @returns ReceivedPurchaseOrderResponse object
+   */
   async receive(purchaseOrderId: string, receivedItems: { item_id: string; quantity_received: number }[]): Promise<ReceivedPurchaseOrderResponse> {
     const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/receive`, { received_items: receivedItems });
     return this.handleCommandResponse(response) as ReceivedPurchaseOrderResponse;
   }
 
+  /**
+   * Cancel a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @returns CancelledPurchaseOrderResponse object
+   */
   async cancel(purchaseOrderId: string): Promise<CancelledPurchaseOrderResponse> {
     const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/cancel`);
     return this.handleCommandResponse(response) as CancelledPurchaseOrderResponse;
   }
 
+  /**
+   * Add an item to a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @param item - Item object
+   * @returns PurchaseOrderResponse object
+   */
   async addItem(purchaseOrderId: string, item: PurchaseOrderData['items'][0]): Promise<PurchaseOrderResponse> {
     const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/items`, item);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Remove an item from a purchase order
+   * @param purchaseOrderId - Purchase order ID
+   * @param itemId - Item ID
+   * @returns PurchaseOrderResponse object
+   */
   async removeItem(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderResponse> {
     const response = await this.stateset.request('DELETE', `purchaseorders/${purchaseOrderId}/items/${itemId}`);
     return this.handleCommandResponse(response);

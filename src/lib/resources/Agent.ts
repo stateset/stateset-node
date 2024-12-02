@@ -179,6 +179,8 @@ class Agents {
 
   /**
    * Create a new agent
+   * @param params - AgentCreateParams object
+   * @returns AgentResponse object
    */
   async create(params: AgentCreateParams): Promise<AgentResponse> {
     const response = await this.stateset.request('POST', 'agents', params);
@@ -187,6 +189,9 @@ class Agents {
 
   /**
    * Update an existing agent
+   * @param agentId - Agent ID
+   * @param params - AgentUpdateParams object
+   * @returns AgentResponse object
    */
   async update(agentId: string, params: AgentUpdateParams): Promise<AgentResponse> {
     try {
@@ -202,6 +207,7 @@ class Agents {
 
   /**
    * Delete an agent
+   * @param agentId - Agent ID
    */
   async delete(agentId: string): Promise<void> {
     try {
@@ -216,6 +222,8 @@ class Agents {
 
   /**
    * Set agent status methods
+   * @param agentId - Agent ID
+   * @returns AgentResponse object
    */
   async setAvailable(agentId: string): Promise<AvailableAgentResponse> {
     const response = await this.stateset.request('POST', `agents/${agentId}/set-available`);
@@ -238,7 +246,7 @@ class Agents {
   }
 
   /**
-   * Task management methods
+  * Task management methods
    */
   async assignTask(agentId: string, taskData: TaskData): Promise<BusyAgentResponse> {
     const response = await this.stateset.request('POST', `agents/${agentId}/assign-task`, taskData);
@@ -255,6 +263,9 @@ class Agents {
 
   /**
    * Get agent performance metrics
+   * @param agentId - Agent ID
+   * @param timeframe - Timeframe for metrics ('day', 'week', 'month')
+   * @returns Object containing metrics
    */
   async getMetrics(agentId: string, timeframe: 'day' | 'week' | 'month' = 'day') {
     return this.stateset.request('GET', `agents/${agentId}/metrics?timeframe=${timeframe}`);
@@ -262,6 +273,10 @@ class Agents {
 
   /**
    * Get agent availability schedule
+   * @param agentId - Agent ID
+   * @param startDate - Start date
+   * @param endDate - End date
+   * @returns Object containing schedule
    */
   async getSchedule(agentId: string, startDate: Date, endDate: Date) {
     const params = new URLSearchParams({

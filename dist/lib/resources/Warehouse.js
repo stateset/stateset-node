@@ -61,6 +61,8 @@ class Warehouses {
     }
     /**
      * List warehouses with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of WarehouseResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -79,6 +81,8 @@ class Warehouses {
     }
     /**
      * Get specific warehouse
+     * @param warehouseId - Warehouse ID
+     * @returns WarehouseResponse object
      */
     async get(warehouseId) {
         try {
@@ -94,6 +98,8 @@ class Warehouses {
     }
     /**
      * Create new warehouse
+     * @param warehouseData - WarehouseData object
+     * @returns WarehouseResponse object
      */
     async create(warehouseData) {
         this.validateWarehouseData(warehouseData);
@@ -110,6 +116,9 @@ class Warehouses {
     }
     /**
      * Update warehouse
+     * @param warehouseId - Warehouse ID
+     * @param warehouseData - Partial<WarehouseData> object
+     * @returns WarehouseResponse object
      */
     async update(warehouseId, warehouseData) {
         try {
@@ -125,6 +134,7 @@ class Warehouses {
     }
     /**
      * Delete warehouse
+     * @param warehouseId - Warehouse ID
      */
     async delete(warehouseId) {
         try {
@@ -139,6 +149,9 @@ class Warehouses {
     }
     /**
      * Inventory management methods
+     * @param warehouseId - Warehouse ID
+     * @param params - Filtering parameters
+     * @returns Array of InventoryItem objects
      */
     async getInventory(warehouseId, params) {
         const queryParams = new URLSearchParams();
@@ -154,6 +167,9 @@ class Warehouses {
     }
     /**
      * Zone management methods
+     * @param warehouseId - Warehouse ID
+     * @param zoneData - Zone object
+     * @returns WarehouseResponse object
      */
     async addZone(warehouseId, zoneData) {
         const response = await this.stateset.request('POST', `warehouses/${warehouseId}/zones`, zoneData);
@@ -161,6 +177,10 @@ class Warehouses {
     }
     /**
      * Equipment management methods
+     * @param warehouseId - Warehouse ID
+     * @param equipmentId - Equipment ID
+     * @param status - Equipment status
+     * @returns Equipment object
      */
     async updateEquipmentStatus(warehouseId, equipmentId, status) {
         const response = await this.stateset.request('PUT', `warehouses/${warehouseId}/equipment/${equipmentId}/status`, { status });
@@ -168,6 +188,10 @@ class Warehouses {
     }
     /**
      * Staff management methods
+     * @param warehouseId - Warehouse ID
+     * @param staffId - Staff ID
+     * @param zoneId - Zone ID
+     * @returns StaffMember object
      */
     async assignStaffToZone(warehouseId, staffId, zoneId) {
         const response = await this.stateset.request('POST', `warehouses/${warehouseId}/staff/${staffId}/assign`, { zone_id: zoneId });
@@ -175,6 +199,9 @@ class Warehouses {
     }
     /**
      * Metrics and reporting
+     * @param warehouseId - Warehouse ID
+     * @param params - Filtering parameters
+     * @returns WarehouseMetrics object
      */
     async getMetrics(warehouseId, params) {
         const queryParams = new URLSearchParams();
@@ -187,6 +214,7 @@ class Warehouses {
     }
     /**
      * Validate warehouse data
+     * @param data - WarehouseData object
      */
     validateWarehouseData(data) {
         if (!data.name) {

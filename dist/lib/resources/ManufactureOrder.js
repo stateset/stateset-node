@@ -55,6 +55,8 @@ class ManufacturerOrders {
     }
     /**
      * List manufacturer orders with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ManufacturerOrderResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -77,6 +79,8 @@ class ManufacturerOrders {
     }
     /**
      * Get specific manufacturer order by ID
+     * @param orderId - Manufacturer order ID
+     * @returns ManufacturerOrderResponse object
      */
     async get(orderId) {
         try {
@@ -92,6 +96,8 @@ class ManufacturerOrders {
     }
     /**
      * Create new manufacturer order
+     * @param orderData - ManufacturerOrderData object
+     * @returns ManufacturerOrderResponse object
      */
     async create(orderData) {
         // Validate material requirements
@@ -105,6 +111,9 @@ class ManufacturerOrders {
     }
     /**
      * Update existing manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param orderData - Partial<ManufacturerOrderData> object
+     * @returns ManufacturerOrderResponse object
      */
     async update(orderId, orderData) {
         try {
@@ -120,6 +129,7 @@ class ManufacturerOrders {
     }
     /**
      * Delete manufacturer order
+     * @param orderId - Manufacturer order ID
      */
     async delete(orderId) {
         try {
@@ -139,18 +149,42 @@ class ManufacturerOrders {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/submit`);
         return response.order;
     }
+    /**
+     * Start production for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param startData - Optional start data
+     * @returns InProductionManufacturerOrderResponse object
+     */
     async startProduction(orderId, startData) {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/start-production`, startData);
         return response.order;
     }
+    /**
+     * Submit quality check for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param qualityData - QualityCheckResult object
+     * @returns QualityCheckManufacturerOrderResponse object
+     */
     async submitQualityCheck(orderId, qualityData) {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/quality-check`, qualityData);
         return response.order;
     }
+    /**
+     * Complete a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param completionData - Completion data
+     * @returns CompletedManufacturerOrderResponse object
+     */
     async complete(orderId, completionData) {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/complete`, completionData);
         return response.order;
     }
+    /**
+     * Cancel a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param cancellationData - Cancellation data
+     * @returns CancelledManufacturerOrderResponse object
+     */
     async cancel(orderId, cancellationData) {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/cancel`, cancellationData);
         return response.order;
@@ -162,6 +196,12 @@ class ManufacturerOrders {
         const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/production-status`, update);
         return response.order;
     }
+    /**
+     * Get production history for a manufacturer order
+     * @param orderId - Manufacturer order ID
+     * @param params - Optional filtering parameters
+     * @returns Array of ProductionUpdate objects
+     */
     async getProductionHistory(orderId, params) {
         const queryParams = new URLSearchParams();
         if (params === null || params === void 0 ? void 0 : params.from_date)

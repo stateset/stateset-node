@@ -160,6 +160,8 @@ class Messages {
 
   /**
    * List messages with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of MessageResponse objects
    */
   async list(params?: {
     type?: MessageType;
@@ -192,6 +194,8 @@ class Messages {
 
   /**
    * Get specific message by ID
+   * @param messageId - Message ID
+   * @returns MessageResponse object
    */
   async get(messageId: string): Promise<MessageResponse> {
     try {
@@ -207,6 +211,8 @@ class Messages {
 
   /**
    * Create new message
+   * @param messageData - MessageData object
+   * @returns MessageResponse object
    */
   async create(messageData: MessageData): Promise<MessageResponse> {
     this.validateMessageData(messageData);
@@ -224,6 +230,9 @@ class Messages {
 
   /**
    * Update existing message
+   * @param messageId - Message ID
+   * @param messageData - Partial<MessageData> object
+   * @returns MessageResponse object
    */
   async update(
     messageId: string,
@@ -242,6 +251,7 @@ class Messages {
 
   /**
    * Delete message
+   * @param messageId - Message ID
    */
   async delete(messageId: string): Promise<void> {
     try {
@@ -256,6 +266,8 @@ class Messages {
 
   /**
    * Like message
+   * @param messageId - Message ID
+   * @returns MessageResponse object
    */
   async like(messageId: string): Promise<MessageResponse> {
     const response = await this.stateset.request('POST', `messages/${messageId}/like`);
@@ -264,6 +276,8 @@ class Messages {
 
   /**
    * Unlike message
+   * @param messageId - Message ID
+   * @returns MessageResponse object
    */
   async unlike(messageId: string): Promise<MessageResponse> {
     const response = await this.stateset.request('POST', `messages/${messageId}/unlike`);
@@ -272,6 +286,8 @@ class Messages {
 
   /**
    * Mark message as read
+   * @param messageId - Message ID
+   * @returns MessageResponse object
    */
   async markAsRead(messageId: string): Promise<MessageResponse> {
     const response = await this.stateset.request('POST', `messages/${messageId}/read`);
@@ -280,6 +296,8 @@ class Messages {
 
   /**
    * Get message analytics
+   * @param messageId - Message ID
+   * @returns MessageAnalytics object
    */
   async getAnalytics(messageId: string): Promise<MessageAnalytics> {
     const response = await this.stateset.request('GET', `messages/${messageId}/analytics`);
@@ -288,6 +306,9 @@ class Messages {
 
   /**
    * Search messages
+   * @param query - Search query
+   * @param params - Optional filtering parameters
+   * @returns Array of MessageResponse objects
    */
   async search(query: string, params?: {
     type?: MessageType;
@@ -315,6 +336,9 @@ class Messages {
 
   /**
    * Get conversation thread
+   * @param messageId - Message ID
+   * @param params - Optional filtering parameters
+   * @returns Array of MessageResponse objects
    */
   async getThread(messageId: string, params?: {
     limit?: number;
@@ -336,6 +360,7 @@ class Messages {
 
   /**
    * Validate message data
+   * @param data - MessageData object
    */
   private validateMessageData(data: MessageData): void {
     if (!data.body) {

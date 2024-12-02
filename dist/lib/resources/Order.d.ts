@@ -203,6 +203,8 @@ declare class Orders {
     constructor(stateset: stateset);
     /**
      * List orders with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of OrderResponse objects
      */
     list(params?: {
         status?: OrderStatus;
@@ -215,48 +217,103 @@ declare class Orders {
     }): Promise<OrderResponse[]>;
     /**
      * Get specific order by ID
+     * @param orderId - Order ID
+     * @returns OrderResponse object
      */
     get(orderId: string): Promise<OrderResponse>;
     /**
      * Create new order
+     * @param orderData - OrderData object
+     * @returns OrderResponse object
      */
     create(orderData: OrderData): Promise<OrderResponse>;
     /**
      * Update existing order
+     * @param orderId - Order ID
+     * @param orderData - Partial<OrderData> object
+     * @returns OrderResponse object
      */
     update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse>;
     /**
      * Process order status changes
+     * @param orderId - Order ID
+     * @returns ConfirmedOrderResponse object
      */
     confirm(orderId: string): Promise<ConfirmedOrderResponse>;
+    /**
+     * Start processing an order
+     * @param orderId - Order ID
+     * @returns ProcessingOrderResponse object
+     */
     process(orderId: string): Promise<ProcessingOrderResponse>;
+    /**
+     * Ship an order
+     * @param orderId - Order ID
+     * @param shippingDetails - ShippingDetails object
+     * @returns ShippedOrderResponse object
+     */
     ship(orderId: string, shippingDetails: ShippingDetails): Promise<ShippedOrderResponse>;
+    /**
+     * Mark an order as delivered
+     * @param orderId - Order ID
+     * @param confirmation - Optional confirmation object
+     * @returns DeliveredOrderResponse object
+     */
     markDelivered(orderId: string, confirmation?: {
         signature?: string;
         photo?: string;
     }): Promise<DeliveredOrderResponse>;
+    /**
+     * Cancel an order
+     * @param orderId - Order ID
+     * @param cancellationData - Cancellation data
+     * @returns CancelledOrderResponse object
+     */
     cancel(orderId: string, cancellationData: {
         reason: string;
     }): Promise<CancelledOrderResponse>;
+    /**
+     * Process a return for an order
+     * @param orderId - Order ID
+     * @param returnData - Return data
+     * @returns ReturnedOrderResponse object
+     */
     processReturn(orderId: string, returnData: {
         rma_number: string;
         reason: string;
         condition: string;
     }): Promise<ReturnedOrderResponse>;
+    /**
+     * Process a refund for an order
+     * @param orderId - Order ID
+     * @param refundData - Refund data
+     * @returns RefundedOrderResponse object
+     */
     processRefund(orderId: string, refundData: {
         amount: number;
         reason: string;
     }): Promise<RefundedOrderResponse>;
     /**
-     * Fulfillment tracking
+     * Add a fulfillment event to an order
+     * @param orderId - Order ID
+     * @param event - FulfillmentEvent object
+     * @returns OrderResponse object
      */
     addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse>;
+    /**
+     * Get fulfillment history for an order
+     * @param orderId - Order ID
+     * @param params - Optional filtering parameters
+     * @returns Array of FulfillmentEvent objects
+     */
     getFulfillmentHistory(orderId: string, params?: {
         start_date?: Date;
         end_date?: Date;
     }): Promise<FulfillmentEvent[]>;
     /**
-     * Order tracking
+     * Get tracking information for an order
+     * @param orderId - Order ID
+     * @returns Tracking information object
      */
     getTracking(orderId: string): Promise<{
         tracking_number: string;
@@ -272,7 +329,9 @@ declare class Orders {
         }>;
     }>;
     /**
-     * Order metrics
+     * Get order metrics
+     * @param params - Optional filtering parameters
+     * @returns Metrics object
      */
     getMetrics(params?: {
         start_date?: Date;

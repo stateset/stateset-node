@@ -76,6 +76,8 @@ class Shipments {
     }
     /**
      * List shipments with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of ShipmentResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -98,6 +100,8 @@ class Shipments {
     }
     /**
      * Get shipping rates
+     * @param shipmentData - Omit<ShipmentData, 'carrier' | 'service_level'> object
+     * @returns Array of Rate objects
      */
     async getRates(shipmentData) {
         const response = await this.stateset.request('POST', 'shipments/rates', shipmentData);
@@ -105,6 +109,8 @@ class Shipments {
     }
     /**
      * Create shipment and generate label
+     * @param shipmentData - ShipmentData object
+     * @returns LabelCreatedShipmentResponse object
      */
     async create(shipmentData) {
         try {
@@ -123,6 +129,9 @@ class Shipments {
     }
     /**
      * Update shipment
+     * @param shipmentId - Shipment ID
+     * @param shipmentData - Partial<ShipmentData> object
+     * @returns ShipmentResponse object
      */
     async update(shipmentId, shipmentData) {
         try {
@@ -138,6 +147,9 @@ class Shipments {
     }
     /**
      * Package management methods
+     * @param shipmentId - Shipment ID
+     * @param packageData - Omit<Package, 'id'> object
+     * @returns ShipmentResponse object
      */
     async addPackage(shipmentId, packageData) {
         const response = await this.stateset.request('POST', `shipments/${shipmentId}/packages`, packageData);
@@ -149,6 +161,9 @@ class Shipments {
     }
     /**
      * Generate return label
+     * @param shipmentId - Shipment ID
+     * @param returnData - Return data object
+     * @returns Object with tracking_number, label_url, and carrier
      */
     async generateReturnLabel(shipmentId, returnData) {
         const response = await this.stateset.request('POST', `shipments/${shipmentId}/return-label`, returnData);
@@ -156,6 +171,9 @@ class Shipments {
     }
     /**
      * Tracking methods
+     * @param shipmentId - Shipment ID
+     * @param params - Filtering parameters
+     * @returns Object with status, estimated_delivery_date, actual_delivery_date, events, and proof_of_delivery_url
      */
     async getTrackingDetails(shipmentId, params) {
         const queryParams = new URLSearchParams();
@@ -167,6 +185,8 @@ class Shipments {
     }
     /**
      * Get shipment metrics
+     * @param params - Filtering parameters
+     * @returns Object with total_shipments, average_delivery_time, on_time_delivery_rate, exception_rate, average_shipping_cost, carrier_breakdown, and status_breakdown
      */
     async getMetrics(params) {
         const queryParams = new URLSearchParams();

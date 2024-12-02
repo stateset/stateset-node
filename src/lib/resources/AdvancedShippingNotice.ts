@@ -106,35 +106,70 @@ class ASN {
     }
   }
 
+  /**
+   * List ASNs
+   * @returns Array of ASNResponse objects
+   */
   async list(): Promise<ASNResponse[]> {
     const response = await this.stateset.request('GET', 'asns');
     return response.map((asn: any) => this.handleCommandResponse({ update_asns_by_pk: asn }));
   }
 
+  /**
+   * Get ASN
+   * @param asnId - ASN ID
+   * @returns ASNResponse object
+   */
   async get(asnId: string): Promise<ASNResponse> {
     const response = await this.stateset.request('GET', `asns/${asnId}`);
     return this.handleCommandResponse({ update_asns_by_pk: response });
   }
 
+  /**
+   * Create ASN
+   * @param asnData - ASNData object
+   * @returns ASNResponse object
+   */
   async create(asnData: ASNData): Promise<ASNResponse> {
     const response = await this.stateset.request('POST', 'asns', asnData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update ASN
+   * @param asnId - ASN ID
+   * @param asnData - Partial<ASNData> object
+   * @returns ASNResponse object
+   */
   async update(asnId: string, asnData: Partial<ASNData>): Promise<ASNResponse> {
     const response = await this.stateset.request('PUT', `asns/${asnId}`, asnData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Delete ASN
+   * @param asnId - ASN ID
+   */
   async delete(asnId: string): Promise<void> {
     await this.stateset.request('DELETE', `asns/${asnId}`);
   }
 
+  /**
+   * Submit ASN
+   * @param asnId - ASN ID
+   * @returns SubmittedASNResponse object
+   */
   async submit(asnId: string): Promise<SubmittedASNResponse> {
     const response = await this.stateset.request('POST', `asns/${asnId}/submit`);
     return this.handleCommandResponse(response) as SubmittedASNResponse;
   }
 
+  /**
+   * Mark ASN as in transit
+   * @param asnId - ASN ID
+   * @param transitDetails - TransitDetails object
+   * @returns InTransitASNResponse object
+   */
   async markInTransit(asnId: string, transitDetails?: { 
     departure_date?: string;
     estimated_arrival_date?: string;
@@ -144,6 +179,12 @@ class ASN {
     return this.handleCommandResponse(response) as InTransitASNResponse;
   }
 
+  /**
+   * Mark ASN as delivered
+   * @param asnId - ASN ID
+   * @param deliveryDetails - DeliveryDetails object
+   * @returns DeliveredASNResponse object
+   */
   async markDelivered(asnId: string, deliveryDetails: {
     delivery_date: string;
     received_by?: string;
@@ -153,21 +194,44 @@ class ASN {
     return this.handleCommandResponse(response) as DeliveredASNResponse;
   }
 
+  /**
+   * Cancel ASN
+   * @param asnId - ASN ID
+   * @returns CancelledASNResponse object
+   */
   async cancel(asnId: string): Promise<CancelledASNResponse> {
     const response = await this.stateset.request('POST', `asns/${asnId}/cancel`);
     return this.handleCommandResponse(response) as CancelledASNResponse;
   }
 
+  /**
+   * Add item to ASN
+   * @param asnId - ASN ID
+   * @param item - ASNData['items'][0] object
+   * @returns ASNResponse object
+   */
   async addItem(asnId: string, item: ASNData['items'][0]): Promise<ASNResponse> {
     const response = await this.stateset.request('POST', `asns/${asnId}/items`, item);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Remove item from ASN
+   * @param asnId - ASN ID
+   * @param purchaseOrderItemId - Purchase order item ID
+   * @returns ASNResponse object
+   */
   async removeItem(asnId: string, purchaseOrderItemId: string): Promise<ASNResponse> {
     const response = await this.stateset.request('DELETE', `asns/${asnId}/items/${purchaseOrderItemId}`);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update shipping information for ASN
+   * @param asnId - ASN ID
+   * @param shippingInfo - ShippingInfo object
+   * @returns ASNResponse object
+   */
   async updateShippingInfo(asnId: string, shippingInfo: {
     carrier?: string;
     tracking_number?: string;

@@ -189,6 +189,8 @@ class Picks {
 
   /**
    * Get specific pick
+   * @param pickId - Pick ID
+   * @returns PickResponse object
    */
   async get(pickId: string): Promise<PickResponse> {
     try {
@@ -204,6 +206,8 @@ class Picks {
 
   /**
    * Create new pick
+   * @param pickData - PickData object
+   * @returns PickResponse object
    */
   async create(pickData: PickData): Promise<PickResponse> {
     this.validatePickData(pickData);
@@ -221,6 +225,9 @@ class Picks {
 
   /**
    * Update pick
+   * @param pickId - Pick ID
+   * @param pickData - Partial<PickData> object
+   * @returns PickResponse object
    */
   async update(
     pickId: string,
@@ -239,6 +246,7 @@ class Picks {
 
   /**
    * Delete pick
+   * @param pickId - Pick ID
    */
   async delete(pickId: string): Promise<void> {
     try {
@@ -253,6 +261,9 @@ class Picks {
 
   /**
    * Optimize pick route
+   * @param pickId - Pick ID
+   * @param params - Optional parameters
+   * @returns PickRoute object
    */
   async optimizeRoute(
     pickId: string,
@@ -275,6 +286,9 @@ class Picks {
 
   /**
    * Start pick operation
+   * @param pickId - Pick ID
+   * @param startData - Start data object
+   * @returns PickResponse object
    */
   async start(
     pickId: string,
@@ -289,6 +303,9 @@ class Picks {
 
   /**
    * Record item pick
+   * @param pickId - Pick ID
+   * @param itemData - Item data object
+   * @returns PickResponse object
    */
   async recordItemPick(
     pickId: string,
@@ -310,6 +327,9 @@ class Picks {
 
   /**
    * Complete quality check
+   * @param pickId - Pick ID
+   * @param checkData - Quality check data object
+   * @returns PickResponse object
    */
   async completeQualityCheck(
     pickId: string,
@@ -325,6 +345,9 @@ class Picks {
 
   /**
    * Complete pick
+   * @param pickId - Pick ID
+   * @param completionData - Completion data object
+   * @returns PickResponse object
    */
   async complete(
     pickId: string,
@@ -344,6 +367,8 @@ class Picks {
 
   /**
    * Get pick metrics
+   * @param pickId - Pick ID
+   * @returns PickMetrics object
    */
   async getMetrics(pickId: string): Promise<PickMetrics> {
     const response = await this.stateset.request('GET', `picks/${pickId}/metrics`);
@@ -352,6 +377,7 @@ class Picks {
 
   /**
    * Validate pick data
+   * @param data - PickData object
    */
   private validatePickData(data: PickData): void {
     if (!data.warehouse_id) {

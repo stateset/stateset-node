@@ -64,6 +64,8 @@ class Messages {
     }
     /**
      * List messages with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -92,6 +94,8 @@ class Messages {
     }
     /**
      * Get specific message by ID
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     async get(messageId) {
         try {
@@ -107,6 +111,8 @@ class Messages {
     }
     /**
      * Create new message
+     * @param messageData - MessageData object
+     * @returns MessageResponse object
      */
     async create(messageData) {
         this.validateMessageData(messageData);
@@ -123,6 +129,9 @@ class Messages {
     }
     /**
      * Update existing message
+     * @param messageId - Message ID
+     * @param messageData - Partial<MessageData> object
+     * @returns MessageResponse object
      */
     async update(messageId, messageData) {
         try {
@@ -138,6 +147,7 @@ class Messages {
     }
     /**
      * Delete message
+     * @param messageId - Message ID
      */
     async delete(messageId) {
         try {
@@ -152,6 +162,8 @@ class Messages {
     }
     /**
      * Like message
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     async like(messageId) {
         const response = await this.stateset.request('POST', `messages/${messageId}/like`);
@@ -159,6 +171,8 @@ class Messages {
     }
     /**
      * Unlike message
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     async unlike(messageId) {
         const response = await this.stateset.request('POST', `messages/${messageId}/unlike`);
@@ -166,6 +180,8 @@ class Messages {
     }
     /**
      * Mark message as read
+     * @param messageId - Message ID
+     * @returns MessageResponse object
      */
     async markAsRead(messageId) {
         const response = await this.stateset.request('POST', `messages/${messageId}/read`);
@@ -173,6 +189,8 @@ class Messages {
     }
     /**
      * Get message analytics
+     * @param messageId - Message ID
+     * @returns MessageAnalytics object
      */
     async getAnalytics(messageId) {
         const response = await this.stateset.request('GET', `messages/${messageId}/analytics`);
@@ -180,6 +198,9 @@ class Messages {
     }
     /**
      * Search messages
+     * @param query - Search query
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     async search(query, params) {
         const queryParams = new URLSearchParams({ query });
@@ -200,6 +221,9 @@ class Messages {
     }
     /**
      * Get conversation thread
+     * @param messageId - Message ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MessageResponse objects
      */
     async getThread(messageId, params) {
         const queryParams = new URLSearchParams();
@@ -213,6 +237,7 @@ class Messages {
     }
     /**
      * Validate message data
+     * @param data - MessageData object
      */
     validateMessageData(data) {
         if (!data.body) {

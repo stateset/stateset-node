@@ -151,6 +151,8 @@ declare class Channels {
     constructor(stateset: stateset);
     /**
      * List channels with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ChannelResponse objects
      */
     list(params?: {
         type?: ChannelType;
@@ -161,26 +163,41 @@ declare class Channels {
     }): Promise<ChannelResponse[]>;
     /**
      * Get specific channel
+     * @param channelId - Channel ID
+     * @returns ChannelResponse object
      */
     get(channelId: string): Promise<ChannelResponse>;
     /**
      * Create new channel
+     * @param channelData - ChannelData object
+     * @returns ChannelResponse object
      */
     create(channelData: ChannelData): Promise<ChannelResponse>;
     /**
      * Update channel
+     * @param channelId - Channel ID
+     * @param channelData - Partial<ChannelData> object
+     * @returns ChannelResponse object
      */
     update(channelId: string, channelData: Partial<ChannelData>): Promise<ChannelResponse>;
     /**
      * Delete channel
+     * @param channelId - Channel ID
      */
     delete(channelId: string): Promise<void>;
     /**
      * Update channel status
+     * @param channelId - Channel ID
+     * @param status - ChannelStatus
+     * @param reason - Optional reason for status change
+     * @returns ChannelResponse object
      */
     updateStatus(channelId: string, status: ChannelStatus, reason?: string): Promise<ChannelResponse>;
     /**
      * Get channel metrics
+     * @param channelId - Channel ID
+     * @param params - Optional filtering parameters
+     * @returns ChannelMetrics object
      */
     getMetrics(channelId: string, params?: {
         start_date?: Date;
@@ -188,6 +205,9 @@ declare class Channels {
     }): Promise<ChannelMetrics>;
     /**
      * Test channel configuration
+     * @param channelId - Channel ID
+     * @param testData - Optional test data
+     * @returns Object containing success, latency, and error (if any)
      */
     testChannel(channelId: string, testData?: {
         message?: string;
@@ -199,14 +219,21 @@ declare class Channels {
     }>;
     /**
      * Update channel voice configuration
+     * @param channelId - Channel ID
+     * @param voiceConfig - VoiceConfig object
+     * @returns ChannelResponse object
      */
     updateVoiceConfig(channelId: string, voiceConfig: VoiceConfig): Promise<ChannelResponse>;
     /**
      * Update channel response configuration
+     * @param channelId - Channel ID
+     * @param responseConfig - ResponseConfig object
+     * @returns ChannelResponse object
      */
     updateResponseConfig(channelId: string, responseConfig: ResponseConfig): Promise<ChannelResponse>;
     /**
      * Validate channel data
+     * @param data - ChannelData object
      */
     private validateChannelData;
 }

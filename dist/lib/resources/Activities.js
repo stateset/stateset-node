@@ -84,6 +84,8 @@ class Activities {
     }
     /**
      * List activities with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ActivityResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -104,6 +106,8 @@ class Activities {
     }
     /**
      * Get specific activity
+     * @param activityId - Activity ID
+     * @returns ActivityResponse object
      */
     async get(activityId) {
         try {
@@ -119,6 +123,8 @@ class Activities {
     }
     /**
      * Create new activity
+     * @param activityData - ActivityData object
+     * @returns ActivityResponse object
      */
     async create(activityData) {
         this.validateActivityData(activityData);
@@ -135,6 +141,9 @@ class Activities {
     }
     /**
      * Update activity
+     * @param activityId - Activity ID
+     * @param activityData - Partial<ActivityData> object
+     * @returns ActivityResponse object
      */
     async update(activityId, activityData) {
         try {
@@ -150,6 +159,7 @@ class Activities {
     }
     /**
      * Delete activity
+     * @param activityId - Activity ID
      */
     async delete(activityId) {
         try {
@@ -164,6 +174,9 @@ class Activities {
     }
     /**
      * Start activity execution
+     * @param activityId - Activity ID
+     * @param input - Optional input data
+     * @returns ActivityResponse object
      */
     async start(activityId, input) {
         try {
@@ -176,6 +189,9 @@ class Activities {
     }
     /**
      * Complete activity
+     * @param activityId - Activity ID
+     * @param output - Output data
+     * @returns ActivityResponse object
      */
     async complete(activityId, output) {
         const response = await this.stateset.request('POST', `activities/${activityId}/complete`, { output });
@@ -183,6 +199,9 @@ class Activities {
     }
     /**
      * Fail activity
+     * @param activityId - Activity ID
+     * @param error - Error object
+     * @returns ActivityResponse object
      */
     async fail(activityId, error) {
         const response = await this.stateset.request('POST', `activities/${activityId}/fail`, { error });
@@ -190,6 +209,9 @@ class Activities {
     }
     /**
      * Cancel activity
+     * @param activityId - Activity ID
+     * @param reason - Optional reason for cancellation
+     * @returns ActivityResponse object
      */
     async cancel(activityId, reason) {
         const response = await this.stateset.request('POST', `activities/${activityId}/cancel`, { reason });
@@ -197,6 +219,8 @@ class Activities {
     }
     /**
      * Get activity metrics
+     * @param activityId - Activity ID
+     * @returns ActivityMetrics object
      */
     async getMetrics(activityId) {
         const response = await this.stateset.request('GET', `activities/${activityId}/metrics`);
@@ -204,6 +228,8 @@ class Activities {
     }
     /**
      * Retry failed activity
+     * @param activityId - Activity ID
+     * @returns ActivityResponse object
      */
     async retry(activityId) {
         const response = await this.stateset.request('POST', `activities/${activityId}/retry`);
@@ -211,7 +237,8 @@ class Activities {
     }
     /**
      * Validate activity data
-     */
+     * @param data - ActivityData object
+    */
     validateActivityData(data) {
         if (!data.name) {
             throw new ActivityValidationError('Activity name is required');

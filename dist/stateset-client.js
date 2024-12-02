@@ -39,6 +39,7 @@ const Pick_1 = __importDefault(require("./lib/resources/Pick"));
 const CycleCount_1 = __importDefault(require("./lib/resources/CycleCount"));
 const Machine_1 = __importDefault(require("./lib/resources/Machine"));
 const WasteAndScrap_1 = __importDefault(require("./lib/resources/WasteAndScrap"));
+const Warehouse_1 = __importDefault(require("./lib/resources/Warehouse"));
 const Supplier_1 = __importDefault(require("./lib/resources/Supplier"));
 const Location_1 = __importDefault(require("./lib/resources/Location"));
 const Vendor_1 = __importDefault(require("./lib/resources/Vendor"));
@@ -93,6 +94,7 @@ class stateset {
         this.cycleCounts = new CycleCount_1.default(this);
         this.machines = new Machine_1.default(this);
         this.wasteAndScrap = new WasteAndScrap_1.default(this);
+        this.warehouses = new Warehouse_1.default(this);
         this.suppliers = new Supplier_1.default(this);
         this.locations = new Location_1.default(this);
         this.vendors = new Vendor_1.default(this);

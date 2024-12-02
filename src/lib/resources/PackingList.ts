@@ -120,35 +120,70 @@ class PackingList {
     }
   }
 
+  /**
+   * Get all packing lists
+   * @returns Array of PackingListResponse objects
+   */
   async list(): Promise<PackingListResponse[]> {
     const response = await this.stateset.request('GET', 'packinglists');
     return response.map((packingList: any) => this.handleCommandResponse({ update_packinglists_by_pk: packingList }));
   }
 
+  /**
+   * Get a packing list by ID
+   * @param packingListId - Packing list ID
+   * @returns PackingListResponse object
+   */
   async get(packingListId: string): Promise<PackingListResponse> {
     const response = await this.stateset.request('GET', `packinglists/${packingListId}`);
     return this.handleCommandResponse({ update_packinglists_by_pk: response });
   }
 
+  /**
+   * Create a new packing list
+   * @param packingListData - PackingListData object
+   * @returns PackingListResponse object
+   */
   async create(packingListData: PackingListData): Promise<PackingListResponse> {
     const response = await this.stateset.request('POST', 'packinglists', packingListData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update a packing list
+   * @param packingListId - Packing list ID
+   * @param packingListData - Partial<PackingListData> object
+   * @returns PackingListResponse object
+   */
   async update(packingListId: string, packingListData: Partial<PackingListData>): Promise<PackingListResponse> {
     const response = await this.stateset.request('PUT', `packinglists/${packingListId}`, packingListData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Delete a packing list
+   * @param packingListId - Packing list ID
+   */
   async delete(packingListId: string): Promise<void> {
     await this.stateset.request('DELETE', `packinglists/${packingListId}`);
   }
 
+  /**
+   * Submit a packing list
+   * @param packingListId - Packing list ID
+   * @returns SubmittedPackingListResponse object
+   */
   async submit(packingListId: string): Promise<SubmittedPackingListResponse> {
     const response = await this.stateset.request('POST', `packinglists/${packingListId}/submit`);
     return this.handleCommandResponse(response) as SubmittedPackingListResponse;
   }
 
+  /**
+   * Verify a packing list
+   * @param packingListId - Packing list ID
+   * @param verificationDetails - Verification details object
+   * @returns VerifiedPackingListResponse object
+   */
   async verify(packingListId: string, verificationDetails: {
     verified_by: string;
     verification_date: string;
@@ -158,6 +193,12 @@ class PackingList {
     return this.handleCommandResponse(response) as VerifiedPackingListResponse;
   }
 
+  /**
+   * Mark a packing list as shipped
+   * @param packingListId - Packing list ID
+   * @param shippingDetails - Shipping details object
+   * @returns ShippedPackingListResponse object
+   */
   async markShipped(packingListId: string, shippingDetails: {
     shipped_date: string;
     shipped_by: string;
@@ -167,36 +208,80 @@ class PackingList {
     return this.handleCommandResponse(response) as ShippedPackingListResponse;
   }
 
+  /**
+   * Cancel a packing list
+   * @param packingListId - Packing list ID
+   * @returns CancelledPackingListResponse object
+   */
   async cancel(packingListId: string): Promise<CancelledPackingListResponse> {
     const response = await this.stateset.request('POST', `packinglists/${packingListId}/cancel`);
     return this.handleCommandResponse(response) as CancelledPackingListResponse;
   }
 
+  /**
+   * Add a package to a packing list
+   * @param packingListId - Packing list ID
+   * @param packageData - Package data object
+   * @returns PackingListResponse object
+   */
   async addPackage(packingListId: string, packageData: Package): Promise<PackingListResponse> {
     const response = await this.stateset.request('POST', `packinglists/${packingListId}/packages`, packageData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update a package in a packing list
+   * @param packingListId - Packing list ID
+   * @param packageNumber - Package number
+   * @param packageData - Partial<Package> object
+   * @returns PackingListResponse object
+   */
   async updatePackage(packingListId: string, packageNumber: string, packageData: Partial<Package>): Promise<PackingListResponse> {
     const response = await this.stateset.request('PUT', `packinglists/${packingListId}/packages/${packageNumber}`, packageData);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Remove a package from a packing list
+   * @param packingListId - Packing list ID
+   * @param packageNumber - Package number
+   * @returns PackingListResponse object
+   */
   async removePackage(packingListId: string, packageNumber: string): Promise<PackingListResponse> {
     const response = await this.stateset.request('DELETE', `packinglists/${packingListId}/packages/${packageNumber}`);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Add an item to a package in a packing list
+   * @param packingListId - Packing list ID
+   * @param packageNumber - Package number
+   * @param item - PackageItem object
+   * @returns PackingListResponse object
+   */
   async addItemToPackage(packingListId: string, packageNumber: string, item: PackageItem): Promise<PackingListResponse> {
     const response = await this.stateset.request('POST', `packinglists/${packingListId}/packages/${packageNumber}/items`, item);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Remove an item from a package in a packing list
+   * @param packingListId - Packing list ID
+   * @param packageNumber - Package number
+   * @param purchaseOrderItemId - Purchase order item ID
+   * @returns PackingListResponse object
+   */
   async removeItemFromPackage(packingListId: string, packageNumber: string, purchaseOrderItemId: string): Promise<PackingListResponse> {
     const response = await this.stateset.request('DELETE', `packinglists/${packingListId}/packages/${packageNumber}/items/${purchaseOrderItemId}`);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Update quality check for a packing list
+   * @param packingListId - Packing list ID
+   * @param qualityCheckData - Quality check data object
+   * @returns PackingListResponse object
+   */
   async updateQualityCheck(packingListId: string, qualityCheckData: PackingListData['quality_check']): Promise<PackingListResponse> {
     const response = await this.stateset.request('PUT', `packinglists/${packingListId}/quality-check`, qualityCheckData);
     return this.handleCommandResponse(response);

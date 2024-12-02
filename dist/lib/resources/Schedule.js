@@ -68,6 +68,8 @@ class Schedule {
     }
     /**
      * List schedules with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of ScheduleResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -86,6 +88,8 @@ class Schedule {
     }
     /**
      * Get specific schedule by ID
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     async get(scheduleId) {
         try {
@@ -101,6 +105,8 @@ class Schedule {
     }
     /**
      * Create new schedule
+     * @param scheduleData - ScheduleData object
+     * @returns ScheduleResponse object
      */
     async create(scheduleData) {
         this.validateScheduleData(scheduleData);
@@ -117,6 +123,9 @@ class Schedule {
     }
     /**
      * Update existing schedule
+     * @param scheduleId - Schedule ID
+     * @param scheduleData - Partial<ScheduleData> object
+     * @returns ScheduleResponse object
      */
     async update(scheduleId, scheduleData) {
         if (Object.keys(scheduleData).length > 0) {
@@ -135,6 +144,7 @@ class Schedule {
     }
     /**
      * Delete schedule
+     * @param scheduleId - Schedule ID
      */
     async delete(scheduleId) {
         try {
@@ -149,6 +159,8 @@ class Schedule {
     }
     /**
      * Pause schedule
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     async pause(scheduleId) {
         const response = await this.stateset.request('POST', `schedules/${scheduleId}/pause`);
@@ -156,6 +168,8 @@ class Schedule {
     }
     /**
      * Resume schedule
+     * @param scheduleId - Schedule ID
+     * @returns ScheduleResponse object
      */
     async resume(scheduleId) {
         const response = await this.stateset.request('POST', `schedules/${scheduleId}/resume`);
@@ -163,6 +177,9 @@ class Schedule {
     }
     /**
      * Trigger immediate execution
+     * @param scheduleId - Schedule ID
+     * @param params - Parameters object
+     * @returns ExecutionResult object
      */
     async triggerExecution(scheduleId, params) {
         try {
@@ -175,6 +192,9 @@ class Schedule {
     }
     /**
      * Get execution history
+     * @param scheduleId - Schedule ID
+     * @param params - Filtering parameters
+     * @returns Array of ExecutionResult objects
      */
     async getExecutionHistory(scheduleId, params) {
         const queryParams = new URLSearchParams();
@@ -191,6 +211,9 @@ class Schedule {
     }
     /**
      * Get next scheduled executions
+     * @param scheduleId - Schedule ID
+     * @param limit - Number of executions to return
+     * @returns Array of objects with scheduled_time and estimation_basis
      */
     async getNextExecutions(scheduleId, limit = 10) {
         const response = await this.stateset.request('GET', `schedules/${scheduleId}/next-executions?limit=${limit}`);
@@ -198,6 +221,8 @@ class Schedule {
     }
     /**
      * Validate schedule data
+     * @param data - ScheduleData object
+     * @param isUpdate - Boolean value
      */
     validateScheduleData(data, isUpdate = false) {
         if (!isUpdate) {

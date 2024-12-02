@@ -226,6 +226,8 @@ class Activities {
 
   /**
    * List activities with optional filtering
+   * @param params - Optional filtering parameters
+   * @returns Array of ActivityResponse objects
    */
   async list(params?: {
     workflow_id?: string;
@@ -250,6 +252,8 @@ class Activities {
 
   /**
    * Get specific activity
+   * @param activityId - Activity ID
+   * @returns ActivityResponse object
    */
   async get(activityId: string): Promise<ActivityResponse> {
     try {
@@ -265,6 +269,8 @@ class Activities {
 
   /**
    * Create new activity
+   * @param activityData - ActivityData object
+   * @returns ActivityResponse object
    */
   async create(activityData: ActivityData): Promise<ActivityResponse> {
     this.validateActivityData(activityData);
@@ -282,6 +288,9 @@ class Activities {
 
   /**
    * Update activity
+   * @param activityId - Activity ID
+   * @param activityData - Partial<ActivityData> object
+   * @returns ActivityResponse object
    */
   async update(
     activityId: string,
@@ -300,6 +309,7 @@ class Activities {
 
   /**
    * Delete activity
+   * @param activityId - Activity ID
    */
   async delete(activityId: string): Promise<void> {
     try {
@@ -314,6 +324,9 @@ class Activities {
 
   /**
    * Start activity execution
+   * @param activityId - Activity ID
+   * @param input - Optional input data
+   * @returns ActivityResponse object
    */
   async start(
     activityId: string,
@@ -333,6 +346,9 @@ class Activities {
 
   /**
    * Complete activity
+   * @param activityId - Activity ID
+   * @param output - Output data
+   * @returns ActivityResponse object
    */
   async complete(
     activityId: string,
@@ -348,6 +364,9 @@ class Activities {
 
   /**
    * Fail activity
+   * @param activityId - Activity ID
+   * @param error - Error object
+   * @returns ActivityResponse object
    */
   async fail(
     activityId: string,
@@ -367,6 +386,9 @@ class Activities {
 
   /**
    * Cancel activity
+   * @param activityId - Activity ID
+   * @param reason - Optional reason for cancellation
+   * @returns ActivityResponse object
    */
   async cancel(activityId: string, reason?: string): Promise<ActivityResponse> {
     const response = await this.stateset.request(
@@ -379,6 +401,8 @@ class Activities {
 
   /**
    * Get activity metrics
+   * @param activityId - Activity ID
+   * @returns ActivityMetrics object
    */
   async getMetrics(activityId: string): Promise<ActivityMetrics> {
     const response = await this.stateset.request(
@@ -390,6 +414,8 @@ class Activities {
 
   /**
    * Retry failed activity
+   * @param activityId - Activity ID
+   * @returns ActivityResponse object
    */
   async retry(activityId: string): Promise<ActivityResponse> {
     const response = await this.stateset.request(
@@ -401,7 +427,8 @@ class Activities {
 
   /**
    * Validate activity data
-   */
+   * @param data - ActivityData object
+  */
   private validateActivityData(data: ActivityData): void {
     if (!data.name) {
       throw new ActivityValidationError('Activity name is required');

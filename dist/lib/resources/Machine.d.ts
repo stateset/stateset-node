@@ -170,6 +170,8 @@ declare class Machines {
     constructor(stateset: stateset);
     /**
      * List machines with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of MachineResponse objects
      */
     list(params?: {
         status?: MachineStatus;
@@ -180,30 +182,47 @@ declare class Machines {
     }): Promise<MachineResponse[]>;
     /**
      * Get specific machine by ID
+     * @param machineId - Machine ID
+     * @returns MachineResponse object
      */
     get(machineId: string): Promise<MachineResponse>;
     /**
      * Create new machine
+     * @param machineData - MachineData object
+     * @returns MachineResponse object
      */
     create(machineData: MachineData): Promise<MachineResponse>;
     /**
      * Update existing machine
+     * @param machineId - Machine ID
+     * @param machineData - Partial<MachineData> object
+     * @returns MachineResponse object
      */
     update(machineId: string, machineData: Partial<MachineData>): Promise<MachineResponse>;
     /**
      * Delete machine
+     * @param machineId - Machine ID
      */
     delete(machineId: string): Promise<void>;
     /**
      * Log machine runtime
+     * @param machineId - Machine ID
+     * @param data - RuntimeData object
+     * @returns MachineResponse object
      */
     logRuntime(machineId: string, data: RuntimeData): Promise<MachineResponse>;
     /**
      * Schedule maintenance
+     * @param machineId - Machine ID
+     * @param data - MaintenanceData object
+     * @returns MaintenanceMachineResponse object
      */
     scheduleMaintenance(machineId: string, data: MaintenanceData): Promise<MaintenanceMachineResponse>;
     /**
      * Get performance metrics
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns PerformanceMetrics object
      */
     getPerformanceMetrics(machineId: string, params?: {
         start_date?: Date;
@@ -211,13 +230,18 @@ declare class Machines {
         metrics?: (keyof PerformanceMetrics)[];
     }): Promise<PerformanceMetrics>;
     /**
-     * Machine status management methods
+     * Set machine status to operational
+     * @param machineId - Machine ID
+     * @returns OperationalMachineResponse object
      */
     setOperational(machineId: string): Promise<OperationalMachineResponse>;
     setOffline(machineId: string, reason?: string): Promise<OfflineMachineResponse>;
     reportMalfunction(machineId: string, report: MalfunctionReport): Promise<MalfunctionMachineResponse>;
     /**
      * Get maintenance history
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MaintenanceData objects
      */
     getMaintenanceHistory(machineId: string, params?: {
         start_date?: Date;
@@ -229,6 +253,9 @@ declare class Machines {
     }>>;
     /**
      * Get machine alerts
+     * @param machineId - Machine ID
+     * @param params - Optional filtering parameters
+     * @returns Array of MalfunctionAlert objects
      */
     getAlerts(machineId: string, params?: {
         severity?: MalfunctionSeverity;

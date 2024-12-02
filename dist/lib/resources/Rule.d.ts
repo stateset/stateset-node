@@ -132,6 +132,8 @@ declare class Rules {
     constructor(stateset: stateset);
     /**
      * List rules with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of RuleResponse objects
      */
     list(params?: {
         rule_type?: RuleType;
@@ -142,30 +144,47 @@ declare class Rules {
     }): Promise<RuleResponse[]>;
     /**
      * Get specific rule by ID
-     */
+     * @param ruleId - Rule ID
+     * @returns RuleResponse object
+      */
     get(ruleId: string): Promise<RuleResponse>;
     /**
      * Create new rule
+     * @param ruleData - RuleData object
+     * @returns RuleResponse object
      */
     create(ruleData: RuleData): Promise<RuleResponse>;
     /**
      * Update existing rule
+     * @param ruleId - Rule ID
+     * @param ruleData - Partial<RuleData> object
+     * @returns RuleResponse object
      */
     update(ruleId: string, ruleData: Partial<RuleData>): Promise<RuleResponse>;
     /**
      * Delete rule
+     * @param ruleId - Rule ID
      */
     delete(ruleId: string): Promise<void>;
     /**
      * Activate/Deactivate rule
+     * @param ruleId - Rule ID
+     * @param activated - Boolean value
+     * @returns RuleResponse object
      */
     setActivation(ruleId: string, activated: boolean): Promise<RuleResponse>;
     /**
      * Test rule execution
+     * @param ruleId - Rule ID
+     * @param testData - Record<string, any> object
+     * @returns RuleExecutionResult object
      */
     testRule(ruleId: string, testData: Record<string, any>): Promise<RuleExecutionResult>;
     /**
      * Get rule execution history
+     * @param ruleId - Rule ID
+     * @param params - Filtering parameters
+     * @returns Array of RuleExecutionResult objects
      */
     getExecutionHistory(ruleId: string, params?: {
         start_date?: Date;
@@ -175,6 +194,9 @@ declare class Rules {
     }): Promise<RuleExecutionResult[]>;
     /**
      * Clone existing rule
+     * @param ruleId - Rule ID
+     * @param options - Options object
+     * @returns RuleResponse object
      */
     cloneRule(ruleId: string, options?: {
         new_name?: string;
@@ -182,10 +204,12 @@ declare class Rules {
     }): Promise<RuleResponse>;
     /**
      * Validate rule conditions
+     * @param conditions - Array of Condition objects
      */
     private validateConditions;
     /**
      * Validate rule actions
+     * @param actions - Array of Action objects
      */
     private validateActions;
 }

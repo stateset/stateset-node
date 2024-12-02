@@ -73,6 +73,8 @@ class Returns {
     }
     /**
      * List returns with optional filtering
+     * @param params - Filtering parameters
+     * @returns Array of ReturnResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -93,6 +95,8 @@ class Returns {
     }
     /**
      * Get specific return by ID
+     * @param returnId - Return ID
+     * @returns ReturnResponse object
      */
     async get(returnId) {
         try {
@@ -108,6 +112,8 @@ class Returns {
     }
     /**
      * Create new return request
+     * @param returnData - ReturnData object
+     * @returns ReturnResponse object
      */
     async create(returnData) {
         // Validate return items
@@ -127,6 +133,9 @@ class Returns {
     }
     /**
      * Update return request
+     * @param returnId - Return ID
+     * @param returnData - Partial<ReturnData> object
+     * @returns ReturnResponse object
      */
     async update(returnId, returnData) {
         try {
@@ -142,29 +151,59 @@ class Returns {
     }
     /**
      * Process return status changes
+     * @param returnId - Return ID
+     * @param approvalData - Approval data object
+     * @returns ApprovedReturnResponse object
      */
     async approve(returnId, approvalData) {
         const response = await this.stateset.request('POST', `returns/${returnId}/approve`, approvalData);
         return response.return;
     }
+    /**
+     * Mark return as received
+     * @param returnId - Return ID
+     * @param receiptData - Receipt data object
+     * @returns ReceivedReturnResponse object
+     */
     async markReceived(returnId, receiptData) {
         const response = await this.stateset.request('POST', `returns/${returnId}/receive`, receiptData);
         return response.return;
     }
+    /**
+     * Submit return inspection
+     * @param returnId - Return ID
+     * @param inspection - QualityInspection object
+     * @returns InspectingReturnResponse object
+     */
     async submitInspection(returnId, inspection) {
         const response = await this.stateset.request('POST', `returns/${returnId}/inspect`, inspection);
         return response.return;
     }
+    /**
+     * Process return refund
+     * @param returnId - Return ID
+     * @param refundDetails - RefundDetails object
+     * @returns CompletedReturnResponse object
+     */
     async processRefund(returnId, refundDetails) {
         const response = await this.stateset.request('POST', `returns/${returnId}/refund`, refundDetails);
         return response.return;
     }
+    /**
+     * Reject return
+     * @param returnId - Return ID
+     * @param rejectionData - Rejection data object
+     * @returns RejectedReturnResponse object
+     */
     async reject(returnId, rejectionData) {
         const response = await this.stateset.request('POST', `returns/${returnId}/reject`, rejectionData);
         return response.return;
     }
     /**
      * Generate shipping label
+     * @param returnId - Return ID
+     * @param shippingData - Shipping data object
+     * @returns ShippingLabel object
      */
     async generateShippingLabel(returnId, shippingData) {
         const response = await this.stateset.request('POST', `returns/${returnId}/generate-label`, shippingData);
@@ -172,6 +211,8 @@ class Returns {
     }
     /**
      * Get return metrics
+     * @param params - Filtering parameters
+     * @returns Metrics object
      */
     async getMetrics(params) {
         const queryParams = new URLSearchParams();

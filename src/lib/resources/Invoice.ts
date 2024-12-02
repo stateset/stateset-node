@@ -94,54 +94,110 @@ export default class Invoices {
     }
   }
 
+  /**
+   * Create a new invoice
+   * @param data - InvoiceData object
+   * @returns InvoiceResponse object
+   */
   async create(data: InvoiceData): Promise<InvoiceResponse> {
     const response = await this.client.request('POST', 'invoices', data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Get an invoice by ID
+   * @param id - Invoice ID
+   * @returns InvoiceResponse object
+   */
   async get(id: string): Promise<InvoiceResponse> {
     const response = await this.client.request('GET', `invoices/${id}`);
     return this.handleCommandResponse({ update_invoices_by_pk: response });
   }
 
+  /**
+   * Update an invoice
+   * @param id - Invoice ID
+   * @param data - Partial<InvoiceData> object
+   * @returns InvoiceResponse object
+   */
   async update(id: string, data: Partial<InvoiceData>): Promise<InvoiceResponse> {
     const response = await this.client.request('PUT', `invoices/${id}`, data);
     return this.handleCommandResponse(response);
   }
 
-  async list(params?: any): Promise<InvoiceResponse[]> {
+  /**
+   * List invoices
+   * @param params - Optional filtering parameters
+   * @returns Array of InvoiceResponse objects
+   */
+    async list(params?: any): Promise<InvoiceResponse[]> {
     const response = await this.client.request('GET', 'invoices', params);
     return response.map((invoice: any) => this.handleCommandResponse({ update_invoices_by_pk: invoice }));
   }
 
+  /**
+   * Delete an invoice
+   * @param id - Invoice ID
+   */
   async delete(id: string): Promise<void> {
     await this.client.request('DELETE', `invoices/${id}`);
   }
 
+  /**
+   * Get invoice lines
+   * @param id - Invoice ID
+   * @returns Array of InvoiceLineItem objects
+   */
   async getLines(id: string): Promise<InvoiceLineItem[]> {
     return this.client.request('GET', `invoices/${id}/lines`);
   }
 
+  /**
+   * Update invoice lines
+   * @param id - Invoice ID
+   * @param data - Array of InvoiceLineItem objects
+   * @returns InvoiceResponse object
+   */
   async updateLines(id: string, data: InvoiceLineItem[]): Promise<InvoiceResponse> {
     const response = await this.client.request('PUT', `invoices/${id}/lines`, data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * Send an invoice
+   * @param id - Invoice ID
+   * @returns SentInvoiceResponse object
+   */
   async send(id: string): Promise<SentInvoiceResponse> {
     const response = await this.client.request('POST', `invoices/${id}/send`);
     return this.handleCommandResponse(response) as SentInvoiceResponse;
   }
 
+  /**
+   * Mark an invoice as paid
+   * @param id - Invoice ID
+   * @returns PaidInvoiceResponse object
+   */
   async markAsPaid(id: string): Promise<PaidInvoiceResponse> {
     const response = await this.client.request('POST', `invoices/${id}/mark-paid`);
     return this.handleCommandResponse(response) as PaidInvoiceResponse;
   }
 
+  /**
+   * Cancel an invoice
+   * @param id - Invoice ID
+   * @returns CancelledInvoiceResponse object
+   */
   async cancel(id: string): Promise<CancelledInvoiceResponse> {
     const response = await this.client.request('POST', `invoices/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledInvoiceResponse;
   }
 
+  /**
+   * Send a reminder for an invoice
+   * @param id - Invoice ID
+   * @returns InvoiceResponse object
+   */
   async reminder(id: string): Promise<InvoiceResponse> {
     const response = await this.client.request('POST', `invoices/${id}/reminder`);
     return this.handleCommandResponse(response);

@@ -63,6 +63,8 @@ class Orders {
     }
     /**
      * List orders with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of OrderResponse objects
      */
     async list(params) {
         const queryParams = new URLSearchParams();
@@ -85,6 +87,8 @@ class Orders {
     }
     /**
      * Get specific order by ID
+     * @param orderId - Order ID
+     * @returns OrderResponse object
      */
     async get(orderId) {
         try {
@@ -100,6 +104,8 @@ class Orders {
     }
     /**
      * Create new order
+     * @param orderData - OrderData object
+     * @returns OrderResponse object
      */
     async create(orderData) {
         // Validate order totals
@@ -120,6 +126,9 @@ class Orders {
     }
     /**
      * Update existing order
+     * @param orderId - Order ID
+     * @param orderData - Partial<OrderData> object
+     * @returns OrderResponse object
      */
     async update(orderId, orderData) {
         try {
@@ -135,42 +144,88 @@ class Orders {
     }
     /**
      * Process order status changes
+     * @param orderId - Order ID
+     * @returns ConfirmedOrderResponse object
      */
     async confirm(orderId) {
         const response = await this.stateset.request('POST', `orders/${orderId}/confirm`);
         return response.order;
     }
+    /**
+     * Start processing an order
+     * @param orderId - Order ID
+     * @returns ProcessingOrderResponse object
+     */
     async process(orderId) {
         const response = await this.stateset.request('POST', `orders/${orderId}/process`);
         return response.order;
     }
+    /**
+     * Ship an order
+     * @param orderId - Order ID
+     * @param shippingDetails - ShippingDetails object
+     * @returns ShippedOrderResponse object
+     */
     async ship(orderId, shippingDetails) {
         const response = await this.stateset.request('POST', `orders/${orderId}/ship`, shippingDetails);
         return response.order;
     }
+    /**
+     * Mark an order as delivered
+     * @param orderId - Order ID
+     * @param confirmation - Optional confirmation object
+     * @returns DeliveredOrderResponse object
+     */
     async markDelivered(orderId, confirmation) {
         const response = await this.stateset.request('POST', `orders/${orderId}/deliver`, confirmation);
         return response.order;
     }
+    /**
+     * Cancel an order
+     * @param orderId - Order ID
+     * @param cancellationData - Cancellation data
+     * @returns CancelledOrderResponse object
+     */
     async cancel(orderId, cancellationData) {
         const response = await this.stateset.request('POST', `orders/${orderId}/cancel`, cancellationData);
         return response.order;
     }
+    /**
+     * Process a return for an order
+     * @param orderId - Order ID
+     * @param returnData - Return data
+     * @returns ReturnedOrderResponse object
+     */
     async processReturn(orderId, returnData) {
         const response = await this.stateset.request('POST', `orders/${orderId}/return`, returnData);
         return response.order;
     }
+    /**
+     * Process a refund for an order
+     * @param orderId - Order ID
+     * @param refundData - Refund data
+     * @returns RefundedOrderResponse object
+     */
     async processRefund(orderId, refundData) {
         const response = await this.stateset.request('POST', `orders/${orderId}/refund`, refundData);
         return response.order;
     }
     /**
-     * Fulfillment tracking
+     * Add a fulfillment event to an order
+     * @param orderId - Order ID
+     * @param event - FulfillmentEvent object
+     * @returns OrderResponse object
      */
     async addFulfillmentEvent(orderId, event) {
         const response = await this.stateset.request('POST', `orders/${orderId}/fulfillment-events`, event);
         return response.order;
     }
+    /**
+     * Get fulfillment history for an order
+     * @param orderId - Order ID
+     * @param params - Optional filtering parameters
+     * @returns Array of FulfillmentEvent objects
+     */
     async getFulfillmentHistory(orderId, params) {
         const queryParams = new URLSearchParams();
         if (params === null || params === void 0 ? void 0 : params.start_date)
@@ -181,14 +236,18 @@ class Orders {
         return response.history;
     }
     /**
-     * Order tracking
+     * Get tracking information for an order
+     * @param orderId - Order ID
+     * @returns Tracking information object
      */
     async getTracking(orderId) {
         const response = await this.stateset.request('GET', `orders/${orderId}/tracking`);
         return response.tracking;
     }
     /**
-     * Order metrics
+     * Get order metrics
+     * @param params - Optional filtering parameters
+     * @returns Metrics object
      */
     async getMetrics(params) {
         const queryParams = new URLSearchParams();

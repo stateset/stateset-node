@@ -233,6 +233,8 @@ class Warehouses {
 
   /**
    * List warehouses with optional filtering
+   * @param params - Filtering parameters
+   * @returns Array of WarehouseResponse objects
    */
   async list(params?: {
     status?: WarehouseStatus;
@@ -255,6 +257,8 @@ class Warehouses {
 
   /**
    * Get specific warehouse
+   * @param warehouseId - Warehouse ID
+   * @returns WarehouseResponse object
    */
   async get(warehouseId: string): Promise<WarehouseResponse> {
     try {
@@ -270,6 +274,8 @@ class Warehouses {
 
   /**
    * Create new warehouse
+   * @param warehouseData - WarehouseData object
+   * @returns WarehouseResponse object
    */
   async create(warehouseData: WarehouseData): Promise<WarehouseResponse> {
     this.validateWarehouseData(warehouseData);
@@ -287,6 +293,9 @@ class Warehouses {
 
   /**
    * Update warehouse
+   * @param warehouseId - Warehouse ID
+   * @param warehouseData - Partial<WarehouseData> object
+   * @returns WarehouseResponse object
    */
   async update(
     warehouseId: string,
@@ -305,6 +314,7 @@ class Warehouses {
 
   /**
    * Delete warehouse
+   * @param warehouseId - Warehouse ID
    */
   async delete(warehouseId: string): Promise<void> {
     try {
@@ -319,6 +329,9 @@ class Warehouses {
 
   /**
    * Inventory management methods
+   * @param warehouseId - Warehouse ID
+   * @param params - Filtering parameters
+   * @returns Array of InventoryItem objects
    */
   async getInventory(
     warehouseId: string,
@@ -345,6 +358,9 @@ class Warehouses {
 
   /**
    * Zone management methods
+   * @param warehouseId - Warehouse ID
+   * @param zoneData - Zone object
+   * @returns WarehouseResponse object
    */
   async addZone(
     warehouseId: string,
@@ -360,6 +376,10 @@ class Warehouses {
 
   /**
    * Equipment management methods
+   * @param warehouseId - Warehouse ID
+   * @param equipmentId - Equipment ID
+   * @param status - Equipment status
+   * @returns Equipment object
    */
   async updateEquipmentStatus(
     warehouseId: string,
@@ -376,6 +396,10 @@ class Warehouses {
 
   /**
    * Staff management methods
+   * @param warehouseId - Warehouse ID
+   * @param staffId - Staff ID
+   * @param zoneId - Zone ID
+   * @returns StaffMember object
    */
   async assignStaffToZone(
     warehouseId: string,
@@ -392,6 +416,9 @@ class Warehouses {
 
   /**
    * Metrics and reporting
+   * @param warehouseId - Warehouse ID
+   * @param params - Filtering parameters
+   * @returns WarehouseMetrics object
    */
   async getMetrics(
     warehouseId: string,
@@ -414,6 +441,7 @@ class Warehouses {
 
   /**
    * Validate warehouse data
+   * @param data - WarehouseData object
    */
   private validateWarehouseData(data: WarehouseData): void {
     if (!data.name) {

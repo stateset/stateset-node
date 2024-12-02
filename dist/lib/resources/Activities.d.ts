@@ -186,6 +186,8 @@ declare class Activities {
     constructor(stateset: stateset);
     /**
      * List activities with optional filtering
+     * @param params - Optional filtering parameters
+     * @returns Array of ActivityResponse objects
      */
     list(params?: {
         workflow_id?: string;
@@ -197,30 +199,47 @@ declare class Activities {
     }): Promise<ActivityResponse[]>;
     /**
      * Get specific activity
+     * @param activityId - Activity ID
+     * @returns ActivityResponse object
      */
     get(activityId: string): Promise<ActivityResponse>;
     /**
      * Create new activity
+     * @param activityData - ActivityData object
+     * @returns ActivityResponse object
      */
     create(activityData: ActivityData): Promise<ActivityResponse>;
     /**
      * Update activity
+     * @param activityId - Activity ID
+     * @param activityData - Partial<ActivityData> object
+     * @returns ActivityResponse object
      */
     update(activityId: string, activityData: Partial<ActivityData>): Promise<ActivityResponse>;
     /**
      * Delete activity
+     * @param activityId - Activity ID
      */
     delete(activityId: string): Promise<void>;
     /**
      * Start activity execution
+     * @param activityId - Activity ID
+     * @param input - Optional input data
+     * @returns ActivityResponse object
      */
     start(activityId: string, input?: Record<string, any>): Promise<ActivityResponse>;
     /**
      * Complete activity
+     * @param activityId - Activity ID
+     * @param output - Output data
+     * @returns ActivityResponse object
      */
     complete(activityId: string, output: Record<string, any>): Promise<ActivityResponse>;
     /**
      * Fail activity
+     * @param activityId - Activity ID
+     * @param error - Error object
+     * @returns ActivityResponse object
      */
     fail(activityId: string, error: {
         code: string;
@@ -229,19 +248,27 @@ declare class Activities {
     }): Promise<ActivityResponse>;
     /**
      * Cancel activity
+     * @param activityId - Activity ID
+     * @param reason - Optional reason for cancellation
+     * @returns ActivityResponse object
      */
     cancel(activityId: string, reason?: string): Promise<ActivityResponse>;
     /**
      * Get activity metrics
+     * @param activityId - Activity ID
+     * @returns ActivityMetrics object
      */
     getMetrics(activityId: string): Promise<ActivityMetrics>;
     /**
      * Retry failed activity
+     * @param activityId - Activity ID
+     * @returns ActivityResponse object
      */
     retry(activityId: string): Promise<ActivityResponse>;
     /**
      * Validate activity data
-     */
+     * @param data - ActivityData object
+    */
     private validateActivityData;
 }
 export default Activities;

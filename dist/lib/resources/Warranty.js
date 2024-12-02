@@ -32,38 +32,77 @@ class Warranty {
                 throw new Error(`Unexpected warranty status: ${warrantyData.status}`);
         }
     }
+    /**
+     * @returns Array of WarrantyResponse objects
+     */
     async list() {
         return this.stateset.request('GET', 'warranties');
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns WarrantyResponse object
+     */
     async get(warrantyId) {
         return this.stateset.request('GET', `warranties/${warrantyId}`);
     }
+    /**
+     * @param warrantyData - WarrantyData object
+     * @returns WarrantyResponse object
+     */
     async create(warrantyData) {
         return this.stateset.request('POST', 'warranties', warrantyData);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns ApprovedWarrantyResponse object
+     */
     async approve(warrantyId) {
         const response = await this.stateset.request('POST', `warranties/approve/${warrantyId}`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns RejectedWarrantyResponse object
+     */
     async reject(warrantyId) {
         const response = await this.stateset.request('POST', `warranties/reject/${warrantyId}`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns CancelledWarrantyResponse object
+     */
     async cancel(warrantyId) {
         const response = await this.stateset.request('POST', `warranties/cancel/${warrantyId}`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns ClosedWarrantyResponse object
+     */
     async close(warrantyId) {
         const response = await this.stateset.request('POST', `warranties/close/${warrantyId}`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @returns ReopenedWarrantyResponse object
+     */
     async reopen(warrantyId) {
         const response = await this.stateset.request('POST', `warranties/reopen/${warrantyId}`);
         return this.handleCommandResponse(response);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     * @param warrantyData - WarrantyData object
+     * @returns WarrantyResponse object
+     */
     async update(warrantyId, warrantyData) {
         return this.stateset.request('PUT', `warranties/${warrantyId}`, warrantyData);
     }
+    /**
+     * @param warrantyId - Warranty ID
+     */
     async delete(warrantyId) {
         return this.stateset.request('DELETE', `warranties/${warrantyId}`);
     }

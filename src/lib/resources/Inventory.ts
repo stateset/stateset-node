@@ -183,6 +183,8 @@ class Inventory {
 
   /**
    * Get specific inventory by ID
+   * @param inventoryId - Inventory ID
+   * @returns InventoryResponse object
    */
   async get(inventoryId: string): Promise<InventoryResponse> {
     try {
@@ -198,6 +200,8 @@ class Inventory {
 
   /**
    * Create new inventory
+   * @param inventoryData - InventoryData object
+   * @returns InventoryResponse object
    */
   async create(inventoryData: InventoryData): Promise<InventoryResponse> {
     this.validateInventoryData(inventoryData);
@@ -207,6 +211,9 @@ class Inventory {
 
   /**
    * Update existing inventory
+   * @param inventoryId - Inventory ID
+   * @param inventoryData - Partial<InventoryData> object
+   * @returns InventoryResponse object
    */
   async update(inventoryId: string, inventoryData: Partial<InventoryData>): Promise<InventoryResponse> {
     this.validateInventoryData(inventoryData);
@@ -223,6 +230,7 @@ class Inventory {
 
   /**
    * Delete inventory
+   * @param inventoryId - Inventory ID
    */
   async delete(inventoryId: string): Promise<void> {
     try {
@@ -237,6 +245,9 @@ class Inventory {
 
   /**
    * Adjust inventory quantity
+   * @param inventoryId - Inventory ID
+   * @param adjustment - InventoryAdjustment object
+   * @returns InventoryResponse object
    */
   async adjustQuantity(
     inventoryId: string, 
@@ -263,6 +274,8 @@ class Inventory {
 
   /**
    * Transfer inventory between locations
+   * @param transfer - InventoryTransfer object
+   * @returns Object with source, destination, and transfer_id
    */
   async transfer(transfer: InventoryTransfer): Promise<{
     source: InventoryResponse;
@@ -283,6 +296,9 @@ class Inventory {
 
   /**
    * Get inventory history
+   * @param inventoryId - Inventory ID
+   * @param params - Optional filtering parameters
+   * @returns Array of InventoryHistoryEntry objects
    */
   async getHistory(
     inventoryId: string,
@@ -309,6 +325,10 @@ class Inventory {
 
   /**
    * Reserve inventory
+   * @param inventoryId - Inventory ID
+   * @param quantity - Number of items to reserve
+   * @param params - Optional reservation parameters
+   * @returns InventoryResponse object
    */
   async reserve(
     inventoryId: string,
@@ -328,6 +348,9 @@ class Inventory {
 
   /**
    * Release reserved inventory
+   * @param inventoryId - Inventory ID
+   * @param reservationId - Reservation ID
+   * @returns InventoryResponse object
    */
   async releaseReservation(
     inventoryId: string,
@@ -342,6 +365,8 @@ class Inventory {
 
   /**
    * Get low stock alerts
+   * @param params - Optional filtering parameters
+   * @returns Array of InventoryResponse objects with threshold
    */
   async getLowStockAlerts(params?: {
     org_id?: string;

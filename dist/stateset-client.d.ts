@@ -33,6 +33,7 @@ import Picks from './lib/resources/Pick';
 import CycleCounts from './lib/resources/CycleCount';
 import Machines from './lib/resources/Machine';
 import WasteAndScrap from './lib/resources/WasteAndScrap';
+import Warehouses from './lib/resources/Warehouse';
 import Suppliers from './lib/resources/Supplier';
 import Locations from './lib/resources/Location';
 import Vendors from './lib/resources/Vendor';
@@ -90,6 +91,7 @@ export declare class stateset {
     cycleCounts: CycleCounts;
     machines: Machines;
     wasteAndScrap: WasteAndScrap;
+    warehouses: Warehouses;
     suppliers: Suppliers;
     locations: Locations;
     vendors: Vendors;

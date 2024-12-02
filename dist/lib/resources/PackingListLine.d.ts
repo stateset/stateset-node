@@ -27,18 +27,61 @@ interface PackingListLineItem {
 declare class PackingListLines {
     private stateset;
     constructor(stateset: stateset);
+    /**
+     * Get all packing list line items
+     * @param packingListId - Optional packing list ID
+     * @returns Array of PackingListLineItem objects
+     */
     list(packingListId?: string): Promise<PackingListLineItem[]>;
+    /**
+     * Get a packing list line item by ID
+     * @param lineItemId - Packing list line item ID
+     * @returns PackingListLineItem object
+     */
     get(lineItemId: string): Promise<PackingListLineItem>;
+    /**
+     * Create a new packing list line item
+     * @param lineItemData - PackingListLineItem object
+     * @returns PackingListLineItem object
+     */
     create(lineItemData: Omit<PackingListLineItem, 'id'>): Promise<PackingListLineItem>;
+    /**
+     * Update a packing list line item
+     * @param lineItemId - Packing list line item ID
+     * @param lineItemData - Partial<PackingListLineItem> object
+     * @returns PackingListLineItem object
+     */
     update(lineItemId: string, lineItemData: Partial<PackingListLineItem>): Promise<PackingListLineItem>;
+    /**
+     * Delete a packing list line item
+     * @param lineItemId - Packing list line item ID
+     */
     delete(lineItemId: string): Promise<void>;
+    /**
+     * Bulk create packing list line items
+     * @param packingListId - Packing list ID
+     * @param lineItems - Array of PackingListLineItem objects
+     * @returns Array of PackingListLineItem objects
+     */
     bulkCreate(packingListId: string, lineItems: Array<Omit<PackingListLineItem, 'id' | 'packing_list_id'>>): Promise<PackingListLineItem[]>;
+    /**
+     * Verify a packing list line item
+     * @param lineItemId - Packing list line item ID
+     * @param verificationData - Verification data object
+     * @returns PackingListLineItem object
+     */
     verifyItem(lineItemId: string, verificationData: {
         inspector: string;
         inspection_date: string;
         passed: boolean;
         notes?: string;
     }): Promise<PackingListLineItem>;
+    /**
+     * Update the location of a packing list line item
+     * @param lineItemId - Packing list line item ID
+     * @param locationData - Location data object
+     * @returns PackingListLineItem object
+     */
     updateLocation(lineItemId: string, locationData: PackingListLineItem['location']): Promise<PackingListLineItem>;
 }
 export default PackingListLines;

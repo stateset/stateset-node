@@ -95,49 +95,90 @@ export default class WasteAndScrap {
     }
   }
 
+  /**
+   * @param data - WasteAndScrapData object
+   * @returns WasteAndScrapResponse object
+   */ 
   async create(data: WasteAndScrapData): Promise<WasteAndScrapResponse> {
     const response = await this.client.request('POST', 'waste-and-scrap', data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @returns WasteAndScrapResponse object
+   */
   async get(id: string): Promise<WasteAndScrapResponse> {
     const response = await this.client.request('GET', `waste-and-scrap/${id}`);
     return this.handleCommandResponse({ update_waste_and_scrap_by_pk: response });
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @param data - Partial<WasteAndScrapData> object
+   * @returns WasteAndScrapResponse object
+   */
   async update(id: string, data: Partial<WasteAndScrapData>): Promise<WasteAndScrapResponse> {
     const response = await this.client.request('PUT', `waste-and-scrap/${id}`, data);
     return this.handleCommandResponse(response);
   }
 
+  /**
+   * @param params - Filtering parameters
+   * @returns Array of WasteAndScrapResponse objects
+   */
   async list(params?: any): Promise<WasteAndScrapResponse[]> {
     const response = await this.client.request('GET', 'waste-and-scrap', params);
     return response.map((item: any) => this.handleCommandResponse({ update_waste_and_scrap_by_pk: item }));
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   */
   async delete(id: string): Promise<void> {
     await this.client.request('DELETE', `waste-and-scrap/${id}`);
   }
 
+  /**
+   * @param params - Filtering parameters
+   * @returns Array of WasteAndScrapResponse objects
+   */
   async generateReport(params: ReportParams): Promise<any> {
     return this.client.request('GET', 'waste-and-scrap/report', params);
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @param data - DisposalData object
+   * @returns DisposedWasteAndScrapResponse object
+   */
   async recordDisposal(id: string, data: DisposalData): Promise<DisposedWasteAndScrapResponse> {
     const response = await this.client.request('POST', `waste-and-scrap/${id}/dispose`, data);
     return this.handleCommandResponse(response) as DisposedWasteAndScrapResponse;
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @returns ProcessedWasteAndScrapResponse object
+   */
   async markAsProcessed(id: string): Promise<ProcessedWasteAndScrapResponse> {
     const response = await this.client.request('POST', `waste-and-scrap/${id}/process`);
     return this.handleCommandResponse(response) as ProcessedWasteAndScrapResponse;
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @returns RecycledWasteAndScrapResponse object
+   */
   async markAsRecycled(id: string): Promise<RecycledWasteAndScrapResponse> {
     const response = await this.client.request('POST', `waste-and-scrap/${id}/recycle`);
     return this.handleCommandResponse(response) as RecycledWasteAndScrapResponse;
   }
 
+  /**
+   * @param id - WasteAndScrap ID
+   * @returns Array of DisposalData objects
+   */
   async getDisposalHistory(id: string): Promise<DisposalData[]> {
     return this.client.request('GET', `waste-and-scrap/${id}/disposal-history`);
   }
