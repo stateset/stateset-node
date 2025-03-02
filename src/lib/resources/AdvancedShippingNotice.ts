@@ -1,244 +1,244 @@
 import { stateset } from '../../stateset-client';
 
-type ASNStatus = 'DRAFT' | 'SUBMITTED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
-
-interface BaseASNResponse {
-  id: string;
-  object: 'asn';
-  status: ASNStatus;
+// Enums
+export enum ASNStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED'
 }
 
-interface DraftASNResponse extends BaseASNResponse {
-  status: 'DRAFT';
-  draft: true;
+// Interfaces
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
 }
 
-interface SubmittedASNResponse extends BaseASNResponse {
-  status: 'SUBMITTED';
-  submitted: true;
+export interface ASNItem {
+  purchase_order_item_id: string;
+  quantity_shipped: number;
+  package_number?: string;
 }
 
-interface InTransitASNResponse extends BaseASNResponse {
-  status: 'IN_TRANSIT';
-  in_transit: true;
-}
-
-interface DeliveredASNResponse extends BaseASNResponse {
-  status: 'DELIVERED';
-  delivered: true;
-}
-
-interface CancelledASNResponse extends BaseASNResponse {
-  status: 'CANCELLED';
-  cancelled: true;
-}
-
-type ASNResponse = DraftASNResponse | SubmittedASNResponse | InTransitASNResponse | DeliveredASNResponse | CancelledASNResponse;
-
-interface ApiResponse {
-  update_asns_by_pk: {
-    id: string;
-    status: ASNStatus;
-    [key: string]: any;
-  };
-}
-
-interface ASNData {
+export interface ASNData {
   purchase_order_id: string;
   carrier: string;
   tracking_number: string;
   expected_delivery_date: string;
-  ship_from_address: {
-    street: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
-  };
-  ship_to_address: {
-    street: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
-  };
-  items: {
-    purchase_order_item_id: string;
-    quantity_shipped: number;
-    package_number?: string;
-  }[];
-  [key: string]: any;
+  ship_from_address: Address;
+  ship_to_address: Address;
+  items: ASNItem[];
+  metadata?: Record<string, any>;
 }
 
-class ASN {
-  constructor(private stateset: stateset) {}
+// Response Types
+interface BaseASNResponse {
+  id: string;
+  object: 'asn';
+  created_at: string;
+  updated_at: string;
+  status: ASNStatus;
+  data: ASNData;
+}
 
-  private handleCommandResponse(response: any): ASNResponse {
+export type ASNResponse = BaseASNResponse & {
+  [K in ASNStatus]: {
+    status: K;
+  } & (K extends ASNStatus.DRAFT ? { draft: true }
+    : K extends ASNStatus.SUBMITTED ? { submitted: true }
+    : K extends ASNStatus.IN_TRANSIT ? { in_transit: true }
+    : K extends ASNStatus.DELIVERED ? { delivered: true }
+    : K extends ASNStatus.CANCELLED ? { cancelled: true; cancellation_reason?: string }
+    : {});
+}[ASNStatus];
+
+// Error Classes
+export class ASNError extends Error {
+  constructor(message: string, name: string) {
+    super(message);
+    this.name = name;
+  }
+}
+
+export class ASNNotFoundError extends ASNError {
+  constructor(asnId: string) {
+    super(`ASN with ID ${asnId} not found`, 'ASNNotFoundError');
+  }
+}
+
+export class ASNStateError extends ASNError {
+  constructor(message: string) {
+    super(message, 'ASNStateError');
+  }
+}
+
+// Main ASN Class
+export class ASN {
+  constructor(private readonly client: stateset) {}
+
+  private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    data?: any
+  ): Promise<T> {
+    try {
+      const response = await this.client.request(method, path, data);
+      return this.normalizeResponse(response);
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new ASNNotFoundError(path.split('/')[2] || 'unknown');
+      }
+      if (error.status === 400) {
+        throw new ASNStateError(error.message);
+      }
+      throw error;
+    }
+  }
+
+  private normalizeResponse(response: any): any {
     if (response.error) {
       throw new Error(response.error);
     }
 
-    if (!response.update_asns_by_pk) {
+    const asnData = response.update_asns_by_pk || response;
+    if (!asnData?.id || !asnData?.status) {
       throw new Error('Unexpected response format');
     }
 
-    const asnData = response.update_asns_by_pk;
-
-    const baseResponse: BaseASNResponse = {
-      id: asnData.id,
-      object: 'asn',
-      status: asnData.status,
-    };
-
-    switch (asnData.status) {
-      case 'DRAFT':
-        return { ...baseResponse, status: 'DRAFT', draft: true };
-      case 'SUBMITTED':
-        return { ...baseResponse, status: 'SUBMITTED', submitted: true };
-      case 'IN_TRANSIT':
-        return { ...baseResponse, status: 'IN_TRANSIT', in_transit: true };
-      case 'DELIVERED':
-        return { ...baseResponse, status: 'DELIVERED', delivered: true };
-      case 'CANCELLED':
-        return { ...baseResponse, status: 'CANCELLED', cancelled: true };
-      default:
-        throw new Error(`Unexpected ASN status: ${asnData.status}`);
-    }
+    return asnData;
   }
 
-  /**
-   * List ASNs
-   * @returns Array of ASNResponse objects
-   */
-  async list(): Promise<ASNResponse[]> {
-    const response = await this.stateset.request('GET', 'asns');
-    return response.map((asn: any) => this.handleCommandResponse({ update_asns_by_pk: asn }));
+  async list(params: {
+    status?: ASNStatus;
+    purchase_order_id?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ asns: ASNResponse[]; total: number }> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, String(value));
+      }
+    });
+
+    const response = await this.request<{ asns: ASNResponse[]; total: number }>(
+      'GET',
+      `asns?${queryParams.toString()}`
+    );
+    return response;
   }
 
-  /**
-   * Get ASN
-   * @param asnId - ASN ID
-   * @returns ASNResponse object
-   */
   async get(asnId: string): Promise<ASNResponse> {
-    const response = await this.stateset.request('GET', `asns/${asnId}`);
-    return this.handleCommandResponse({ update_asns_by_pk: response });
+    return this.request<ASNResponse>('GET', `asns/${asnId}`);
   }
 
-  /**
-   * Create ASN
-   * @param asnData - ASNData object
-   * @returns ASNResponse object
-   */
   async create(asnData: ASNData): Promise<ASNResponse> {
-    const response = await this.stateset.request('POST', 'asns', asnData);
-    return this.handleCommandResponse(response);
+    if (!asnData.items.length) {
+      throw new ASNStateError('ASN must contain at least one item');
+    }
+    return this.request<ASNResponse>('POST', 'asns', asnData);
   }
 
-  /**
-   * Update ASN
-   * @param asnId - ASN ID
-   * @param asnData - Partial<ASNData> object
-   * @returns ASNResponse object
-   */
   async update(asnId: string, asnData: Partial<ASNData>): Promise<ASNResponse> {
-    const response = await this.stateset.request('PUT', `asns/${asnId}`, asnData);
-    return this.handleCommandResponse(response);
+    return this.request<ASNResponse>('PUT', `asns/${asnId}`, asnData);
   }
 
-  /**
-   * Delete ASN
-   * @param asnId - ASN ID
-   */
   async delete(asnId: string): Promise<void> {
-    await this.stateset.request('DELETE', `asns/${asnId}`);
+    await this.request<void>('DELETE', `asns/${asnId}`);
   }
 
-  /**
-   * Submit ASN
-   * @param asnId - ASN ID
-   * @returns SubmittedASNResponse object
-   */
-  async submit(asnId: string): Promise<SubmittedASNResponse> {
-    const response = await this.stateset.request('POST', `asns/${asnId}/submit`);
-    return this.handleCommandResponse(response) as SubmittedASNResponse;
+  async submit(asnId: string): Promise<ASNResponse> {
+    return this.request<ASNResponse>('POST', `asns/${asnId}/submit`);
   }
 
-  /**
-   * Mark ASN as in transit
-   * @param asnId - ASN ID
-   * @param transitDetails - TransitDetails object
-   * @returns InTransitASNResponse object
-   */
-  async markInTransit(asnId: string, transitDetails?: { 
-    departure_date?: string;
-    estimated_arrival_date?: string;
-    carrier_status_updates?: string;
-  }): Promise<InTransitASNResponse> {
-    const response = await this.stateset.request('POST', `asns/${asnId}/in-transit`, transitDetails);
-    return this.handleCommandResponse(response) as InTransitASNResponse;
+  async markInTransit(
+    asnId: string,
+    transitDetails: {
+      departure_date?: string;
+      estimated_arrival_date?: string;
+      carrier_status_updates?: string;
+    } = {}
+  ): Promise<ASNResponse> {
+    return this.request<ASNResponse>(
+      'POST',
+      `asns/${asnId}/in-transit`,
+      transitDetails
+    );
   }
 
-  /**
-   * Mark ASN as delivered
-   * @param asnId - ASN ID
-   * @param deliveryDetails - DeliveryDetails object
-   * @returns DeliveredASNResponse object
-   */
-  async markDelivered(asnId: string, deliveryDetails: {
-    delivery_date: string;
-    received_by?: string;
-    delivery_notes?: string;
-  }): Promise<DeliveredASNResponse> {
-    const response = await this.stateset.request('POST', `asns/${asnId}/deliver`, deliveryDetails);
-    return this.handleCommandResponse(response) as DeliveredASNResponse;
+  async markDelivered(
+    asnId: string,
+    deliveryDetails: {
+      delivery_date: string;
+      received_by?: string;
+      delivery_notes?: string;
+    }
+  ): Promise<ASNResponse> {
+    return this.request<ASNResponse>(
+      'POST',
+      `asns/${asnId}/deliver`,
+      deliveryDetails
+    );
   }
 
-  /**
-   * Cancel ASN
-   * @param asnId - ASN ID
-   * @returns CancelledASNResponse object
-   */
-  async cancel(asnId: string): Promise<CancelledASNResponse> {
-    const response = await this.stateset.request('POST', `asns/${asnId}/cancel`);
-    return this.handleCommandResponse(response) as CancelledASNResponse;
+  async cancel(
+    asnId: string,
+    cancellationDetails: {
+      reason?: string;
+    } = {}
+  ): Promise<ASNResponse> {
+    return this.request<ASNResponse>(
+      'POST',
+      `asns/${asnId}/cancel`,
+      cancellationDetails
+    );
   }
 
-  /**
-   * Add item to ASN
-   * @param asnId - ASN ID
-   * @param item - ASNData['items'][0] object
-   * @returns ASNResponse object
-   */
-  async addItem(asnId: string, item: ASNData['items'][0]): Promise<ASNResponse> {
-    const response = await this.stateset.request('POST', `asns/${asnId}/items`, item);
-    return this.handleCommandResponse(response);
+  async addItem(asnId: string, item: ASNItem): Promise<ASNResponse> {
+    if (item.quantity_shipped <= 0) {
+      throw new ASNStateError('Quantity shipped must be greater than 0');
+    }
+    return this.request<ASNResponse>('POST', `asns/${asnId}/items`, item);
   }
 
-  /**
-   * Remove item from ASN
-   * @param asnId - ASN ID
-   * @param purchaseOrderItemId - Purchase order item ID
-   * @returns ASNResponse object
-   */
   async removeItem(asnId: string, purchaseOrderItemId: string): Promise<ASNResponse> {
-    const response = await this.stateset.request('DELETE', `asns/${asnId}/items/${purchaseOrderItemId}`);
-    return this.handleCommandResponse(response);
+    return this.request<ASNResponse>(
+      'DELETE',
+      `asns/${asnId}/items/${purchaseOrderItemId}`
+    );
   }
 
-  /**
-   * Update shipping information for ASN
-   * @param asnId - ASN ID
-   * @param shippingInfo - ShippingInfo object
-   * @returns ASNResponse object
-   */
-  async updateShippingInfo(asnId: string, shippingInfo: {
-    carrier?: string;
-    tracking_number?: string;
-    expected_delivery_date?: string;
-  }): Promise<ASNResponse> {
-    const response = await this.stateset.request('PUT', `asns/${asnId}/shipping-info`, shippingInfo);
-    return this.handleCommandResponse(response);
+  async updateShippingInfo(
+    asnId: string,
+    shippingInfo: {
+      carrier?: string;
+      tracking_number?: string;
+      expected_delivery_date?: string;
+    }
+  ): Promise<ASNResponse> {
+    return this.request<ASNResponse>(
+      'PUT',
+      `asns/${asnId}/shipping-info`,
+      shippingInfo
+    );
+  }
+
+  async getTracking(asnId: string): Promise<{
+    status: ASNStatus;
+    tracking_number: string;
+    carrier: string;
+    estimated_delivery_date: string;
+    events: Array<{
+      timestamp: string;
+      location: string;
+      description: string;
+    }>;
+  }> {
+    return this.request('GET', `asns/${asnId}/tracking`);
   }
 }
 

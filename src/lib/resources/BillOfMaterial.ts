@@ -1,6 +1,6 @@
 import { stateset } from '../../stateset-client';
 
-// Enums and Types
+// Enums
 export enum BOMStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
@@ -15,13 +15,13 @@ export enum ComponentType {
   PACKAGING = 'packaging'
 }
 
-// Interfaces for BOM data structures
+// Interfaces
 export interface Component {
   id: string;
   item_id: string;
   quantity: number;
   unit_cost?: number;
-  lead_time?: number;
+  lead_time?: number; // in days
   type: ComponentType;
   supplier_id?: string;
   notes?: string;
@@ -47,12 +47,12 @@ export interface BOMData {
   components: Component[];
   metadata?: BOMMetadata;
   total_cost?: number;
-  assembly_time?: number;
+  assembly_time?: number; // in hours
   revision_notes?: string;
   org_id?: string;
 }
 
-// Response Interfaces
+// Response Types
 interface BaseBOMResponse {
   id: string;
   object: 'billofmaterials';
@@ -62,268 +62,204 @@ interface BaseBOMResponse {
   data: BOMData;
 }
 
-interface DraftBOMResponse extends BaseBOMResponse {
-  status: BOMStatus.DRAFT;
-  draft: true;
+export type BOMResponse = BaseBOMResponse & {
+  [K in BOMStatus]: {
+    status: K;
+  } & (K extends BOMStatus.REVISION ? { revision: true; previous_version_id: string }
+    : K extends BOMStatus.DRAFT ? { draft: true }
+    : K extends BOMStatus.ACTIVE ? { active: true }
+    : K extends BOMStatus.OBSOLETE ? { obsolete: true }
+    : {});
+}[BOMStatus];
+
+// Error Classes
+export class BOMError extends Error {
+  constructor(message: string, name: string) {
+    super(message);
+    this.name = name;
+  }
 }
 
-interface ActiveBOMResponse extends BaseBOMResponse {
-  status: BOMStatus.ACTIVE;
-  active: true;
-}
-
-interface ObsoleteBOMResponse extends BaseBOMResponse {
-  status: BOMStatus.OBSOLETE;
-  obsolete: true;
-}
-
-interface RevisionBOMResponse extends BaseBOMResponse {
-  status: BOMStatus.REVISION;
-  revision: true;
-  previous_version_id: string;
-}
-
-export type BOMResponse = 
-  | DraftBOMResponse 
-  | ActiveBOMResponse 
-  | ObsoleteBOMResponse 
-  | RevisionBOMResponse;
-
-// Custom Error Classes
-export class BOMNotFoundError extends Error {
+export class BOMNotFoundError extends BOMError {
   constructor(bomId: string) {
-    super(`Bill of Materials with ID ${bomId} not found`);
-    this.name = 'BOMNotFoundError';
+    super(`Bill of Materials with ID ${bomId} not found`, 'BOMNotFoundError');
   }
 }
 
-export class BOMValidationError extends Error {
+export class BOMValidationError extends BOMError {
   constructor(message: string) {
-    super(message);
-    this.name = 'BOMValidationError';
+    super(message, 'BOMValidationError');
   }
 }
 
-export class BOMStateError extends Error {
+export class BOMStateError extends BOMError {
   constructor(message: string) {
-    super(message);
-    this.name = 'BOMStateError';
+    super(message, 'BOMStateError');
   }
 }
 
 // Main BillOfMaterials Class
-class BillOfMaterials {
-  constructor(private readonly stateset: stateset) {}
+export class BillOfMaterials {
+  constructor(private readonly client: stateset) {}
 
-  /**
-   * Validates a BOM component
-   */
+  private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    data?: any
+  ): Promise<T> {
+    try {
+      const response = await this.client.request(method, path, data);
+      return response.update_billofmaterials_by_pk || response;
+    } catch (error: any) {
+      if (error?.error) {
+        throw new BOMValidationError(error.error);
+      }
+      if (error.status === 404) {
+        throw new BOMNotFoundError(path.split('/')[2] || 'unknown');
+      }
+      if (error.status === 400) {
+        throw new BOMStateError(error.message);
+      }
+      throw error;
+    }
+  }
+
   private validateComponent(component: Component): void {
     if (component.quantity <= 0) {
-      throw new BOMValidationError('Component quantity must be greater than 0');
+      throw new BOMValidationError(`Invalid quantity ${component.quantity} for component ${component.item_id}`);
     }
-    
-    if (component.minimum_order_quantity && component.minimum_order_quantity < 0) {
-      throw new BOMValidationError('Minimum order quantity cannot be negative');
-    }
-    
     if (component.unit_cost && component.unit_cost < 0) {
-      throw new BOMValidationError('Unit cost cannot be negative');
+      throw new BOMValidationError(`Invalid unit cost ${component.unit_cost} for component ${component.item_id}`);
+    }
+    if (component.minimum_order_quantity && component.minimum_order_quantity < 0) {
+      throw new BOMValidationError(`Invalid MOQ ${component.minimum_order_quantity} for component ${component.item_id}`);
+    }
+    if (component.lead_time && component.lead_time < 0) {
+      throw new BOMValidationError(`Invalid lead time ${component.lead_time} for component ${component.item_id}`);
     }
   }
 
-  /**
-   * Processes API response into typed BOMResponse
-   */
-  private handleCommandResponse(response: any): BOMResponse {
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    if (!response.update_billofmaterials_by_pk) {
-      throw new Error('Unexpected response format');
-    }
-
-    const bomData = response.update_billofmaterials_by_pk;
-
-    const baseResponse: BaseBOMResponse = {
-      id: bomData.id,
-      object: 'billofmaterials',
-      created_at: bomData.created_at,
-      updated_at: bomData.updated_at,
-      status: bomData.status,
-      data: bomData.data
-    };
-
-    switch (bomData.status) {
-      case BOMStatus.DRAFT:
-        return { ...baseResponse, status: BOMStatus.DRAFT, draft: true };
-      case BOMStatus.ACTIVE:
-        return { ...baseResponse, status: BOMStatus.ACTIVE, active: true };
-      case BOMStatus.OBSOLETE:
-        return { ...baseResponse, status: BOMStatus.OBSOLETE, obsolete: true };
-      case BOMStatus.REVISION:
-        return { 
-          ...baseResponse, 
-          status: BOMStatus.REVISION, 
-          revision: true,
-          previous_version_id: bomData.previous_version_id 
-        };
-      default:
-        throw new Error(`Unexpected BOM status: ${bomData.status}`);
-    }
-  }
-
-  /**
-   * List all BOMs with optional filtering
-   */
-  async list(params?: {
+  async list(params: {
     status?: BOMStatus;
     product_id?: string;
     org_id?: string;
     effective_after?: Date;
     effective_before?: Date;
-  }): Promise<BOMResponse[]> {
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ boms: BOMResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
-    
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.product_id) queryParams.append('product_id', params.product_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.effective_after) queryParams.append('effective_after', params.effective_after.toISOString());
-    if (params?.effective_before) queryParams.append('effective_before', params.effective_before.toISOString());
-
-    const response = await this.stateset.request('GET', `billofmaterials?${queryParams.toString()}`);
-    return response.map((bom: any) => this.handleCommandResponse({ update_billofmaterials_by_pk: bom }));
-  }
-
-  /**
-   * Get a specific BOM by ID
-   */
-  async get(bomId: string): Promise<BOMResponse> {
-    try {
-      const response = await this.stateset.request('GET', `billofmaterials/${bomId}`);
-      return this.handleCommandResponse({ update_billofmaterials_by_pk: response });
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new BOMNotFoundError(bomId);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
       }
-      throw error;
-    }
+    });
+
+    return this.request<{ boms: BOMResponse[]; total: number }>(
+      'GET',
+      `billofmaterials?${queryParams.toString()}`
+    );
   }
 
-  /**
-   * Create a new BOM
-   * @param bomData - BOMData object
-   * @returns BOMResponse object
-   */
+  async get(bomId: string): Promise<BOMResponse> {
+    return this.request<BOMResponse>('GET', `billofmaterials/${bomId}`);
+  }
+
   async create(bomData: BOMData): Promise<BOMResponse> {
-    // Validate all components
+    if (!bomData.components.length) {
+      throw new BOMValidationError('BOM must contain at least one component');
+    }
     bomData.components.forEach(this.validateComponent);
-
-    const response = await this.stateset.request('POST', 'billofmaterials', bomData);
-    return this.handleCommandResponse(response);
+    return this.request<BOMResponse>('POST', 'billofmaterials', bomData);
   }
 
-  /**
-   * Update an existing BOM
-   * @param bomId - BOM ID
-   * @param bomData - Partial<BOMData> object
-   * @returns BOMResponse object
-   */
   async update(bomId: string, bomData: Partial<BOMData>): Promise<BOMResponse> {
     if (bomData.components) {
       bomData.components.forEach(this.validateComponent);
     }
-
-    try {
-      const response = await this.stateset.request('PUT', `billofmaterials/${bomId}`, bomData);
-      return this.handleCommandResponse(response);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new BOMNotFoundError(bomId);
-      }
-      throw error;
-    }
+    return this.request<BOMResponse>('PUT', `billofmaterials/${bomId}`, bomData);
   }
 
-  /**
-   * Delete a BOM
-   */
   async delete(bomId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `billofmaterials/${bomId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new BOMNotFoundError(bomId);
-      }
-      throw error;
-    }
+    await this.request<void>('DELETE', `billofmaterials/${bomId}`);
   }
 
-  /**
-   * Status management methods
-   */
-  async setActive(bomId: string): Promise<ActiveBOMResponse> {
-    const response = await this.stateset.request('POST', `billofmaterials/${bomId}/set-active`);
-    return this.handleCommandResponse(response) as ActiveBOMResponse;
+  // Status Management
+  async setActive(bomId: string): Promise<BOMResponse> {
+    return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/set-active`);
   }
 
-  async setObsolete(bomId: string): Promise<ObsoleteBOMResponse> {
-    const response = await this.stateset.request('POST', `billofmaterials/${bomId}/set-obsolete`);
-    return this.handleCommandResponse(response) as ObsoleteBOMResponse;
+  async setObsolete(bomId: string): Promise<BOMResponse> {
+    return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/set-obsolete`);
   }
 
-  async startRevision(bomId: string, revisionNotes?: string): Promise<RevisionBOMResponse> {
-    const response = await this.stateset.request('POST', `billofmaterials/${bomId}/start-revision`, { revision_notes: revisionNotes });
-    return this.handleCommandResponse(response) as RevisionBOMResponse;
+  async startRevision(bomId: string, revisionNotes?: string): Promise<BOMResponse> {
+    return this.request<BOMResponse>(
+      'POST',
+      `billofmaterials/${bomId}/start-revision`,
+      { revision_notes: revisionNotes }
+    );
   }
 
-  async completeRevision(bomId: string): Promise<ActiveBOMResponse> {
-    const response = await this.stateset.request('POST', `billofmaterials/${bomId}/complete-revision`);
-    return this.handleCommandResponse(response) as ActiveBOMResponse;
+  async completeRevision(bomId: string): Promise<BOMResponse> {
+    return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/complete-revision`);
   }
 
-  /**
-   * Component management methods
-   */
-  async addComponent(bomId: string, component: Component): Promise<BOMResponse> {
-    this.validateComponent(component);
-    const response = await this.stateset.request('POST', `billofmaterials/${bomId}/add-component`, component);
-    return this.handleCommandResponse(response);
+  // Component Management
+  async addComponent(bomId: string, component: Omit<Component, 'id'>): Promise<BOMResponse> {
+    this.validateComponent({ ...component, id: 'temp' }); // Temporary ID for validation
+    return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/add-component`, component);
   }
 
   async updateComponent(bomId: string, componentId: string, updates: Partial<Component>): Promise<BOMResponse> {
-    const response = await this.stateset.request('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
-    return this.handleCommandResponse(response);
+    this.validateComponent({ ...updates, id: componentId, item_id: 'temp', quantity: updates.quantity || 1, type: ComponentType.RAW_MATERIAL });
+    return this.request<BOMResponse>('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
   }
 
   async removeComponent(bomId: string, componentId: string): Promise<BOMResponse> {
-    const response = await this.stateset.request('DELETE', `billofmaterials/${bomId}/components/${componentId}`);
-    return this.handleCommandResponse(response);
+    return this.request<BOMResponse>('DELETE', `billofmaterials/${bomId}/components/${componentId}`);
   }
 
-  /**
-   * Cost calculation methods
-   */
-  async calculateTotalCost(bomId: string): Promise<{ total_cost: number; breakdown: Record<string, number> }> {
-    const response = await this.stateset.request('GET', `billofmaterials/${bomId}/cost-analysis`);
-    return response;
+  // Cost Management
+  async calculateTotalCost(bomId: string): Promise<{
+    total_cost: number;
+    currency: string;
+    breakdown: Record<string, { quantity: number; unit_cost: number; total: number }>;
+  }> {
+    return this.request('GET', `billofmaterials/${bomId}/cost-analysis`);
   }
 
-  /**
-   * Version management methods
-   */
-  async getVersionHistory(bomId: string): Promise<Array<BOMResponse & { version: string; changed_by: string; timestamp: string }>> {
-    const response = await this.stateset.request('GET', `billofmaterials/${bomId}/versions`);
-    return response.versions;
+  // Version Management
+  async getVersionHistory(bomId: string): Promise<Array<{
+    version: string;
+    status: BOMStatus;
+    changed_by: string;
+    timestamp: string;
+    changes: Record<string, { old: any; new: any }>;
+  }>> {
+    return this.request('GET', `billofmaterials/${bomId}/versions`);
   }
 
-  /**
-   * Export methods
-   */
-  async export(bomId: string, format: 'pdf' | 'csv' | 'json'): Promise<string> {
-    const response = await this.stateset.request('GET', `billofmaterials/${bomId}/export?format=${format}`);
-    return response.url;
+  // Export
+  async export(bomId: string, format: 'pdf' | 'csv' | 'json'): Promise<{
+    url: string;
+    generated_at: string;
+    expires_at: string;
+  }> {
+    return this.request('GET', `billofmaterials/${bomId}/export?format=${format}`);
+  }
+
+  // Validation
+  async validateBOM(bomId: string): Promise<{
+    is_valid: boolean;
+    issues: Array<{
+      component_id?: string;
+      type: string;
+      message: string;
+      severity: 'error' | 'warning';
+    }>;
+  }> {
+    return this.request('GET', `billofmaterials/${bomId}/validate`);
   }
 }
 

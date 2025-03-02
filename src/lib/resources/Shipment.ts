@@ -1,66 +1,76 @@
 import { stateset } from '../../stateset-client';
 
-// Enums for shipment management
+// Utility Types
+type UnitOfWeight = 'lb' | 'kg' | 'oz';
+type UnitOfLength = 'in' | 'cm';
+type NonEmptyString<T extends string> = T extends '' ? never : T;
+
+// Enums with improved consistency
 export enum ShipmentStatus {
-  PENDING = 'PENDING',
-  LABEL_CREATED = 'LABEL_CREATED',
-  PICKING = 'PICKING',
-  PICKED = 'PICKED',
-  PACKING = 'PACKING',
-  PACKED = 'PACKED',
-  SHIPPED = 'SHIPPED',
-  IN_TRANSIT = 'IN_TRANSIT',
-  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
-  ATTEMPTED_DELIVERY = 'ATTEMPTED_DELIVERY',
-  DELIVERED = 'DELIVERED',
-  EXCEPTION = 'EXCEPTION',
-  CANCELLED = 'CANCELLED'
+  PENDING = 'pending',
+  LABEL_CREATED = 'label_created',
+  PICKING = 'picking',
+  PICKED = 'picked',
+  PACKING = 'packing',
+  PACKED = 'packed',
+  SHIPPED = 'shipped',
+  IN_TRANSIT = 'in_transit',
+  OUT_FOR_DELIVERY = 'out_for_delivery',
+  ATTEMPTED_DELIVERY = 'attempted_delivery',
+  DELIVERED = 'delivered',
+  EXCEPTION = 'exception',
+  CANCELLED = 'cancelled'
 }
 
 export enum ShippingCarrier {
-  FEDEX = 'fedex',
-  UPS = 'ups',
-  USPS = 'usps',
-  DHL = 'dhl',
-  ONTRAC = 'ontrac'
+  FEDEX = 'FEDEX',
+  UPS = 'UPS',
+  USPS = 'USPS',
+  DHL = 'DHL',
+  ONTRAC = 'ONTRAC'
 }
 
 export enum ServiceLevel {
-  GROUND = 'ground',
-  TWO_DAY = 'two_day',
-  OVERNIGHT = 'overnight',
-  INTERNATIONAL = 'international',
-  ECONOMY = 'economy'
+  GROUND = 'GROUND',
+  TWO_DAY = 'TWO_DAY',
+  OVERNIGHT = 'OVERNIGHT',
+  INTERNATIONAL = 'INTERNATIONAL',
+  ECONOMY = 'ECONOMY'
 }
 
 export enum PackageType {
-  CUSTOM = 'custom',
-  ENVELOPE = 'envelope',
-  PAK = 'pak',
-  TUBE = 'tube',
-  BOX_SMALL = 'box_small',
-  BOX_MEDIUM = 'box_medium',
-  BOX_LARGE = 'box_large',
-  PALLET = 'pallet'
+  CUSTOM = 'CUSTOM',
+  ENVELOPE = 'ENVELOPE',
+  PAK = 'PAK',
+  TUBE = 'TUBE',
+  BOX_SMALL = 'BOX_SMALL',
+  BOX_MEDIUM = 'BOX_MEDIUM',
+  BOX_LARGE = 'BOX_LARGE',
+  PALLET = 'PALLET'
 }
 
-// Interfaces for shipment data structures
+// Common Measurement Types
+interface Measurement<T extends string> {
+  value: number;
+  unit: T;
+}
+
+interface Dimensions {
+  length: number;
+  width: number;
+  height: number;
+  unit: UnitOfLength;
+}
+
+// Core Interfaces
 export interface ShipmentItem {
-  item_id: string;
-  order_item_id: string;
+  item_id: NonEmptyString<string>;
+  order_item_id: NonEmptyString<string>;
   quantity: number;
   sku?: string;
   description?: string;
-  weight?: {
-    value: number;
-    unit: 'lb' | 'kg' | 'oz';
-  };
-  dimensions?: {
-    length: number;
-    width: number;
-    height: number;
-    unit: 'in' | 'cm';
-  };
+  weight?: Measurement<UnitOfWeight>;
+  dimensions?: Dimensions;
   value?: number;
   currency?: string;
   serial_numbers?: string[];
@@ -69,378 +79,270 @@ export interface ShipmentItem {
 }
 
 export interface Address {
-  name: string;
+  name: NonEmptyString<string>;
   company?: string;
-  street1: string;
+  street1: NonEmptyString<string>;
   street2?: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-  phone: string;
+  city: NonEmptyString<string>;
+  state: NonEmptyString<string>;
+  postal_code: NonEmptyString<string>;
+  country: NonEmptyString<string>;
+  phone: NonEmptyString<string>;
   email?: string;
   is_residential?: boolean;
   delivery_instructions?: string;
+  validated?: boolean;
 }
 
 export interface Package {
-  id: string;
+  id: NonEmptyString<string>;
   type: PackageType;
-  weight: {
+  weight: Measurement<UnitOfWeight>;
+  dimensions: Dimensions;
+  items: NonEmptyString<string>[]; // item_ids
+  tracking_information?: {
+    number: string;
+    url: string;
+    carrier: ShippingCarrier;
+  };
+  label?: {
+    url: string;
+    format: 'PDF' | 'PNG' | 'ZPL';
+    created_at: string;
+  };
+  customs_declaration?: CustomsInfo;
+}
+
+export interface CustomsInfo {
+  contents_type: NonEmptyString<string>;
+  contents_explanation?: string;
+  customs_certify?: boolean;
+  customs_signer?: string;
+  non_delivery_option?: 'RETURN' | 'ABANDON';
+  restriction_type?: 'NONE' | 'OTHER' | 'DANGEROUS_GOODS';
+  eel_pfc?: string;
+  customs_items?: Array<{
+    description: string;
+    quantity: number;
     value: number;
-    unit: 'lb' | 'kg' | 'oz';
-  };
-  dimensions: {
-    length: number;
-    width: number;
-    height: number;
-    unit: 'in' | 'cm';
-  };
-  items: string[]; // item_ids
-  tracking_number?: string;
-  label_url?: string;
-  customs_info?: {
-    contents_type: string;
-    contents_explanation?: string;
-    customs_certify?: boolean;
-    customs_signer?: string;
-    non_delivery_option?: 'return' | 'abandon';
-    restriction_type?: 'none' | 'other' | 'dangerous_goods';
-    eel_pfc?: string;
-  };
+    harmonized_code?: string;
+    country_of_origin?: string;
+  }>;
 }
 
 export interface TrackingEvent {
   timestamp: string;
-  status: string;
+  status: ShipmentStatus;
   message: string;
-  location: {
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  exception_details?: {
+  location: Partial<Address>;
+  carrier_details?: {
     code: string;
-    message: string;
-    resolution?: string;
+    description: string;
   };
 }
 
 export interface ShipmentData {
-  order_id: string;
-  customer_id: string;
+  order_id: NonEmptyString<string>;
+  customer_id: NonEmptyString<string>;
   carrier: ShippingCarrier;
   service_level: ServiceLevel;
   shipping_address: Address;
   return_address?: Address;
+  billing_address?: Address;
   items: ShipmentItem[];
   packages: Package[];
   estimated_delivery_date?: string;
   shipping_date?: string;
-  signature_required?: boolean;
-  insurance_amount?: number;
-  customs_info?: {
-    contents_type: string;
-    customs_certify: boolean;
-    customs_signer: string;
-    eel_pfc?: string;
-    non_delivery_option: 'return' | 'abandon';
-    restriction_type: 'none' | 'other' | 'dangerous_goods';
+  delivery_requirements?: {
+    signature_required?: boolean;
+    adult_signature_required?: boolean;
+    weekend_delivery?: boolean;
   };
-  metadata?: Record<string, any>;
+  insurance?: {
+    amount: number;
+    currency: string;
+    provider?: string;
+  };
+  customs_info?: CustomsInfo;
+  metadata?: Record<string, unknown>;
   org_id?: string;
+  tags?: string[];
 }
 
 export interface Rate {
   carrier: ShippingCarrier;
   service_level: ServiceLevel;
-  rate: {
+  cost: {
     amount: number;
     currency: string;
   };
-  estimated_days: number;
-  guaranteed_delivery?: boolean;
+  estimated_delivery: {
+    days: number;
+    date?: string;
+  };
+  features: {
+    guaranteed_delivery: boolean;
+    tracking: boolean;
+    insurance_available: boolean;
+  };
 }
 
-// Response Interfaces
-interface BaseShipmentResponse {
-  id: string;
+// Response Types with Discriminated Unions
+export type ShipmentResponse = {
+  id: NonEmptyString<string>;
   object: 'shipment';
   created_at: string;
   updated_at: string;
   status: ShipmentStatus;
   data: ShipmentData;
+} & (
+  | { status: ShipmentStatus.PENDING; pending_details: { created_at: string } }
+  | { status: ShipmentStatus.LABEL_CREATED; label_info: { tracking_number: string; label_url: string; created_at: string } }
+  | { status: ShipmentStatus.SHIPPED; shipping_info: { carrier: ShippingCarrier; tracking_numbers: string[]; shipped_at: string } }
+  | { status: ShipmentStatus.IN_TRANSIT; transit_info: { events: TrackingEvent[]; last_update: string } }
+  | { status: ShipmentStatus.DELIVERED; delivery_info: { delivered_at: string; signed_by?: string; proof_of_delivery?: string } }
+  | { status: ShipmentStatus.EXCEPTION; exception_info: { code: string; message: string; timestamp: string; resolution?: string } }
+);
+
+// Error Classes with additional context
+export class ShipmentError extends Error {
+  constructor(message: string, public readonly details?: Record<string, unknown>) {
+    super(message);
+    this.name = this.constructor.name;
+  }
 }
 
-interface PendingShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.PENDING;
-  pending: true;
-}
-
-interface LabelCreatedShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.LABEL_CREATED;
-  labelCreated: true;
-  label_info: {
-    tracking_number: string;
-    label_url: string;
-    created_at: string;
-  };
-}
-
-interface ShippedShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.SHIPPED;
-  shipped: true;
-  shipping_info: {
-    carrier: ShippingCarrier;
-    tracking_numbers: string[];
-    shipped_at: string;
-  };
-}
-
-interface InTransitShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.IN_TRANSIT;
-  inTransit: true;
-  tracking_events: TrackingEvent[];
-}
-
-interface DeliveredShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.DELIVERED;
-  delivered: true;
-  delivery_info: {
-    delivered_at: string;
-    signed_by?: string;
-    proof_of_delivery_url?: string;
-  };
-}
-
-interface ExceptionShipmentResponse extends BaseShipmentResponse {
-  status: ShipmentStatus.EXCEPTION;
-  exception: true;
-  exception_details: {
-    code: string;
-    message: string;
-    timestamp: string;
-    resolution?: string;
-  };
-}
-
-export type ShipmentResponse =
-  | PendingShipmentResponse
-  | LabelCreatedShipmentResponse
-  | ShippedShipmentResponse
-  | InTransitShipmentResponse
-  | DeliveredShipmentResponse
-  | ExceptionShipmentResponse;
-
-// Custom Error Classes
-export class ShipmentNotFoundError extends Error {
+export class ShipmentNotFoundError extends ShipmentError {
   constructor(shipmentId: string) {
-    super(`Shipment with ID ${shipmentId} not found`);
-    this.name = 'ShipmentNotFoundError';
+    super(`Shipment with ID ${shipmentId} not found`, { shipmentId });
   }
 }
 
-export class ShipmentValidationError extends Error {
-  constructor(message: string) {
+export class ShipmentValidationError extends ShipmentError {
+  constructor(message: string, public readonly validationErrors?: Record<string, string>) {
     super(message);
-    this.name = 'ShipmentValidationError';
   }
 }
 
-export class CarrierApiError extends Error {
-  constructor(message: string, public readonly carrier: string, public readonly code: string) {
-    super(message);
-    this.name = 'CarrierApiError';
+export class CarrierApiError extends ShipmentError {
+  constructor(message: string, public readonly carrier: ShippingCarrier, public readonly code: string) {
+    super(message, { carrier, code });
   }
 }
 
-// Main Shipments Class
-class Shipments {
-  constructor(private readonly stateset: stateset) {}
+// Main Shipments Class with improved error handling and validation
+export class Shipments {
+  constructor(private readonly client: stateset) {}
 
-  /**
-   * List shipments with optional filtering
-   * @param params - Filtering parameters
-   * @returns Array of ShipmentResponse objects
-   */
-  async list(params?: {
+  private validateShipmentData(data: ShipmentData): void {
+    if (!data.order_id) throw new ShipmentValidationError('Order ID is required');
+    if (!data.customer_id) throw new ShipmentValidationError('Customer ID is required');
+    if (!data.shipping_address) throw new ShipmentValidationError('Shipping address is required');
+  }
+
+  async list(params: {
     status?: ShipmentStatus;
     carrier?: ShippingCarrier;
     order_id?: string;
     customer_id?: string;
-    date_from?: Date;
-    date_to?: Date;
+    date_range?: { from: Date; to: Date };
     org_id?: string;
-  }): Promise<ShipmentResponse[]> {
-    const queryParams = new URLSearchParams();
-    
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.carrier) queryParams.append('carrier', params.carrier);
-    if (params?.order_id) queryParams.append('order_id', params.order_id);
-    if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
-    if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
-    if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{
+    shipments: ShipmentResponse[];
+    pagination: { total: number; limit: number; offset: number };
+  }> {
+    const query = new URLSearchParams({
+      ...(params.status && { status: params.status }),
+      ...(params.carrier && { carrier: params.carrier }),
+      ...(params.order_id && { order_id: params.order_id }),
+      ...(params.customer_id && { customer_id: params.customer_id }),
+      ...(params.date_range?.from && { date_from: params.date_range.from.toISOString() }),
+      ...(params.date_range?.to && { date_to: params.date_range.to.toISOString() }),
+      ...(params.org_id && { org_id: params.org_id }),
+      ...(params.limit && { limit: params.limit.toString() }),
+      ...(params.offset && { offset: params.offset.toString() }),
+    });
 
-    const response = await this.stateset.request('GET', `shipments?${queryParams.toString()}`);
-    return response.shipments;
+    const response = await this.client.request('GET', `shipments?${query}`);
+    return response;
   }
 
-  /**
-   * Get shipping rates
-   * @param shipmentData - Omit<ShipmentData, 'carrier' | 'service_level'> object
-   * @returns Array of Rate objects
-   */
-  async getRates(
-    shipmentData: Omit<ShipmentData, 'carrier' | 'service_level'>
-  ): Promise<Rate[]> {
-    const response = await this.stateset.request('POST', 'shipments/rates', shipmentData);
+  async getRates(data: Omit<ShipmentData, 'carrier' | 'service_level'>): Promise<Rate[]> {
+    this.validateShipmentData(data as ShipmentData);
+    const response = await this.client.request('POST', 'shipments/rates', data);
     return response.rates;
   }
 
-  /**
-   * Create shipment and generate label
-   * @param shipmentData - ShipmentData object
-   * @returns LabelCreatedShipmentResponse object
-   */
-  async create(shipmentData: ShipmentData): Promise<LabelCreatedShipmentResponse> {
+  async create(data: ShipmentData): Promise<ShipmentResponse> {
+    this.validateShipmentData(data);
     try {
-      const response = await this.stateset.request('POST', 'shipments', shipmentData);
+      const response = await this.client.request('POST', 'shipments', data);
       return response.shipment;
     } catch (error: any) {
-      if (error.status === 400) {
-        throw new ShipmentValidationError(error.message);
-      }
-      if (error.carrier_error) {
-        throw new CarrierApiError(error.message, error.carrier, error.carrier_code);
-      }
-      throw error;
+      throw this.handleApiError(error);
     }
   }
 
-  /**
-   * Update shipment
-   * @param shipmentId - Shipment ID
-   * @param shipmentData - Partial<ShipmentData> object
-   * @returns ShipmentResponse object
-   */
-  async update(
-    shipmentId: string, 
-    shipmentData: Partial<ShipmentData>
-  ): Promise<ShipmentResponse> {
+  async update(shipmentId: string, data: Partial<ShipmentData>): Promise<ShipmentResponse> {
     try {
-      const response = await this.stateset.request(
-        'PUT',
-        `shipments/${shipmentId}`,
-        shipmentData
-      );
+      const response = await this.client.request('PUT', `shipments/${shipmentId}`, data);
       return response.shipment;
     } catch (error: any) {
-      if (error.status === 404) {
-        throw new ShipmentNotFoundError(shipmentId);
-      }
-      throw error;
+      throw this.handleApiError(error, shipmentId);
     }
   }
 
-  /**
-   * Package management methods
-   * @param shipmentId - Shipment ID
-   * @param packageData - Omit<Package, 'id'> object
-   * @returns ShipmentResponse object
-   */
-  async addPackage(
-    shipmentId: string,
-    packageData: Omit<Package, 'id'>
-  ): Promise<ShipmentResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `shipments/${shipmentId}/packages`,
-      packageData
-    );
+  async addPackage(shipmentId: string, packageData: Omit<Package, 'id'>): Promise<ShipmentResponse> {
+    const response = await this.client.request('POST', `shipments/${shipmentId}/packages`, packageData);
     return response.shipment;
   }
 
-  async updatePackage(
-    shipmentId: string,
-    packageId: string,
-    packageData: Partial<Package>
-  ): Promise<ShipmentResponse> {
-    const response = await this.stateset.request(
-      'PUT',
-      `shipments/${shipmentId}/packages/${packageId}`,
-      packageData
-    );
-    return response.shipment;
-  }
-
-  /**
-   * Generate return label
-   * @param shipmentId - Shipment ID
-   * @param returnData - Return data object
-   * @returns Object with tracking_number, label_url, and carrier
-   */
   async generateReturnLabel(
     shipmentId: string,
-    returnData?: {
+    options: {
       return_address?: Address;
       service_level?: ServiceLevel;
-    }
+      reason?: string;
+    } = {}
   ): Promise<{
     tracking_number: string;
     label_url: string;
     carrier: ShippingCarrier;
+    expires_at: string;
   }> {
-    const response = await this.stateset.request(
-      'POST',
-      `shipments/${shipmentId}/return-label`,
-      returnData
-    );
+    const response = await this.client.request('POST', `shipments/${shipmentId}/return-label`, options);
     return response.label;
   }
 
-  /**
-   * Tracking methods
-   * @param shipmentId - Shipment ID
-   * @param params - Filtering parameters
-   * @returns Object with status, estimated_delivery_date, actual_delivery_date, events, and proof_of_delivery_url
-   */
   async getTrackingDetails(
     shipmentId: string,
-    params?: {
+    options: {
       include_proof_of_delivery?: boolean;
-    }
+      include_full_history?: boolean;
+    } = {}
   ): Promise<{
     status: ShipmentStatus;
     estimated_delivery_date?: string;
     actual_delivery_date?: string;
     events: TrackingEvent[];
-    proof_of_delivery_url?: string;
+    proof_of_delivery?: string;
   }> {
-    const queryParams = new URLSearchParams();
-    if (params?.include_proof_of_delivery) {
-      queryParams.append('include_pod', 'true');
-    }
-
-    const response = await this.stateset.request(
-      'GET',
-      `shipments/${shipmentId}/tracking?${queryParams.toString()}`
-    );
+    const query = new URLSearchParams({
+      ...(options.include_proof_of_delivery && { include_pod: 'true' }),
+      ...(options.include_full_history && { full_history: 'true' }),
+    });
+    const response = await this.client.request('GET', `shipments/${shipmentId}/tracking?${query}`);
     return response.tracking;
   }
 
-  /**
-   * Get shipment metrics
-   * @param params - Filtering parameters
-   * @returns Object with total_shipments, average_delivery_time, on_time_delivery_rate, exception_rate, average_shipping_cost, carrier_breakdown, and status_breakdown
-   */
-  async getMetrics(params?: {
-    start_date?: Date;
-    end_date?: Date;
+  async getMetrics(params: {
+    date_range?: { start: Date; end: Date };
     carrier?: ShippingCarrier;
     org_id?: string;
-  }): Promise<{
+    group_by?: 'day' | 'week' | 'month';
+  } = {}): Promise<{
     total_shipments: number;
     average_delivery_time: number;
     on_time_delivery_rate: number;
@@ -448,19 +350,24 @@ class Shipments {
     average_shipping_cost: number;
     carrier_breakdown: Record<ShippingCarrier, number>;
     status_breakdown: Record<ShipmentStatus, number>;
+    trends?: Record<string, number>;
   }> {
-    const queryParams = new URLSearchParams();
-    
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.carrier) queryParams.append('carrier', params.carrier);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request(
-      'GET',
-      `shipments/metrics?${queryParams.toString()}`
-    );
+    const query = new URLSearchParams({
+      ...(params.date_range?.start && { start_date: params.date_range.start.toISOString() }),
+      ...(params.date_range?.end && { end_date: params.date_range.end.toISOString() }),
+      ...(params.carrier && { carrier: params.carrier }),
+      ...(params.org_id && { org_id: params.org_id }),
+      ...(params.group_by && { group_by: params.group_by }),
+    });
+    const response = await this.client.request('GET', `shipments/metrics?${query}`);
     return response.metrics;
+  }
+
+  private handleApiError(error: any, shipmentId?: string): never {
+    if (error.status === 404) throw new ShipmentNotFoundError(shipmentId || 'unknown');
+    if (error.status === 400) throw new ShipmentValidationError(error.message, error.errors);
+    if (error.carrier_error) throw new CarrierApiError(error.message, error.carrier, error.code);
+    throw new ShipmentError('Unexpected error occurred', { originalError: error });
   }
 }
 

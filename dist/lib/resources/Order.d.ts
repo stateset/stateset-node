@@ -28,6 +28,15 @@ export declare enum FulfillmentPriority {
     NORMAL = "normal",
     LOW = "low"
 }
+interface Metadata {
+    [key: string]: any;
+}
+interface Dimensions {
+    length: number;
+    width: number;
+    height: number;
+    unit: string;
+}
 export interface OrderItem {
     product_id: string;
     variant_id?: string;
@@ -36,15 +45,9 @@ export interface OrderItem {
     discount_amount?: number;
     tax_amount?: number;
     total_amount: number;
-    metadata?: {
+    metadata?: Metadata & {
         weight?: number;
-        dimensions?: {
-            length: number;
-            width: number;
-            height: number;
-            unit: string;
-        };
-        [key: string]: any;
+        dimensions?: Dimensions;
     };
 }
 export interface ShippingAddress {
@@ -68,12 +71,12 @@ export interface PaymentDetails {
     amount_paid: number;
     currency: string;
     payment_date?: string;
-    refund_details?: {
+    refund_details?: Array<{
         refund_id: string;
         amount: number;
         reason: string;
         date: string;
-    }[];
+    }>;
 }
 export interface ShippingDetails {
     carrier: string;
@@ -85,12 +88,7 @@ export interface ShippingDetails {
     label_url?: string;
     package_details?: {
         weight: number;
-        dimensions: {
-            length: number;
-            width: number;
-            height: number;
-            unit: string;
-        };
+        dimensions: Dimensions;
         packages: number;
     };
 }
@@ -113,7 +111,7 @@ export interface OrderData {
     notes?: string[];
     priority?: FulfillmentPriority;
     source?: string;
-    metadata?: Record<string, any>;
+    metadata?: Metadata;
     org_id?: string;
 }
 export interface FulfillmentEvent {
@@ -122,7 +120,7 @@ export interface FulfillmentEvent {
     location?: string;
     description: string;
     performed_by?: string;
-    metadata?: Record<string, any>;
+    metadata?: Metadata;
 }
 interface BaseOrderResponse {
     id: string;
@@ -132,80 +130,56 @@ interface BaseOrderResponse {
     status: OrderStatus;
     data: OrderData;
 }
-interface DraftOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.DRAFT;
-    draft: true;
+export type OrderResponse = BaseOrderResponse & {
+    [K in OrderStatus]: {
+        status: K;
+    } & (K extends OrderStatus.SHIPPED ? {
+        shipping_details: ShippingDetails;
+    } : K extends OrderStatus.DELIVERED ? {
+        delivered: true;
+        delivery_confirmation?: {
+            timestamp: string;
+            signature?: string;
+            photo?: string;
+        };
+    } : K extends OrderStatus.CANCELLED ? {
+        cancelled: true;
+        cancellation_reason: string;
+        cancelled_at: string;
+    } : K extends OrderStatus.RETURNED ? {
+        returned: true;
+        return_details: {
+            rma_number: string;
+            reason: string;
+            received_at: string;
+            condition: string;
+        };
+    } : K extends OrderStatus.REFUNDED ? {
+        refunded: true;
+        refund_details: {
+            amount: number;
+            reason: string;
+            processed_at: string;
+            transaction_id: string;
+        };
+    } : {});
+}[OrderStatus];
+export declare class OrderError extends Error {
+    constructor(message: string, name: string);
 }
-interface PendingOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.PENDING;
-    pending: true;
-}
-interface ConfirmedOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.CONFIRMED;
-    confirmed: true;
-}
-interface ProcessingOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.PROCESSING;
-    processing: true;
-}
-interface ShippedOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.SHIPPED;
-    shipped: true;
-    shipping_details: ShippingDetails;
-}
-interface DeliveredOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.DELIVERED;
-    delivered: true;
-    delivery_confirmation?: {
-        timestamp: string;
-        signature?: string;
-        photo?: string;
-    };
-}
-interface CancelledOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.CANCELLED;
-    cancelled: true;
-    cancellation_reason: string;
-    cancelled_at: string;
-}
-interface ReturnedOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.RETURNED;
-    returned: true;
-    return_details: {
-        rma_number: string;
-        reason: string;
-        received_at: string;
-        condition: string;
-    };
-}
-interface RefundedOrderResponse extends BaseOrderResponse {
-    status: OrderStatus.REFUNDED;
-    refunded: true;
-    refund_details: {
-        amount: number;
-        reason: string;
-        processed_at: string;
-        transaction_id: string;
-    };
-}
-export type OrderResponse = DraftOrderResponse | PendingOrderResponse | ConfirmedOrderResponse | ProcessingOrderResponse | ShippedOrderResponse | DeliveredOrderResponse | CancelledOrderResponse | ReturnedOrderResponse | RefundedOrderResponse;
-export declare class OrderNotFoundError extends Error {
+export declare class OrderNotFoundError extends OrderError {
     constructor(orderId: string);
 }
-export declare class OrderStateError extends Error {
+export declare class OrderStateError extends OrderError {
     constructor(message: string);
 }
-export declare class OrderValidationError extends Error {
+export declare class OrderValidationError extends OrderError {
     constructor(message: string);
 }
-declare class Orders {
-    private readonly stateset;
-    constructor(stateset: stateset);
-    /**
-     * List orders with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of OrderResponse objects
-     */
+export declare class Orders {
+    private readonly client;
+    constructor(client: stateset);
+    private request;
     list(params?: {
         status?: OrderStatus;
         customer_id?: string;
@@ -214,107 +188,39 @@ declare class Orders {
         priority?: FulfillmentPriority;
         payment_status?: PaymentStatus;
         org_id?: string;
-    }): Promise<OrderResponse[]>;
-    /**
-     * Get specific order by ID
-     * @param orderId - Order ID
-     * @returns OrderResponse object
-     */
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        orders: OrderResponse[];
+        total: number;
+    }>;
     get(orderId: string): Promise<OrderResponse>;
-    /**
-     * Create new order
-     * @param orderData - OrderData object
-     * @returns OrderResponse object
-     */
     create(orderData: OrderData): Promise<OrderResponse>;
-    /**
-     * Update existing order
-     * @param orderId - Order ID
-     * @param orderData - Partial<OrderData> object
-     * @returns OrderResponse object
-     */
     update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse>;
-    /**
-     * Process order status changes
-     * @param orderId - Order ID
-     * @returns ConfirmedOrderResponse object
-     */
-    confirm(orderId: string): Promise<ConfirmedOrderResponse>;
-    /**
-     * Start processing an order
-     * @param orderId - Order ID
-     * @returns ProcessingOrderResponse object
-     */
-    process(orderId: string): Promise<ProcessingOrderResponse>;
-    /**
-     * Ship an order
-     * @param orderId - Order ID
-     * @param shippingDetails - ShippingDetails object
-     * @returns ShippedOrderResponse object
-     */
-    ship(orderId: string, shippingDetails: ShippingDetails): Promise<ShippedOrderResponse>;
-    /**
-     * Mark an order as delivered
-     * @param orderId - Order ID
-     * @param confirmation - Optional confirmation object
-     * @returns DeliveredOrderResponse object
-     */
+    confirm(orderId: string): Promise<OrderResponse>;
+    process(orderId: string): Promise<OrderResponse>;
+    ship(orderId: string, shippingDetails: ShippingDetails): Promise<OrderResponse>;
     markDelivered(orderId: string, confirmation?: {
         signature?: string;
         photo?: string;
-    }): Promise<DeliveredOrderResponse>;
-    /**
-     * Cancel an order
-     * @param orderId - Order ID
-     * @param cancellationData - Cancellation data
-     * @returns CancelledOrderResponse object
-     */
+    }): Promise<OrderResponse>;
     cancel(orderId: string, cancellationData: {
         reason: string;
-    }): Promise<CancelledOrderResponse>;
-    /**
-     * Process a return for an order
-     * @param orderId - Order ID
-     * @param returnData - Return data
-     * @returns ReturnedOrderResponse object
-     */
+    }): Promise<OrderResponse>;
     processReturn(orderId: string, returnData: {
         rma_number: string;
         reason: string;
         condition: string;
-    }): Promise<ReturnedOrderResponse>;
-    /**
-     * Process a refund for an order
-     * @param orderId - Order ID
-     * @param refundData - Refund data
-     * @returns RefundedOrderResponse object
-     */
+    }): Promise<OrderResponse>;
     processRefund(orderId: string, refundData: {
         amount: number;
         reason: string;
-    }): Promise<RefundedOrderResponse>;
-    /**
-     * Add a fulfillment event to an order
-     * @param orderId - Order ID
-     * @param event - FulfillmentEvent object
-     * @returns OrderResponse object
-     */
+    }): Promise<OrderResponse>;
     addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse>;
-    /**
-     * Get fulfillment history for an order
-     * @param orderId - Order ID
-     * @param params - Optional filtering parameters
-     * @returns Array of FulfillmentEvent objects
-     */
     getFulfillmentHistory(orderId: string, params?: {
         start_date?: Date;
         end_date?: Date;
     }): Promise<FulfillmentEvent[]>;
-    /**
-     * Get tracking information for an order
-     * @param orderId - Order ID
-     * @returns Tracking information object
-     */
     getTracking(orderId: string): Promise<{
         tracking_number: string;
         carrier: string;
@@ -328,11 +234,6 @@ declare class Orders {
             description: string;
         }>;
     }>;
-    /**
-     * Get order metrics
-     * @param params - Optional filtering parameters
-     * @returns Metrics object
-     */
     getMetrics(params?: {
         start_date?: Date;
         end_date?: Date;

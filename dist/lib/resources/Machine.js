@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MachineValidationError = exports.MachineStateError = exports.MachineNotFoundError = exports.MalfunctionSeverity = exports.MaintenanceType = exports.MachineStatus = void 0;
-// Enums for machine management
+exports.Machines = exports.MachineValidationError = exports.MachineStateError = exports.MachineNotFoundError = exports.MachineError = exports.MalfunctionSeverity = exports.MaintenanceType = exports.MachineStatus = void 0;
+// Enums
 var MachineStatus;
 (function (MachineStatus) {
     MachineStatus["OPERATIONAL"] = "OPERATIONAL";
@@ -26,227 +26,145 @@ var MalfunctionSeverity;
     MalfunctionSeverity["MEDIUM"] = "medium";
     MalfunctionSeverity["LOW"] = "low";
 })(MalfunctionSeverity = exports.MalfunctionSeverity || (exports.MalfunctionSeverity = {}));
-// Custom Error Classes
-class MachineNotFoundError extends Error {
+// Error Classes
+class MachineError extends Error {
+    constructor(message, name) {
+        super(message);
+        this.name = name;
+    }
+}
+exports.MachineError = MachineError;
+class MachineNotFoundError extends MachineError {
     constructor(machineId) {
-        super(`Machine with ID ${machineId} not found`);
-        this.name = 'MachineNotFoundError';
+        super(`Machine with ID ${machineId} not found`, 'MachineNotFoundError');
     }
 }
 exports.MachineNotFoundError = MachineNotFoundError;
-class MachineStateError extends Error {
+class MachineStateError extends MachineError {
     constructor(message) {
-        super(message);
-        this.name = 'MachineStateError';
+        super(message, 'MachineStateError');
     }
 }
 exports.MachineStateError = MachineStateError;
-class MachineValidationError extends Error {
+class MachineValidationError extends MachineError {
     constructor(message) {
-        super(message);
-        this.name = 'MachineValidationError';
+        super(message, 'MachineValidationError');
     }
 }
 exports.MachineValidationError = MachineValidationError;
 // Main Machines Class
 class Machines {
-    constructor(stateset) {
-        this.stateset = stateset;
+    constructor(client) {
+        this.client = client;
     }
-    /**
-     * List machines with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of MachineResponse objects
-     */
-    async list(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.facility_id)
-            queryParams.append('facility_id', params.facility_id);
-        if (params === null || params === void 0 ? void 0 : params.manufacturer)
-            queryParams.append('manufacturer', params.manufacturer);
-        if ((params === null || params === void 0 ? void 0 : params.maintenance_due) !== undefined)
-            queryParams.append('maintenance_due', params.maintenance_due.toString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `machines?${queryParams.toString()}`);
-        return response.machines;
-    }
-    /**
-     * Get specific machine by ID
-     * @param machineId - Machine ID
-     * @returns MachineResponse object
-     */
-    async get(machineId) {
+    async request(method, path, data) {
         try {
-            const response = await this.stateset.request('GET', `machines/${machineId}`);
-            return response.machine;
+            const response = await this.client.request(method, path, data);
+            return response.machine || response.machines || response;
         }
         catch (error) {
             if (error.status === 404) {
-                throw new MachineNotFoundError(machineId);
+                throw new MachineNotFoundError(path.split('/')[2] || 'unknown');
             }
-            throw error;
-        }
-    }
-    /**
-     * Create new machine
-     * @param machineData - MachineData object
-     * @returns MachineResponse object
-     */
-    async create(machineData) {
-        try {
-            const response = await this.stateset.request('POST', 'machines', machineData);
-            return response.machine;
-        }
-        catch (error) {
             if (error.status === 400) {
                 throw new MachineValidationError(error.message);
             }
-            throw error;
-        }
-    }
-    /**
-     * Update existing machine
-     * @param machineId - Machine ID
-     * @param machineData - Partial<MachineData> object
-     * @returns MachineResponse object
-     */
-    async update(machineId, machineData) {
-        try {
-            const response = await this.stateset.request('PUT', `machines/${machineId}`, machineData);
-            return response.machine;
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new MachineNotFoundError(machineId);
+            if (error.status === 409) {
+                throw new MachineStateError(error.message || 'Invalid state transition');
             }
             throw error;
         }
     }
-    /**
-     * Delete machine
-     * @param machineId - Machine ID
-     */
-    async delete(machineId) {
-        try {
-            await this.stateset.request('DELETE', `machines/${machineId}`);
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new MachineNotFoundError(machineId);
-            }
-            throw error;
-        }
-    }
-    /**
-     * Log machine runtime
-     * @param machineId - Machine ID
-     * @param data - RuntimeData object
-     * @returns MachineResponse object
-     */
-    async logRuntime(machineId, data) {
+    validateRuntimeData(data) {
         if (new Date(data.end_time) <= new Date(data.start_time)) {
             throw new MachineValidationError('End time must be after start time');
         }
-        try {
-            const response = await this.stateset.request('POST', `machines/${machineId}/runtime`, data);
-            return response.machine;
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new MachineNotFoundError(machineId);
-            }
-            throw error;
+        if (data.output_quantity < 0) {
+            throw new MachineValidationError('Output quantity cannot be negative');
         }
     }
-    /**
-     * Schedule maintenance
-     * @param machineId - Machine ID
-     * @param data - MaintenanceData object
-     * @returns MaintenanceMachineResponse object
-     */
-    async scheduleMaintenance(machineId, data) {
-        try {
-            const response = await this.stateset.request('POST', `machines/${machineId}/maintenance`, data);
-            return response.machine;
-        }
-        catch (error) {
-            if (error.status === 409) {
-                throw new MachineStateError('Machine is not available for maintenance');
-            }
-            throw error;
-        }
-    }
-    /**
-     * Get performance metrics
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns PerformanceMetrics object
-     */
-    async getPerformanceMetrics(machineId, params) {
+    async list(params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, String(value));
+            }
+        });
+        return this.request('GET', `machines?${queryParams.toString()}`);
+    }
+    async get(machineId) {
+        return this.request('GET', `machines/${machineId}`);
+    }
+    async create(machineData) {
+        return this.request('POST', 'machines', machineData);
+    }
+    async update(machineId, machineData) {
+        return this.request('PUT', `machines/${machineId}`, machineData);
+    }
+    async delete(machineId) {
+        await this.request('DELETE', `machines/${machineId}`);
+    }
+    async logRuntime(machineId, data) {
+        this.validateRuntimeData(data);
+        return this.request('POST', `machines/${machineId}/runtime`, data);
+    }
+    async scheduleMaintenance(machineId, data) {
+        if (data.estimated_duration <= 0) {
+            throw new MachineValidationError('Estimated duration must be positive');
+        }
+        return this.request('POST', `machines/${machineId}/maintenance`, data);
+    }
+    async getPerformanceMetrics(machineId, params = {}) {
+        const queryParams = new URLSearchParams();
+        if (params.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.metrics)
+        if (params.metrics)
             queryParams.append('metrics', params.metrics.join(','));
-        return this.stateset.request('GET', `machines/${machineId}/performance?${queryParams.toString()}`);
+        return this.request('GET', `machines/${machineId}/performance?${queryParams.toString()}`);
     }
-    /**
-     * Set machine status to operational
-     * @param machineId - Machine ID
-     * @returns OperationalMachineResponse object
-     */
-    async setOperational(machineId) {
-        const response = await this.stateset.request('POST', `machines/${machineId}/set-operational`);
-        return response.machine;
-    }
-    async setOffline(machineId, reason) {
-        const response = await this.stateset.request('POST', `machines/${machineId}/set-offline`, { reason });
-        return response.machine;
+    async setStatus(machineId, status, details = {}) {
+        return this.request('POST', `machines/${machineId}/set-status`, { status, ...details });
     }
     async reportMalfunction(machineId, report) {
-        const response = await this.stateset.request('POST', `machines/${machineId}/report-malfunction`, report);
-        return response.machine;
+        if (!report.symptoms.length) {
+            throw new MachineValidationError('At least one symptom must be reported');
+        }
+        return this.request('POST', `machines/${machineId}/report-malfunction`, report);
     }
-    /**
-     * Get maintenance history
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns Array of MaintenanceData objects
-     */
-    async getMaintenanceHistory(machineId, params) {
+    async getMaintenanceHistory(machineId, params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
+            }
+        });
+        return this.request('GET', `machines/${machineId}/maintenance-history?${queryParams.toString()}`);
+    }
+    async getAlerts(machineId, params = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
+            }
+        });
+        return this.request('GET', `machines/${machineId}/alerts?${queryParams.toString()}`);
+    }
+    async getUtilization(machineId, params = {}) {
+        const queryParams = new URLSearchParams();
+        if (params.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.type)
-            queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.limit)
-            queryParams.append('limit', params.limit.toString());
-        const response = await this.stateset.request('GET', `machines/${machineId}/maintenance-history?${queryParams.toString()}`);
-        return response.history;
+        return this.request('GET', `machines/${machineId}/utilization?${queryParams.toString()}`);
     }
-    /**
-     * Get machine alerts
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns Array of MalfunctionAlert objects
-     */
-    async getAlerts(machineId, params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.severity)
-            queryParams.append('severity', params.severity);
-        if (params === null || params === void 0 ? void 0 : params.start_date)
-            queryParams.append('start_date', params.start_date.toISOString());
-        if ((params === null || params === void 0 ? void 0 : params.resolved) !== undefined)
-            queryParams.append('resolved', params.resolved.toString());
-        const response = await this.stateset.request('GET', `machines/${machineId}/alerts?${queryParams.toString()}`);
-        return response.alerts;
+    async completeMaintenance(machineId, maintenanceId, completionData) {
+        if (completionData.actual_duration <= 0) {
+            throw new MachineValidationError('Actual duration must be positive');
+        }
+        return this.request('POST', `machines/${machineId}/maintenance/${maintenanceId}/complete`, completionData);
     }
 }
+exports.Machines = Machines;
 exports.default = Machines;

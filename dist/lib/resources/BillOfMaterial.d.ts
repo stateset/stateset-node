@@ -52,106 +52,92 @@ interface BaseBOMResponse {
     status: BOMStatus;
     data: BOMData;
 }
-interface DraftBOMResponse extends BaseBOMResponse {
-    status: BOMStatus.DRAFT;
-    draft: true;
+export type BOMResponse = BaseBOMResponse & {
+    [K in BOMStatus]: {
+        status: K;
+    } & (K extends BOMStatus.REVISION ? {
+        revision: true;
+        previous_version_id: string;
+    } : K extends BOMStatus.DRAFT ? {
+        draft: true;
+    } : K extends BOMStatus.ACTIVE ? {
+        active: true;
+    } : K extends BOMStatus.OBSOLETE ? {
+        obsolete: true;
+    } : {});
+}[BOMStatus];
+export declare class BOMError extends Error {
+    constructor(message: string, name: string);
 }
-interface ActiveBOMResponse extends BaseBOMResponse {
-    status: BOMStatus.ACTIVE;
-    active: true;
-}
-interface ObsoleteBOMResponse extends BaseBOMResponse {
-    status: BOMStatus.OBSOLETE;
-    obsolete: true;
-}
-interface RevisionBOMResponse extends BaseBOMResponse {
-    status: BOMStatus.REVISION;
-    revision: true;
-    previous_version_id: string;
-}
-export type BOMResponse = DraftBOMResponse | ActiveBOMResponse | ObsoleteBOMResponse | RevisionBOMResponse;
-export declare class BOMNotFoundError extends Error {
+export declare class BOMNotFoundError extends BOMError {
     constructor(bomId: string);
 }
-export declare class BOMValidationError extends Error {
+export declare class BOMValidationError extends BOMError {
     constructor(message: string);
 }
-export declare class BOMStateError extends Error {
+export declare class BOMStateError extends BOMError {
     constructor(message: string);
 }
-declare class BillOfMaterials {
-    private readonly stateset;
-    constructor(stateset: stateset);
-    /**
-     * Validates a BOM component
-     */
+export declare class BillOfMaterials {
+    private readonly client;
+    constructor(client: stateset);
+    private request;
     private validateComponent;
-    /**
-     * Processes API response into typed BOMResponse
-     */
-    private handleCommandResponse;
-    /**
-     * List all BOMs with optional filtering
-     */
     list(params?: {
         status?: BOMStatus;
         product_id?: string;
         org_id?: string;
         effective_after?: Date;
         effective_before?: Date;
-    }): Promise<BOMResponse[]>;
-    /**
-     * Get a specific BOM by ID
-     */
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        boms: BOMResponse[];
+        total: number;
+    }>;
     get(bomId: string): Promise<BOMResponse>;
-    /**
-     * Create a new BOM
-     * @param bomData - BOMData object
-     * @returns BOMResponse object
-     */
     create(bomData: BOMData): Promise<BOMResponse>;
-    /**
-     * Update an existing BOM
-     * @param bomId - BOM ID
-     * @param bomData - Partial<BOMData> object
-     * @returns BOMResponse object
-     */
     update(bomId: string, bomData: Partial<BOMData>): Promise<BOMResponse>;
-    /**
-     * Delete a BOM
-     */
     delete(bomId: string): Promise<void>;
-    /**
-     * Status management methods
-     */
-    setActive(bomId: string): Promise<ActiveBOMResponse>;
-    setObsolete(bomId: string): Promise<ObsoleteBOMResponse>;
-    startRevision(bomId: string, revisionNotes?: string): Promise<RevisionBOMResponse>;
-    completeRevision(bomId: string): Promise<ActiveBOMResponse>;
-    /**
-     * Component management methods
-     */
-    addComponent(bomId: string, component: Component): Promise<BOMResponse>;
+    setActive(bomId: string): Promise<BOMResponse>;
+    setObsolete(bomId: string): Promise<BOMResponse>;
+    startRevision(bomId: string, revisionNotes?: string): Promise<BOMResponse>;
+    completeRevision(bomId: string): Promise<BOMResponse>;
+    addComponent(bomId: string, component: Omit<Component, 'id'>): Promise<BOMResponse>;
     updateComponent(bomId: string, componentId: string, updates: Partial<Component>): Promise<BOMResponse>;
     removeComponent(bomId: string, componentId: string): Promise<BOMResponse>;
-    /**
-     * Cost calculation methods
-     */
     calculateTotalCost(bomId: string): Promise<{
         total_cost: number;
-        breakdown: Record<string, number>;
+        currency: string;
+        breakdown: Record<string, {
+            quantity: number;
+            unit_cost: number;
+            total: number;
+        }>;
     }>;
-    /**
-     * Version management methods
-     */
-    getVersionHistory(bomId: string): Promise<Array<BOMResponse & {
+    getVersionHistory(bomId: string): Promise<Array<{
         version: string;
+        status: BOMStatus;
         changed_by: string;
         timestamp: string;
+        changes: Record<string, {
+            old: any;
+            new: any;
+        }>;
     }>>;
-    /**
-     * Export methods
-     */
-    export(bomId: string, format: 'pdf' | 'csv' | 'json'): Promise<string>;
+    export(bomId: string, format: 'pdf' | 'csv' | 'json'): Promise<{
+        url: string;
+        generated_at: string;
+        expires_at: string;
+    }>;
+    validateBOM(bomId: string): Promise<{
+        is_valid: boolean;
+        issues: Array<{
+            component_id?: string;
+            type: string;
+            message: string;
+            severity: 'error' | 'warning';
+        }>;
+    }>;
 }
 export default BillOfMaterials;

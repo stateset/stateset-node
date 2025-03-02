@@ -20,23 +20,28 @@ export declare enum QualityCheckStatus {
     FAILED = "failed",
     CONDITIONAL = "conditional"
 }
+interface Metadata {
+    [key: string]: any;
+}
+interface ProductionMilestones {
+    materials_ready?: string;
+    production_start?: string;
+    quality_check?: string;
+    packaging_start?: string;
+    shipping_ready?: string;
+}
+export interface ProductionShift {
+    shift_id: string;
+    start_time: string;
+    end_time: string;
+    machine_id?: string;
+    operator_id?: string;
+}
 export interface ProductionSchedule {
     start_date: string;
     end_date: string;
-    shifts: Array<{
-        shift_id: string;
-        start_time: string;
-        end_time: string;
-        machine_id?: string;
-        operator_id?: string;
-    }>;
-    milestone_dates: {
-        materials_ready?: string;
-        production_start?: string;
-        quality_check?: string;
-        packaging_start?: string;
-        shipping_ready?: string;
-    };
+    shifts: ProductionShift[];
+    milestone_dates: ProductionMilestones;
 }
 export interface MaterialRequirement {
     material_id: string;
@@ -90,6 +95,7 @@ export interface ManufacturerOrderData {
     customer_id?: string;
     order_reference?: string;
     org_id?: string;
+    metadata?: Metadata;
 }
 export interface ProductionUpdate {
     timestamp: string;
@@ -139,54 +145,41 @@ interface BaseManufacturerOrderResponse {
     status: ManufacturerOrderStatus;
     data: ManufacturerOrderData;
 }
-interface DraftManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.DRAFT;
-    draft: true;
+export type ManufacturerOrderResponse = BaseManufacturerOrderResponse & {
+    [K in ManufacturerOrderStatus]: {
+        status: K;
+    } & (K extends ManufacturerOrderStatus.IN_PRODUCTION ? {
+        inProduction: true;
+        production_updates: ProductionUpdate[];
+    } : K extends ManufacturerOrderStatus.QUALITY_CHECK ? {
+        qualityCheck: true;
+        quality_results?: QualityCheckResult;
+    } : K extends ManufacturerOrderStatus.COMPLETED ? {
+        completed: true;
+        final_costs: ProductionCosts;
+        quality_results: QualityCheckResult;
+    } : K extends ManufacturerOrderStatus.CANCELLED ? {
+        cancelled: true;
+        cancellation_reason: string;
+        cancellation_costs?: ProductionCosts;
+    } : {});
+}[ManufacturerOrderStatus];
+export declare class ManufacturerOrderError extends Error {
+    constructor(message: string, name: string);
 }
-interface SubmittedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.SUBMITTED;
-    submitted: true;
-}
-interface InProductionManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.IN_PRODUCTION;
-    inProduction: true;
-    production_updates: ProductionUpdate[];
-}
-interface QualityCheckManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.QUALITY_CHECK;
-    qualityCheck: true;
-    quality_results?: QualityCheckResult;
-}
-interface CompletedManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.COMPLETED;
-    completed: true;
-    final_costs: ProductionCosts;
-    quality_results: QualityCheckResult;
-}
-interface CancelledManufacturerOrderResponse extends BaseManufacturerOrderResponse {
-    status: ManufacturerOrderStatus.CANCELLED;
-    cancelled: true;
-    cancellation_reason: string;
-    cancellation_costs?: ProductionCosts;
-}
-export type ManufacturerOrderResponse = DraftManufacturerOrderResponse | SubmittedManufacturerOrderResponse | InProductionManufacturerOrderResponse | QualityCheckManufacturerOrderResponse | CompletedManufacturerOrderResponse | CancelledManufacturerOrderResponse;
-export declare class ManufacturerOrderNotFoundError extends Error {
+export declare class ManufacturerOrderNotFoundError extends ManufacturerOrderError {
     constructor(orderId: string);
 }
-export declare class ManufacturerOrderStateError extends Error {
+export declare class ManufacturerOrderStateError extends ManufacturerOrderError {
     constructor(message: string);
 }
-export declare class MaterialRequirementError extends Error {
+export declare class MaterialRequirementError extends ManufacturerOrderError {
     constructor(message: string);
 }
-declare class ManufacturerOrders {
-    private readonly stateset;
-    constructor(stateset: stateset);
-    /**
-     * List manufacturer orders with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of ManufacturerOrderResponse objects
-     */
+export declare class ManufacturerOrders {
+    private readonly client;
+    constructor(client: stateset);
+    private request;
     list(params?: {
         status?: ManufacturerOrderStatus;
         manufacturer_id?: string;
@@ -195,99 +188,55 @@ declare class ManufacturerOrders {
         from_date?: Date;
         to_date?: Date;
         org_id?: string;
-    }): Promise<ManufacturerOrderResponse[]>;
-    /**
-     * Get specific manufacturer order by ID
-     * @param orderId - Manufacturer order ID
-     * @returns ManufacturerOrderResponse object
-     */
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        orders: ManufacturerOrderResponse[];
+        total: number;
+    }>;
     get(orderId: string): Promise<ManufacturerOrderResponse>;
-    /**
-     * Create new manufacturer order
-     * @param orderData - ManufacturerOrderData object
-     * @returns ManufacturerOrderResponse object
-     */
     create(orderData: ManufacturerOrderData): Promise<ManufacturerOrderResponse>;
-    /**
-     * Update existing manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param orderData - Partial<ManufacturerOrderData> object
-     * @returns ManufacturerOrderResponse object
-     */
     update(orderId: string, orderData: Partial<ManufacturerOrderData>): Promise<ManufacturerOrderResponse>;
-    /**
-     * Delete manufacturer order
-     * @param orderId - Manufacturer order ID
-     */
     delete(orderId: string): Promise<void>;
-    /**
-     * Status management methods
-     */
-    submit(orderId: string): Promise<SubmittedManufacturerOrderResponse>;
-    /**
-     * Start production for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param startData - Optional start data
-     * @returns InProductionManufacturerOrderResponse object
-     */
+    submit(orderId: string): Promise<ManufacturerOrderResponse>;
     startProduction(orderId: string, startData?: {
         machine_id?: string;
         operator_id?: string;
         start_notes?: string;
-    }): Promise<InProductionManufacturerOrderResponse>;
-    /**
-     * Submit quality check for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param qualityData - QualityCheckResult object
-     * @returns QualityCheckManufacturerOrderResponse object
-     */
-    submitQualityCheck(orderId: string, qualityData: QualityCheckResult): Promise<QualityCheckManufacturerOrderResponse>;
-    /**
-     * Complete a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param completionData - Completion data
-     * @returns CompletedManufacturerOrderResponse object
-     */
+    }): Promise<ManufacturerOrderResponse>;
+    submitQualityCheck(orderId: string, qualityData: QualityCheckResult): Promise<ManufacturerOrderResponse>;
     complete(orderId: string, completionData: {
         final_quantity: number;
         completion_notes?: string;
-    }): Promise<CompletedManufacturerOrderResponse>;
-    /**
-     * Cancel a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param cancellationData - Cancellation data
-     * @returns CancelledManufacturerOrderResponse object
-     */
+    }): Promise<ManufacturerOrderResponse>;
     cancel(orderId: string, cancellationData: {
         reason: string;
         cancellation_costs?: ProductionCosts;
-    }): Promise<CancelledManufacturerOrderResponse>;
-    /**
-     * Production management methods
-     */
-    updateProductionStatus(orderId: string, update: ProductionUpdate): Promise<InProductionManufacturerOrderResponse>;
-    /**
-     * Get production history for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param params - Optional filtering parameters
-     * @returns Array of ProductionUpdate objects
-     */
+    }): Promise<ManufacturerOrderResponse>;
+    updateProductionStatus(orderId: string, update: ProductionUpdate): Promise<ManufacturerOrderResponse>;
     getProductionHistory(orderId: string, params?: {
         from_date?: Date;
         to_date?: Date;
         stage?: string;
     }): Promise<ProductionUpdate[]>;
-    /**
-     * Cost tracking methods
-     */
     updateCosts(orderId: string, costs: ProductionCosts): Promise<ManufacturerOrderResponse>;
-    /**
-     * Material management methods
-     */
     allocateMaterials(orderId: string, materialAllocations: Array<{
         material_id: string;
         quantity: number;
         warehouse_location: string;
     }>): Promise<ManufacturerOrderResponse>;
+    getManufacturingMetrics(params?: {
+        from_date?: Date;
+        to_date?: Date;
+        manufacturer_id?: string;
+        org_id?: string;
+    }): Promise<{
+        total_orders: number;
+        completed_orders: number;
+        average_production_time: number;
+        quality_pass_rate: number;
+        total_costs: number;
+        status_breakdown: Record<ManufacturerOrderStatus, number>;
+    }>;
 }
 export default ManufacturerOrders;

@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MaterialRequirementError = exports.ManufacturerOrderStateError = exports.ManufacturerOrderNotFoundError = exports.QualityCheckStatus = exports.ProductionPriority = exports.ManufacturerOrderStatus = void 0;
-// Enums for manufacturing management
+exports.ManufacturerOrders = exports.MaterialRequirementError = exports.ManufacturerOrderStateError = exports.ManufacturerOrderNotFoundError = exports.ManufacturerOrderError = exports.QualityCheckStatus = exports.ProductionPriority = exports.ManufacturerOrderStatus = void 0;
+// Constants
+const DEFAULT_CURRENCY = 'USD';
+// Enums
 var ManufacturerOrderStatus;
 (function (ManufacturerOrderStatus) {
     ManufacturerOrderStatus["DRAFT"] = "DRAFT";
@@ -27,205 +29,143 @@ var QualityCheckStatus;
     QualityCheckStatus["CONDITIONAL"] = "conditional";
 })(QualityCheckStatus = exports.QualityCheckStatus || (exports.QualityCheckStatus = {}));
 // Custom Error Classes
-class ManufacturerOrderNotFoundError extends Error {
+class ManufacturerOrderError extends Error {
+    constructor(message, name) {
+        super(message);
+        this.name = name;
+    }
+}
+exports.ManufacturerOrderError = ManufacturerOrderError;
+class ManufacturerOrderNotFoundError extends ManufacturerOrderError {
     constructor(orderId) {
-        super(`Manufacturer order with ID ${orderId} not found`);
-        this.name = 'ManufacturerOrderNotFoundError';
+        super(`Manufacturer order with ID ${orderId} not found`, 'ManufacturerOrderNotFoundError');
     }
 }
 exports.ManufacturerOrderNotFoundError = ManufacturerOrderNotFoundError;
-class ManufacturerOrderStateError extends Error {
+class ManufacturerOrderStateError extends ManufacturerOrderError {
     constructor(message) {
-        super(message);
-        this.name = 'ManufacturerOrderStateError';
+        super(message, 'ManufacturerOrderStateError');
     }
 }
 exports.ManufacturerOrderStateError = ManufacturerOrderStateError;
-class MaterialRequirementError extends Error {
+class MaterialRequirementError extends ManufacturerOrderError {
     constructor(message) {
-        super(message);
-        this.name = 'MaterialRequirementError';
+        super(message, 'MaterialRequirementError');
     }
 }
 exports.MaterialRequirementError = MaterialRequirementError;
+// Utility Functions
+const validateMaterials = (materials) => {
+    materials.forEach(material => {
+        if (material.quantity <= 0) {
+            throw new MaterialRequirementError(`Invalid quantity ${material.quantity} for material ${material.material_id}`);
+        }
+    });
+};
 // Main ManufacturerOrders Class
 class ManufacturerOrders {
-    constructor(stateset) {
-        this.stateset = stateset;
+    constructor(client) {
+        this.client = client;
     }
-    /**
-     * List manufacturer orders with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of ManufacturerOrderResponse objects
-     */
-    async list(params) {
+    async request(method, path, data) {
+        try {
+            return await this.client.request(method, path, data);
+        }
+        catch (error) {
+            if (error.status === 404) {
+                throw new ManufacturerOrderNotFoundError(path.split('/')[2] || 'unknown');
+            }
+            if (error.status === 400) {
+                throw new MaterialRequirementError(error.message);
+            }
+            throw error;
+        }
+    }
+    async list(params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.manufacturer_id)
-            queryParams.append('manufacturer_id', params.manufacturer_id);
-        if (params === null || params === void 0 ? void 0 : params.product_id)
-            queryParams.append('product_id', params.product_id);
-        if (params === null || params === void 0 ? void 0 : params.priority)
-            queryParams.append('priority', params.priority);
-        if (params === null || params === void 0 ? void 0 : params.from_date)
-            queryParams.append('from_date', params.from_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.to_date)
-            queryParams.append('to_date', params.to_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `manufacturerorders?${queryParams.toString()}`);
-        return response.orders;
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
+            }
+        });
+        return this.request('GET', `manufacturerorders?${queryParams.toString()}`);
     }
-    /**
-     * Get specific manufacturer order by ID
-     * @param orderId - Manufacturer order ID
-     * @returns ManufacturerOrderResponse object
-     */
     async get(orderId) {
-        try {
-            const response = await this.stateset.request('GET', `manufacturerorders/${orderId}`);
-            return response.order;
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new ManufacturerOrderNotFoundError(orderId);
-            }
-            throw error;
-        }
+        return this.request('GET', `manufacturerorders/${orderId}`);
     }
-    /**
-     * Create new manufacturer order
-     * @param orderData - ManufacturerOrderData object
-     * @returns ManufacturerOrderResponse object
-     */
     async create(orderData) {
-        // Validate material requirements
-        for (const material of orderData.material_requirements) {
-            if (material.quantity <= 0) {
-                throw new MaterialRequirementError(`Invalid quantity ${material.quantity} for material ${material.material_id}`);
+        validateMaterials(orderData.material_requirements);
+        return this.request('POST', 'manufacturerorders', {
+            ...orderData,
+            estimated_costs: orderData.estimated_costs && {
+                ...orderData.estimated_costs,
+                currency: orderData.estimated_costs.currency || DEFAULT_CURRENCY
             }
-        }
-        const response = await this.stateset.request('POST', 'manufacturerorders', orderData);
-        return response.order;
+        });
     }
-    /**
-     * Update existing manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param orderData - Partial<ManufacturerOrderData> object
-     * @returns ManufacturerOrderResponse object
-     */
     async update(orderId, orderData) {
-        try {
-            const response = await this.stateset.request('PUT', `manufacturerorders/${orderId}`, orderData);
-            return response.order;
+        if (orderData.material_requirements) {
+            validateMaterials(orderData.material_requirements);
         }
-        catch (error) {
-            if (error.status === 404) {
-                throw new ManufacturerOrderNotFoundError(orderId);
-            }
-            throw error;
-        }
+        return this.request('PUT', `manufacturerorders/${orderId}`, orderData);
     }
-    /**
-     * Delete manufacturer order
-     * @param orderId - Manufacturer order ID
-     */
     async delete(orderId) {
-        try {
-            await this.stateset.request('DELETE', `manufacturerorders/${orderId}`);
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new ManufacturerOrderNotFoundError(orderId);
-            }
-            throw error;
-        }
+        await this.request('DELETE', `manufacturerorders/${orderId}`);
     }
-    /**
-     * Status management methods
-     */
+    // Status Management
     async submit(orderId) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/submit`);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/submit`);
     }
-    /**
-     * Start production for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param startData - Optional start data
-     * @returns InProductionManufacturerOrderResponse object
-     */
-    async startProduction(orderId, startData) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/start-production`, startData);
-        return response.order;
+    async startProduction(orderId, startData = {}) {
+        return this.request('POST', `manufacturerorders/${orderId}/start-production`, startData);
     }
-    /**
-     * Submit quality check for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param qualityData - QualityCheckResult object
-     * @returns QualityCheckManufacturerOrderResponse object
-     */
     async submitQualityCheck(orderId, qualityData) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/quality-check`, qualityData);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/quality-check`, qualityData);
     }
-    /**
-     * Complete a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param completionData - Completion data
-     * @returns CompletedManufacturerOrderResponse object
-     */
     async complete(orderId, completionData) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/complete`, completionData);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/complete`, completionData);
     }
-    /**
-     * Cancel a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param cancellationData - Cancellation data
-     * @returns CancelledManufacturerOrderResponse object
-     */
     async cancel(orderId, cancellationData) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/cancel`, cancellationData);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/cancel`, cancellationData);
     }
-    /**
-     * Production management methods
-     */
+    // Production Management
     async updateProductionStatus(orderId, update) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/production-status`, update);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/production-status`, update);
     }
-    /**
-     * Get production history for a manufacturer order
-     * @param orderId - Manufacturer order ID
-     * @param params - Optional filtering parameters
-     * @returns Array of ProductionUpdate objects
-     */
-    async getProductionHistory(orderId, params) {
+    async getProductionHistory(orderId, params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.from_date)
+        if (params.from_date)
             queryParams.append('from_date', params.from_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.to_date)
+        if (params.to_date)
             queryParams.append('to_date', params.to_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.stage)
+        if (params.stage)
             queryParams.append('stage', params.stage);
-        const response = await this.stateset.request('GET', `manufacturerorders/${orderId}/production-history?${queryParams.toString()}`);
-        return response.history;
+        return this.request('GET', `manufacturerorders/${orderId}/production-history?${queryParams.toString()}`);
     }
-    /**
-     * Cost tracking methods
-     */
+    // Cost Management
     async updateCosts(orderId, costs) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/costs`, costs);
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/costs`, {
+            ...costs,
+            currency: costs.currency || DEFAULT_CURRENCY
+        });
     }
-    /**
-     * Material management methods
-     */
+    // Material Management
     async allocateMaterials(orderId, materialAllocations) {
-        const response = await this.stateset.request('POST', `manufacturerorders/${orderId}/allocate-materials`, { allocations: materialAllocations });
-        return response.order;
+        return this.request('POST', `manufacturerorders/${orderId}/allocate-materials`, { allocations: materialAllocations });
+    }
+    // Metrics
+    async getManufacturingMetrics(params = {}) {
+        const queryParams = new URLSearchParams();
+        if (params.from_date)
+            queryParams.append('from_date', params.from_date.toISOString());
+        if (params.to_date)
+            queryParams.append('to_date', params.to_date.toISOString());
+        if (params.manufacturer_id)
+            queryParams.append('manufacturer_id', params.manufacturer_id);
+        if (params.org_id)
+            queryParams.append('org_id', params.org_id);
+        return this.request('GET', `manufacturerorders/metrics?${queryParams.toString()}`);
     }
 }
+exports.ManufacturerOrders = ManufacturerOrders;
 exports.default = ManufacturerOrders;

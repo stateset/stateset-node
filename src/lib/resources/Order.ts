@@ -1,6 +1,8 @@
 import { stateset } from '../../stateset-client';
 
-// Enums for order management
+// Constants and Enums
+const DEFAULT_CURRENCY = 'USD';
+
 export enum OrderStatus {
   DRAFT = 'DRAFT',
   PENDING = 'PENDING',
@@ -33,7 +35,19 @@ export enum FulfillmentPriority {
   LOW = 'low'
 }
 
-// Interfaces for order data structures
+// Base Interfaces
+interface Metadata {
+  [key: string]: any;
+}
+
+interface Dimensions {
+  length: number;
+  width: number;
+  height: number;
+  unit: string;
+}
+
+// Core Data Structures
 export interface OrderItem {
   product_id: string;
   variant_id?: string;
@@ -42,15 +56,9 @@ export interface OrderItem {
   discount_amount?: number;
   tax_amount?: number;
   total_amount: number;
-  metadata?: {
+  metadata?: Metadata & {
     weight?: number;
-    dimensions?: {
-      length: number;
-      width: number;
-      height: number;
-      unit: string;
-    };
-    [key: string]: any;
+    dimensions?: Dimensions;
   };
 }
 
@@ -76,12 +84,12 @@ export interface PaymentDetails {
   amount_paid: number;
   currency: string;
   payment_date?: string;
-  refund_details?: {
+  refund_details?: Array<{
     refund_id: string;
     amount: number;
     reason: string;
     date: string;
-  }[];
+  }>;
 }
 
 export interface ShippingDetails {
@@ -94,12 +102,7 @@ export interface ShippingDetails {
   label_url?: string;
   package_details?: {
     weight: number;
-    dimensions: {
-      length: number;
-      width: number;
-      height: number;
-      unit: string;
-    };
+    dimensions: Dimensions;
     packages: number;
   };
 }
@@ -124,7 +127,7 @@ export interface OrderData {
   notes?: string[];
   priority?: FulfillmentPriority;
   source?: string;
-  metadata?: Record<string, any>;
+  metadata?: Metadata;
   org_id?: string;
 }
 
@@ -134,10 +137,10 @@ export interface FulfillmentEvent {
   location?: string;
   description: string;
   performed_by?: string;
-  metadata?: Record<string, any>;
+  metadata?: Metadata;
 }
 
-// Response Interfaces
+// Response Types
 interface BaseOrderResponse {
   id: string;
   object: 'order';
@@ -147,169 +150,80 @@ interface BaseOrderResponse {
   data: OrderData;
 }
 
-interface DraftOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.DRAFT;
-  draft: true;
-}
-
-interface PendingOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.PENDING;
-  pending: true;
-}
-
-interface ConfirmedOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.CONFIRMED;
-  confirmed: true;
-}
-
-interface ProcessingOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.PROCESSING;
-  processing: true;
-}
-
-interface ShippedOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.SHIPPED;
-  shipped: true;
-  shipping_details: ShippingDetails;
-}
-
-interface DeliveredOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.DELIVERED;
-  delivered: true;
-  delivery_confirmation?: {
-    timestamp: string;
-    signature?: string;
-    photo?: string;
-  };
-}
-
-interface CancelledOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.CANCELLED;
-  cancelled: true;
-  cancellation_reason: string;
-  cancelled_at: string;
-}
-
-interface ReturnedOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.RETURNED;
-  returned: true;
-  return_details: {
-    rma_number: string;
-    reason: string;
-    received_at: string;
-    condition: string;
-  };
-}
-
-interface RefundedOrderResponse extends BaseOrderResponse {
-  status: OrderStatus.REFUNDED;
-  refunded: true;
-  refund_details: {
-    amount: number;
-    reason: string;
-    processed_at: string;
-    transaction_id: string;
-  };
-}
-
-export type OrderResponse =
-  | DraftOrderResponse
-  | PendingOrderResponse
-  | ConfirmedOrderResponse
-  | ProcessingOrderResponse
-  | ShippedOrderResponse
-  | DeliveredOrderResponse
-  | CancelledOrderResponse
-  | ReturnedOrderResponse
-  | RefundedOrderResponse;
+export type OrderResponse = BaseOrderResponse & {
+  [K in OrderStatus]: {
+    status: K;
+  } & (K extends OrderStatus.SHIPPED ? { shipping_details: ShippingDetails }
+    : K extends OrderStatus.DELIVERED ? { delivered: true; delivery_confirmation?: {
+        timestamp: string;
+        signature?: string;
+        photo?: string;
+      } }
+    : K extends OrderStatus.CANCELLED ? { cancelled: true; cancellation_reason: string; cancelled_at: string }
+    : K extends OrderStatus.RETURNED ? { returned: true; return_details: {
+        rma_number: string;
+        reason: string;
+        received_at: string;
+        condition: string;
+      } }
+    : K extends OrderStatus.REFUNDED ? { refunded: true; refund_details: {
+        amount: number;
+        reason: string;
+        processed_at: string;
+        transaction_id: string;
+      } }
+    : {});
+}[OrderStatus];
 
 // Custom Error Classes
-export class OrderNotFoundError extends Error {
+export class OrderError extends Error {
+  constructor(message: string, name: string) {
+    super(message);
+    this.name = name;
+  }
+}
+
+export class OrderNotFoundError extends OrderError {
   constructor(orderId: string) {
-    super(`Order with ID ${orderId} not found`);
-    this.name = 'OrderNotFoundError';
+    super(`Order with ID ${orderId} not found`, 'OrderNotFoundError');
   }
 }
 
-export class OrderStateError extends Error {
+export class OrderStateError extends OrderError {
   constructor(message: string) {
-    super(message);
-    this.name = 'OrderStateError';
+    super(message, 'OrderStateError');
   }
 }
 
-export class OrderValidationError extends Error {
+export class OrderValidationError extends OrderError {
   constructor(message: string) {
-    super(message);
-    this.name = 'OrderValidationError';
+    super(message, 'OrderValidationError');
   }
 }
+
+// Utility Functions
+const validateOrderTotals = (orderData: OrderData): void => {
+  const calculatedTotal = orderData.items.reduce((total, item) => total + item.total_amount, 0);
+  if (Math.abs(calculatedTotal - orderData.totals.subtotal) > 0.01) {
+    throw new OrderValidationError('Order items total does not match subtotal');
+  }
+};
 
 // Main Orders Class
-class Orders {
-  constructor(private readonly stateset: stateset) {}
+export class Orders {
+  constructor(private readonly client: stateset) {}
 
-  /**
-   * List orders with optional filtering
-   * @param params - Optional filtering parameters
-   * @returns Array of OrderResponse objects
-   */
-  async list(params?: {
-    status?: OrderStatus;
-    customer_id?: string;
-    date_from?: Date;
-    date_to?: Date;
-    priority?: FulfillmentPriority;
-    payment_status?: PaymentStatus;
-    org_id?: string;
-  }): Promise<OrderResponse[]> {
-    const queryParams = new URLSearchParams();
-    
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
-    if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
-    if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    if (params?.priority) queryParams.append('priority', params.priority);
-    if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `orders?${queryParams.toString()}`);
-    return response.orders;
-  }
-
-  /**
-   * Get specific order by ID
-   * @param orderId - Order ID
-   * @returns OrderResponse object
-   */
-  async get(orderId: string): Promise<OrderResponse> {
+  private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    data?: any
+  ): Promise<T> {
     try {
-      const response = await this.stateset.request('GET', `orders/${orderId}`);
-      return response.order;
+      return await this.client.request(method, path, data);
     } catch (error: any) {
       if (error.status === 404) {
-        throw new OrderNotFoundError(orderId);
+        throw new OrderNotFoundError(path.split('/')[2] || 'unknown');
       }
-      throw error;
-    }
-  }
-
-  /**
-   * Create new order
-   * @param orderData - OrderData object
-   * @returns OrderResponse object
-   */
-  async create(orderData: OrderData): Promise<OrderResponse> {
-    // Validate order totals
-    const calculatedTotal = orderData.items.reduce((total, item) => total + item.total_amount, 0);
-    if (calculatedTotal !== orderData.totals.subtotal) {
-      throw new OrderValidationError('Order items total does not match subtotal');
-    }
-
-    try {
-      const response = await this.stateset.request('POST', 'orders', orderData);
-      return response.order;
-    } catch (error: any) {
       if (error.status === 400) {
         throw new OrderValidationError(error.message);
       }
@@ -317,193 +231,125 @@ class Orders {
     }
   }
 
-  /**
-   * Update existing order
-   * @param orderId - Order ID
-   * @param orderData - Partial<OrderData> object
-   * @returns OrderResponse object
-   */
-  async update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `orders/${orderId}`, orderData);
-      return response.order;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new OrderNotFoundError(orderId);
+  async list(params: {
+    status?: OrderStatus;
+    customer_id?: string;
+    date_from?: Date;
+    date_to?: Date;
+    priority?: FulfillmentPriority;
+    payment_status?: PaymentStatus;
+    org_id?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ orders: OrderResponse[]; total: number }> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
       }
-      throw error;
+    });
+
+    const response = await this.request<{ orders: OrderResponse[]; total: number }>(
+      'GET',
+      `orders?${queryParams.toString()}`
+    );
+    return response;
+  }
+
+  async get(orderId: string): Promise<OrderResponse> {
+    return this.request<OrderResponse>('GET', `orders/${orderId}`);
+  }
+
+  async create(orderData: OrderData): Promise<OrderResponse> {
+    validateOrderTotals(orderData);
+    return this.request<OrderResponse>('POST', 'orders', {
+      ...orderData,
+      totals: { ...orderData.totals, currency: orderData.totals.currency || DEFAULT_CURRENCY },
+    });
+  }
+
+  async update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse> {
+    if (orderData.totals && orderData.items) {
+      validateOrderTotals(orderData as OrderData);
     }
+    return this.request<OrderResponse>('PUT', `orders/${orderId}`, orderData);
   }
 
-  /**
-   * Process order status changes
-   * @param orderId - Order ID
-   * @returns ConfirmedOrderResponse object
-   */
-  async confirm(orderId: string): Promise<ConfirmedOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/confirm`);
-    return response.order as ConfirmedOrderResponse;
+  async confirm(orderId: string): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/confirm`);
   }
 
-  /**
-   * Start processing an order
-   * @param orderId - Order ID
-   * @returns ProcessingOrderResponse object
-   */
-  async process(orderId: string): Promise<ProcessingOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/process`);
-    return response.order as ProcessingOrderResponse;
+  async process(orderId: string): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/process`);
   }
 
-  /**
-   * Ship an order
-   * @param orderId - Order ID
-   * @param shippingDetails - ShippingDetails object
-   * @returns ShippedOrderResponse object
-   */
-  async ship(orderId: string, shippingDetails: ShippingDetails): Promise<ShippedOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/ship`, shippingDetails);
-    return response.order as ShippedOrderResponse;
+  async ship(orderId: string, shippingDetails: ShippingDetails): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/ship`, shippingDetails);
   }
 
-  /**
-   * Mark an order as delivered
-   * @param orderId - Order ID
-   * @param confirmation - Optional confirmation object
-   * @returns DeliveredOrderResponse object
-   */
   async markDelivered(
-    orderId: string, 
+    orderId: string,
     confirmation?: { signature?: string; photo?: string }
-  ): Promise<DeliveredOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/deliver`, confirmation);
-    return response.order as DeliveredOrderResponse;
+  ): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/deliver`, confirmation);
   }
 
-  /**
-   * Cancel an order
-   * @param orderId - Order ID
-   * @param cancellationData - Cancellation data
-   * @returns CancelledOrderResponse object
-   */
-  async cancel(
-    orderId: string, 
-    cancellationData: { reason: string }
-  ): Promise<CancelledOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/cancel`, cancellationData);
-    return response.order as CancelledOrderResponse;
+  async cancel(orderId: string, cancellationData: { reason: string }): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/cancel`, cancellationData);
   }
 
-  /**
-   * Process a return for an order
-   * @param orderId - Order ID
-   * @param returnData - Return data
-   * @returns ReturnedOrderResponse object
-   */
   async processReturn(
-    orderId: string, 
-    returnData: {
-      rma_number: string;
-      reason: string;
-      condition: string;
-    }
-  ): Promise<ReturnedOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/return`, returnData);
-    return response.order as ReturnedOrderResponse;
+    orderId: string,
+    returnData: { rma_number: string; reason: string; condition: string }
+  ): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/return`, returnData);
   }
 
-  /**
-   * Process a refund for an order
-   * @param orderId - Order ID
-   * @param refundData - Refund data
-   * @returns RefundedOrderResponse object
-   */
   async processRefund(
     orderId: string,
-    refundData: {
-      amount: number;
-      reason: string;
-    }
-  ): Promise<RefundedOrderResponse> {
-    const response = await this.stateset.request('POST', `orders/${orderId}/refund`, refundData);
-    return response.order as RefundedOrderResponse;
+    refundData: { amount: number; reason: string }
+  ): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/refund`, refundData);
   }
 
-  /**
-   * Add a fulfillment event to an order
-   * @param orderId - Order ID
-   * @param event - FulfillmentEvent object
-   * @returns OrderResponse object
-   */
-  async addFulfillmentEvent(
-    orderId: string,
-    event: FulfillmentEvent
-  ): Promise<OrderResponse> {
-    const response = await this.stateset.request(
+  async addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse> {
+    return this.request<OrderResponse>(
       'POST',
       `orders/${orderId}/fulfillment-events`,
       event
     );
-    return response.order;
   }
 
-  /**
-   * Get fulfillment history for an order
-   * @param orderId - Order ID
-   * @param params - Optional filtering parameters
-   * @returns Array of FulfillmentEvent objects
-   */
   async getFulfillmentHistory(
     orderId: string,
-    params?: {
-      start_date?: Date;
-      end_date?: Date;
-    }
+    params: { start_date?: Date; end_date?: Date } = {}
   ): Promise<FulfillmentEvent[]> {
     const queryParams = new URLSearchParams();
-    
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
+    if (params.start_date) queryParams.append('start_date', params.start_date.toISOString());
+    if (params.end_date) queryParams.append('end_date', params.end_date.toISOString());
 
-    const response = await this.stateset.request(
+    return this.request<FulfillmentEvent[]>(
       'GET',
       `orders/${orderId}/fulfillment-history?${queryParams.toString()}`
     );
-    return response.history;
   }
 
-  /**
-   * Get tracking information for an order
-   * @param orderId - Order ID
-   * @returns Tracking information object
-   */
   async getTracking(orderId: string): Promise<{
     tracking_number: string;
     carrier: string;
     status: string;
     estimated_delivery: string;
     tracking_url: string;
-    events: Array<{
-      timestamp: string;
-      location: string;
-      status: string;
-      description: string;
-    }>;
+    events: Array<{ timestamp: string; location: string; status: string; description: string }>;
   }> {
-    const response = await this.stateset.request('GET', `orders/${orderId}/tracking`);
-    return response.tracking;
+    return this.request('GET', `orders/${orderId}/tracking`);
   }
 
-  /**
-   * Get order metrics
-   * @param params - Optional filtering parameters
-   * @returns Metrics object
-   */
-  async getMetrics(params?: {
+  async getMetrics(params: {
     start_date?: Date;
     end_date?: Date;
     org_id?: string;
-  }): Promise<{
+  } = {}): Promise<{
     total_orders: number;
     total_revenue: number;
     average_order_value: number;
@@ -512,16 +358,11 @@ class Orders {
     status_breakdown: Record<OrderStatus, number>;
   }> {
     const queryParams = new URLSearchParams();
-    
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
+    if (params.start_date) queryParams.append('start_date', params.start_date.toISOString());
+    if (params.end_date) queryParams.append('end_date', params.end_date.toISOString());
+    if (params.org_id) queryParams.append('org_id', params.org_id);
 
-    const response = await this.stateset.request(
-      'GET',
-      `orders/metrics?${queryParams.toString()}`
-    );
-    return response.metrics;
+    return this.request('GET', `orders/metrics?${queryParams.toString()}`);
   }
 }
 

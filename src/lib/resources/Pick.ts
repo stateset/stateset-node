@@ -1,6 +1,10 @@
 import { stateset } from '../../stateset-client';
 
-// Enums for pick management
+// Utility Types
+type NonEmptyString<T extends string> = T extends '' ? never : T;
+type Timestamp = string; // ISO 8601 format expected
+
+// Enums with consistent naming
 export enum PickStatus {
   DRAFT = 'DRAFT',
   PENDING = 'PENDING',
@@ -13,156 +17,226 @@ export enum PickStatus {
 }
 
 export enum PickType {
-  SINGLE_ORDER = 'single_order',
-  BATCH = 'batch',
-  ZONE = 'zone',
-  WAVE = 'wave',
-  CLUSTER = 'cluster'
+  SINGLE_ORDER = 'SINGLE_ORDER',
+  BATCH = 'BATCH',
+  ZONE = 'ZONE',
+  WAVE = 'WAVE',
+  CLUSTER = 'CLUSTER'
 }
 
 export enum PickPriority {
-  URGENT = 'urgent',
-  HIGH = 'high',
-  NORMAL = 'normal',
-  LOW = 'low'
+  URGENT = 'URGENT',
+  HIGH = 'HIGH',
+  NORMAL = 'NORMAL',
+  LOW = 'LOW'
 }
 
 export enum PickMethod {
-  DISCRETE = 'discrete',
-  BATCH = 'batch',
-  ZONE = 'zone',
-  WAVE = 'wave',
-  CLUSTER = 'cluster'
+  DISCRETE = 'DISCRETE',
+  BATCH = 'BATCH',
+  ZONE = 'ZONE',
+  WAVE = 'WAVE',
+  CLUSTER = 'CLUSTER'
 }
 
-// Interfaces for pick data structures
+// Core Interfaces
 export interface PickLocation {
-  zone_id: string;
-  aisle: string;
-  rack: string;
-  shelf: string;
-  bin: string;
+  zone_id: NonEmptyString<string>;
+  aisle: NonEmptyString<string>;
+  rack: NonEmptyString<string>;
+  shelf: NonEmptyString<string>;
+  bin: NonEmptyString<string>;
   sequence_number: number;
+  coordinates?: {
+    x: number;
+    y: number;
+    z?: number;
+  };
 }
 
 export interface PickItem {
-  item_id: string;
-  sku: string;
-  product_name: string;
-  quantity_requested: number;
-  quantity_picked: number;
-  unit_of_measure: string;
+  item_id: NonEmptyString<string>;
+  sku: NonEmptyString<string>;
+  product_name: NonEmptyString<string>;
+  quantity: {
+    requested: number;
+    picked: number;
+    available: number;
+  };
+  unit_of_measure: NonEmptyString<string>;
   location: PickLocation;
   batch_number?: string;
   lot_number?: string;
-  expiration_date?: string;
-  substitutions_allowed: boolean;
-  substitute_items?: string[];
-  status: 'pending' | 'picked' | 'partial' | 'substituted' | 'unavailable';
-  pick_notes?: string[];
+  expiration_date?: Timestamp;
+  substitutions: {
+    allowed: boolean;
+    items?: NonEmptyString<string>[];
+    used?: NonEmptyString<string>;
+  };
+  status: 'PENDING' | 'PICKED' | 'PARTIAL' | 'SUBSTITUTED' | 'UNAVAILABLE';
+  notes?: string[];
+  serial_numbers?: string[];
 }
 
 export interface PickerAssignment {
-  picker_id: string;
-  name: string;
-  assigned_at: string;
-  equipment_id?: string;
-  zone_restrictions?: string[];
+  picker_id: NonEmptyString<string>;
+  name: NonEmptyString<string>;
+  assigned_at: Timestamp;
+  equipment?: {
+    id: string;
+    type: string;
+  };
+  restrictions?: {
+    zones?: string[];
+    weight_limit?: number;
+  };
   certifications?: string[];
+  status: 'ACTIVE' | 'UNAVAILABLE' | 'ON_BREAK';
 }
 
 export interface PickRoute {
-  optimized_sequence: PickLocation[];
-  estimated_distance: number;
-  estimated_time: number;
-  zone_sequence?: string[];
-  equipment_required?: string[];
-  special_instructions?: string[];
+  sequence: PickLocation[];
+  optimization: {
+    distance: number; // in meters
+    time: number;    // in minutes
+    algorithm: 'SHORTEST_PATH' | 'NEAREST_NEIGHBOR' | 'GENETIC';
+  };
+  zones?: string[];
+  requirements?: {
+    equipment: string[];
+    instructions: string[];
+  };
 }
 
 export interface QualityCheck {
-  checker_id: string;
-  checked_at: string;
-  items_checked: Array<{
-    item_id: string;
+  checker_id: NonEmptyString<string>;
+  checked_at: Timestamp;
+  items: Array<{
+    item_id: NonEmptyString<string>;
     passed: boolean;
     issues?: string[];
     notes?: string;
   }>;
-  overall_status: 'passed' | 'failed' | 'partial';
+  status: 'PASSED' | 'FAILED' | 'PARTIAL';
+  resolution?: {
+    action: 'RETURN' | 'REPROCESS' | 'APPROVE';
+    timestamp: Timestamp;
+  };
 }
 
 export interface PickMetrics {
-  total_items: number;
-  total_quantity: number;
-  picked_items: number;
-  picked_quantity: number;
-  accuracy_rate: number;
-  completion_rate: number;
-  picking_time: number;
-  distance_traveled: number;
-  picks_per_hour: number;
+  items: {
+    total: number;
+    picked: number;
+    accuracy: number; // percentage
+  };
+  quantity: {
+    total: number;
+    picked: number;
+  };
+  performance: {
+    completion_rate: number; // percentage
+    time: number;          // in minutes
+    distance: number;      // in meters
+    picks_per_hour: number;
+  };
+  timestamp: Timestamp;
 }
 
 export interface PickData {
-  order_ids: string[];
-  warehouse_id: string;
+  order_ids: NonEmptyString<string>[];
+  warehouse_id: NonEmptyString<string>;
   type: PickType;
   priority: PickPriority;
   method: PickMethod;
   items: PickItem[];
-  picker_assignment?: PickerAssignment;
+  assignment?: PickerAssignment;
   route?: PickRoute;
-  due_date?: string;
-  start_time?: string;
-  end_time?: string;
-  quality_check?: QualityCheck;
+  schedule: {
+    due?: Timestamp;
+    started?: Timestamp;
+    completed?: Timestamp;
+  };
+  quality?: QualityCheck;
   metrics?: PickMetrics;
-  batch_id?: string;
-  wave_id?: string;
-  special_instructions?: string[];
+  grouping?: {
+    batch_id?: string;
+    wave_id?: string;
+  };
+  instructions?: string[];
   org_id?: string;
+  tags?: string[];
 }
 
-// Response Interface
-export interface PickResponse {
-  id: string;
-  created_at: string;
-  updated_at: string;
+// Response Type with Discriminated Union
+export type PickResponse = {
+  id: NonEmptyString<string>;
+  created_at: Timestamp;
+  updated_at: Timestamp;
   status: PickStatus;
   data: PickData;
+} & (
+  | { status: PickStatus.DRAFT | PickStatus.PENDING }
+  | { status: PickStatus.ASSIGNED; assignment: PickerAssignment }
+  | { status: PickStatus.IN_PROGRESS; progress: { started_at: Timestamp; completed_items: number } }
+  | { status: PickStatus.ON_HOLD; hold_reason: string }
+  | { status: PickStatus.QUALITY_CHECK; quality: QualityCheck }
+  | { status: PickStatus.COMPLETED; metrics: PickMetrics }
+  | { status: PickStatus.CANCELLED; cancellation_reason?: string }
+);
+
+// Error Classes
+export class PickError extends Error {
+  constructor(message: string, public readonly details?: Record<string, unknown>) {
+    super(message);
+    this.name = this.constructor.name;
+  }
 }
 
-// Custom Error Classes
-export class PickNotFoundError extends Error {
+export class PickNotFoundError extends PickError {
   constructor(pickId: string) {
-    super(`Pick with ID ${pickId} not found`);
-    this.name = 'PickNotFoundError';
+    super(`Pick with ID ${pickId} not found`, { pickId });
   }
 }
 
-export class PickValidationError extends Error {
-  constructor(message: string) {
+export class PickValidationError extends PickError {
+  constructor(message: string, public readonly errors?: Record<string, string>) {
     super(message);
-    this.name = 'PickValidationError';
   }
 }
 
-export class PickOperationError extends Error {
-  constructor(message: string) {
+export class PickOperationError extends PickError {
+  constructor(message: string, public readonly operation?: string) {
     super(message);
-    this.name = 'PickOperationError';
   }
 }
 
 // Main Picks Class
-class Picks {
-  constructor(private readonly stateset: stateset) {}
+export class Picks {
+  constructor(private readonly client: stateset) {}
 
-  /**
-   * List picks with optional filtering
-   */
-  async list(params?: {
+  private validatePickData(data: PickData): void {
+    if (!data.warehouse_id) throw new PickValidationError('Warehouse ID is required');
+    if (!data.items?.length) throw new PickValidationError('At least one pick item is required');
+    
+    if (data.type === PickType.BATCH && !data.grouping?.batch_id) {
+      throw new PickValidationError('Batch ID required for batch picks');
+    }
+    if (data.type === PickType.WAVE && !data.grouping?.wave_id) {
+      throw new PickValidationError('Wave ID required for wave picks');
+    }
+
+    data.items.forEach((item, index) => {
+      if (item.quantity.requested <= 0) {
+        throw new PickValidationError(`Item[${index}] quantity must be greater than 0`);
+      }
+      if (!item.location) {
+        throw new PickValidationError(`Item[${index}] location is required`);
+      }
+    });
+  }
+
+  async list(params: {
     status?: PickStatus;
     type?: PickType;
     priority?: PickPriority;
@@ -171,153 +245,109 @@ class Picks {
     batch_id?: string;
     wave_id?: string;
     org_id?: string;
-  }): Promise<PickResponse[]> {
-    const queryParams = new URLSearchParams();
-    
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.priority) queryParams.append('priority', params.priority);
-    if (params?.warehouse_id) queryParams.append('warehouse_id', params.warehouse_id);
-    if (params?.picker_id) queryParams.append('picker_id', params.picker_id);
-    if (params?.batch_id) queryParams.append('batch_id', params.batch_id);
-    if (params?.wave_id) queryParams.append('wave_id', params.wave_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
+    date_range?: { from: Date; to: Date };
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{
+    picks: PickResponse[];
+    pagination: { total: number; limit: number; offset: number };
+  }> {
+    const query = new URLSearchParams({
+      ...(params.status && { status: params.status }),
+      ...(params.type && { type: params.type }),
+      ...(params.priority && { priority: params.priority }),
+      ...(params.warehouse_id && { warehouse_id: params.warehouse_id }),
+      ...(params.picker_id && { picker_id: params.picker_id }),
+      ...(params.batch_id && { batch_id: params.batch_id }),
+      ...(params.wave_id && { wave_id: params.wave_id }),
+      ...(params.org_id && { org_id: params.org_id }),
+      ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+      ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
+      ...(params.limit && { limit: params.limit.toString() }),
+      ...(params.offset && { offset: params.offset.toString() }),
+    });
 
-    const response = await this.stateset.request('GET', `picks?${queryParams.toString()}`);
-    return response.picks;
+    const response = await this.client.request('GET', `picks?${query}`);
+    return response;
   }
 
-  /**
-   * Get specific pick
-   * @param pickId - Pick ID
-   * @returns PickResponse object
-   */
-  async get(pickId: string): Promise<PickResponse> {
+  async get(pickId: NonEmptyString<string>): Promise<PickResponse> {
     try {
-      const response = await this.stateset.request('GET', `picks/${pickId}`);
+      const response = await this.client.request('GET', `picks/${pickId}`);
       return response.pick;
     } catch (error: any) {
-      if (error.status === 404) {
-        throw new PickNotFoundError(pickId);
-      }
-      throw error;
+      throw this.handleError(error, 'get', pickId);
     }
   }
 
-  /**
-   * Create new pick
-   * @param pickData - PickData object
-   * @returns PickResponse object
-   */
-  async create(pickData: PickData): Promise<PickResponse> {
-    this.validatePickData(pickData);
-
+  async create(data: PickData): Promise<PickResponse> {
+    this.validatePickData(data);
     try {
-      const response = await this.stateset.request('POST', 'picks', pickData);
+      const response = await this.client.request('POST', 'picks', data);
       return response.pick;
     } catch (error: any) {
-      if (error.status === 400) {
-        throw new PickValidationError(error.message);
-      }
-      throw error;
+      throw this.handleError(error, 'create');
     }
   }
 
-  /**
-   * Update pick
-   * @param pickId - Pick ID
-   * @param pickData - Partial<PickData> object
-   * @returns PickResponse object
-   */
-  async update(
-    pickId: string,
-    pickData: Partial<PickData>
-  ): Promise<PickResponse> {
+  async update(pickId: NonEmptyString<string>, data: Partial<PickData>): Promise<PickResponse> {
     try {
-      const response = await this.stateset.request('PUT', `picks/${pickId}`, pickData);
+      const response = await this.client.request('PUT', `picks/${pickId}`, data);
       return response.pick;
     } catch (error: any) {
-      if (error.status === 404) {
-        throw new PickNotFoundError(pickId);
-      }
-      throw error;
+      throw this.handleError(error, 'update', pickId);
     }
   }
 
-  /**
-   * Delete pick
-   * @param pickId - Pick ID
-   */
-  async delete(pickId: string): Promise<void> {
+  async delete(pickId: NonEmptyString<string>): Promise<void> {
     try {
-      await this.stateset.request('DELETE', `picks/${pickId}`);
+      await this.client.request('DELETE', `picks/${pickId}`);
     } catch (error: any) {
-      if (error.status === 404) {
-        throw new PickNotFoundError(pickId);
-      }
-      throw error;
+      throw this.handleError(error, 'delete', pickId);
     }
   }
 
-  /**
-   * Optimize pick route
-   * @param pickId - Pick ID
-   * @param params - Optional parameters
-   * @returns PickRoute object
-   */
   async optimizeRoute(
-    pickId: string,
-    params?: {
-      algorithm?: 'shortest_path' | 'nearest_neighbor' | 'genetic';
+    pickId: NonEmptyString<string>,
+    params: {
+      algorithm?: 'SHORTEST_PATH' | 'NEAREST_NEIGHBOR' | 'GENETIC';
       constraints?: {
         max_distance?: number;
         max_time?: number;
         zone_restrictions?: string[];
+        picker_capabilities?: string[];
       };
-    }
+    } = {}
   ): Promise<PickRoute> {
-    const response = await this.stateset.request(
-      'POST',
-      `picks/${pickId}/optimize-route`,
-      params
-    );
+    const response = await this.client.request('POST', `picks/${pickId}/optimize-route`, params);
     return response.route;
   }
 
-  /**
-   * Start pick operation
-   * @param pickId - Pick ID
-   * @param startData - Start data object
-   * @returns PickResponse object
-   */
   async start(
-    pickId: string,
-    startData: {
-      picker_id: string;
+    pickId: NonEmptyString<string>,
+    data: {
+      picker_id: NonEmptyString<string>;
       equipment_id?: string;
+      start_time?: Timestamp;
     }
   ): Promise<PickResponse> {
-    const response = await this.stateset.request('POST', `picks/${pickId}/start`, startData);
+    const response = await this.client.request('POST', `picks/${pickId}/start`, data);
     return response.pick;
   }
 
-  /**
-   * Record item pick
-   * @param pickId - Pick ID
-   * @param itemData - Item data object
-   * @returns PickResponse object
-   */
   async recordItemPick(
-    pickId: string,
+    pickId: NonEmptyString<string>,
     itemData: {
-      item_id: string;
+      item_id: NonEmptyString<string>;
       quantity_picked: number;
       location?: PickLocation;
       batch_number?: string;
+      serial_numbers?: string[];
       notes?: string[];
+      substituted_item_id?: string;
     }
   ): Promise<PickResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `picks/${pickId}/items/${itemData.item_id}/pick`,
       itemData
@@ -325,85 +355,38 @@ class Picks {
     return response.pick;
   }
 
-  /**
-   * Complete quality check
-   * @param pickId - Pick ID
-   * @param checkData - Quality check data object
-   * @returns PickResponse object
-   */
   async completeQualityCheck(
-    pickId: string,
+    pickId: NonEmptyString<string>,
     checkData: QualityCheck
   ): Promise<PickResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `picks/${pickId}/quality-check`,
-      checkData
-    );
+    const response = await this.client.request('POST', `picks/${pickId}/quality-check`, checkData);
     return response.pick;
   }
 
-  /**
-   * Complete pick
-   * @param pickId - Pick ID
-   * @param completionData - Completion data object
-   * @returns PickResponse object
-   */
   async complete(
-    pickId: string,
-    completionData: {
-      end_time: string;
-      final_metrics?: Partial<PickMetrics>;
+    pickId: NonEmptyString<string>,
+    data: {
+      end_time: Timestamp;
+      metrics?: Partial<PickMetrics>;
       notes?: string[];
     }
   ): Promise<PickResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `picks/${pickId}/complete`,
-      completionData
-    );
+    const response = await this.client.request('POST', `picks/${pickId}/complete`, data);
     return response.pick;
   }
 
-  /**
-   * Get pick metrics
-   * @param pickId - Pick ID
-   * @returns PickMetrics object
-   */
-  async getMetrics(pickId: string): Promise<PickMetrics> {
-    const response = await this.stateset.request('GET', `picks/${pickId}/metrics`);
+  async getMetrics(pickId: NonEmptyString<string>): Promise<PickMetrics> {
+    const response = await this.client.request('GET', `picks/${pickId}/metrics`);
     return response.metrics;
   }
 
-  /**
-   * Validate pick data
-   * @param data - PickData object
-   */
-  private validatePickData(data: PickData): void {
-    if (!data.warehouse_id) {
-      throw new PickValidationError('Warehouse ID is required');
-    }
-
-    if (!data.items || data.items.length === 0) {
-      throw new PickValidationError('At least one pick item is required');
-    }
-
-    if (data.type === PickType.BATCH && !data.batch_id) {
-      throw new PickValidationError('Batch ID is required for batch picks');
-    }
-
-    if (data.type === PickType.WAVE && !data.wave_id) {
-      throw new PickValidationError('Wave ID is required for wave picks');
-    }
-
-    for (const item of data.items) {
-      if (item.quantity_requested <= 0) {
-        throw new PickValidationError('Item quantity must be greater than 0');
-      }
-      if (!item.location) {
-        throw new PickValidationError('Item location is required');
-      }
-    }
+  private handleError(error: any, operation: string, pickId?: string): never {
+    if (error.status === 404) throw new PickNotFoundError(pickId || 'unknown');
+    if (error.status === 400) throw new PickValidationError(error.message, error.errors);
+    throw new PickOperationError(
+      `Failed to ${operation} pick: ${error.message}`,
+      operation
+    );
   }
 }
 

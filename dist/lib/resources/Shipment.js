@@ -1,205 +1,170 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CarrierApiError = exports.ShipmentValidationError = exports.ShipmentNotFoundError = exports.PackageType = exports.ServiceLevel = exports.ShippingCarrier = exports.ShipmentStatus = void 0;
-// Enums for shipment management
+exports.Shipments = exports.CarrierApiError = exports.ShipmentValidationError = exports.ShipmentNotFoundError = exports.ShipmentError = exports.PackageType = exports.ServiceLevel = exports.ShippingCarrier = exports.ShipmentStatus = void 0;
+// Enums with improved consistency
 var ShipmentStatus;
 (function (ShipmentStatus) {
-    ShipmentStatus["PENDING"] = "PENDING";
-    ShipmentStatus["LABEL_CREATED"] = "LABEL_CREATED";
-    ShipmentStatus["PICKING"] = "PICKING";
-    ShipmentStatus["PICKED"] = "PICKED";
-    ShipmentStatus["PACKING"] = "PACKING";
-    ShipmentStatus["PACKED"] = "PACKED";
-    ShipmentStatus["SHIPPED"] = "SHIPPED";
-    ShipmentStatus["IN_TRANSIT"] = "IN_TRANSIT";
-    ShipmentStatus["OUT_FOR_DELIVERY"] = "OUT_FOR_DELIVERY";
-    ShipmentStatus["ATTEMPTED_DELIVERY"] = "ATTEMPTED_DELIVERY";
-    ShipmentStatus["DELIVERED"] = "DELIVERED";
-    ShipmentStatus["EXCEPTION"] = "EXCEPTION";
-    ShipmentStatus["CANCELLED"] = "CANCELLED";
+    ShipmentStatus["PENDING"] = "pending";
+    ShipmentStatus["LABEL_CREATED"] = "label_created";
+    ShipmentStatus["PICKING"] = "picking";
+    ShipmentStatus["PICKED"] = "picked";
+    ShipmentStatus["PACKING"] = "packing";
+    ShipmentStatus["PACKED"] = "packed";
+    ShipmentStatus["SHIPPED"] = "shipped";
+    ShipmentStatus["IN_TRANSIT"] = "in_transit";
+    ShipmentStatus["OUT_FOR_DELIVERY"] = "out_for_delivery";
+    ShipmentStatus["ATTEMPTED_DELIVERY"] = "attempted_delivery";
+    ShipmentStatus["DELIVERED"] = "delivered";
+    ShipmentStatus["EXCEPTION"] = "exception";
+    ShipmentStatus["CANCELLED"] = "cancelled";
 })(ShipmentStatus = exports.ShipmentStatus || (exports.ShipmentStatus = {}));
 var ShippingCarrier;
 (function (ShippingCarrier) {
-    ShippingCarrier["FEDEX"] = "fedex";
-    ShippingCarrier["UPS"] = "ups";
-    ShippingCarrier["USPS"] = "usps";
-    ShippingCarrier["DHL"] = "dhl";
-    ShippingCarrier["ONTRAC"] = "ontrac";
+    ShippingCarrier["FEDEX"] = "FEDEX";
+    ShippingCarrier["UPS"] = "UPS";
+    ShippingCarrier["USPS"] = "USPS";
+    ShippingCarrier["DHL"] = "DHL";
+    ShippingCarrier["ONTRAC"] = "ONTRAC";
 })(ShippingCarrier = exports.ShippingCarrier || (exports.ShippingCarrier = {}));
 var ServiceLevel;
 (function (ServiceLevel) {
-    ServiceLevel["GROUND"] = "ground";
-    ServiceLevel["TWO_DAY"] = "two_day";
-    ServiceLevel["OVERNIGHT"] = "overnight";
-    ServiceLevel["INTERNATIONAL"] = "international";
-    ServiceLevel["ECONOMY"] = "economy";
+    ServiceLevel["GROUND"] = "GROUND";
+    ServiceLevel["TWO_DAY"] = "TWO_DAY";
+    ServiceLevel["OVERNIGHT"] = "OVERNIGHT";
+    ServiceLevel["INTERNATIONAL"] = "INTERNATIONAL";
+    ServiceLevel["ECONOMY"] = "ECONOMY";
 })(ServiceLevel = exports.ServiceLevel || (exports.ServiceLevel = {}));
 var PackageType;
 (function (PackageType) {
-    PackageType["CUSTOM"] = "custom";
-    PackageType["ENVELOPE"] = "envelope";
-    PackageType["PAK"] = "pak";
-    PackageType["TUBE"] = "tube";
-    PackageType["BOX_SMALL"] = "box_small";
-    PackageType["BOX_MEDIUM"] = "box_medium";
-    PackageType["BOX_LARGE"] = "box_large";
-    PackageType["PALLET"] = "pallet";
+    PackageType["CUSTOM"] = "CUSTOM";
+    PackageType["ENVELOPE"] = "ENVELOPE";
+    PackageType["PAK"] = "PAK";
+    PackageType["TUBE"] = "TUBE";
+    PackageType["BOX_SMALL"] = "BOX_SMALL";
+    PackageType["BOX_MEDIUM"] = "BOX_MEDIUM";
+    PackageType["BOX_LARGE"] = "BOX_LARGE";
+    PackageType["PALLET"] = "PALLET";
 })(PackageType = exports.PackageType || (exports.PackageType = {}));
-// Custom Error Classes
-class ShipmentNotFoundError extends Error {
+// Error Classes with additional context
+class ShipmentError extends Error {
+    constructor(message, details) {
+        super(message);
+        this.details = details;
+        this.name = this.constructor.name;
+    }
+}
+exports.ShipmentError = ShipmentError;
+class ShipmentNotFoundError extends ShipmentError {
     constructor(shipmentId) {
-        super(`Shipment with ID ${shipmentId} not found`);
-        this.name = 'ShipmentNotFoundError';
+        super(`Shipment with ID ${shipmentId} not found`, { shipmentId });
     }
 }
 exports.ShipmentNotFoundError = ShipmentNotFoundError;
-class ShipmentValidationError extends Error {
-    constructor(message) {
+class ShipmentValidationError extends ShipmentError {
+    constructor(message, validationErrors) {
         super(message);
-        this.name = 'ShipmentValidationError';
+        this.validationErrors = validationErrors;
     }
 }
 exports.ShipmentValidationError = ShipmentValidationError;
-class CarrierApiError extends Error {
+class CarrierApiError extends ShipmentError {
     constructor(message, carrier, code) {
-        super(message);
+        super(message, { carrier, code });
         this.carrier = carrier;
         this.code = code;
-        this.name = 'CarrierApiError';
     }
 }
 exports.CarrierApiError = CarrierApiError;
-// Main Shipments Class
+// Main Shipments Class with improved error handling and validation
 class Shipments {
-    constructor(stateset) {
-        this.stateset = stateset;
+    constructor(client) {
+        this.client = client;
     }
-    /**
-     * List shipments with optional filtering
-     * @param params - Filtering parameters
-     * @returns Array of ShipmentResponse objects
-     */
-    async list(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.carrier)
-            queryParams.append('carrier', params.carrier);
-        if (params === null || params === void 0 ? void 0 : params.order_id)
-            queryParams.append('order_id', params.order_id);
-        if (params === null || params === void 0 ? void 0 : params.customer_id)
-            queryParams.append('customer_id', params.customer_id);
-        if (params === null || params === void 0 ? void 0 : params.date_from)
-            queryParams.append('date_from', params.date_from.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.date_to)
-            queryParams.append('date_to', params.date_to.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `shipments?${queryParams.toString()}`);
-        return response.shipments;
+    validateShipmentData(data) {
+        if (!data.order_id)
+            throw new ShipmentValidationError('Order ID is required');
+        if (!data.customer_id)
+            throw new ShipmentValidationError('Customer ID is required');
+        if (!data.shipping_address)
+            throw new ShipmentValidationError('Shipping address is required');
     }
-    /**
-     * Get shipping rates
-     * @param shipmentData - Omit<ShipmentData, 'carrier' | 'service_level'> object
-     * @returns Array of Rate objects
-     */
-    async getRates(shipmentData) {
-        const response = await this.stateset.request('POST', 'shipments/rates', shipmentData);
+    async list(params = {}) {
+        var _a, _b;
+        const query = new URLSearchParams({
+            ...(params.status && { status: params.status }),
+            ...(params.carrier && { carrier: params.carrier }),
+            ...(params.order_id && { order_id: params.order_id }),
+            ...(params.customer_id && { customer_id: params.customer_id }),
+            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { date_from: params.date_range.from.toISOString() }),
+            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { date_to: params.date_range.to.toISOString() }),
+            ...(params.org_id && { org_id: params.org_id }),
+            ...(params.limit && { limit: params.limit.toString() }),
+            ...(params.offset && { offset: params.offset.toString() }),
+        });
+        const response = await this.client.request('GET', `shipments?${query}`);
+        return response;
+    }
+    async getRates(data) {
+        this.validateShipmentData(data);
+        const response = await this.client.request('POST', 'shipments/rates', data);
         return response.rates;
     }
-    /**
-     * Create shipment and generate label
-     * @param shipmentData - ShipmentData object
-     * @returns LabelCreatedShipmentResponse object
-     */
-    async create(shipmentData) {
+    async create(data) {
+        this.validateShipmentData(data);
         try {
-            const response = await this.stateset.request('POST', 'shipments', shipmentData);
+            const response = await this.client.request('POST', 'shipments', data);
             return response.shipment;
         }
         catch (error) {
-            if (error.status === 400) {
-                throw new ShipmentValidationError(error.message);
-            }
-            if (error.carrier_error) {
-                throw new CarrierApiError(error.message, error.carrier, error.carrier_code);
-            }
-            throw error;
+            throw this.handleApiError(error);
         }
     }
-    /**
-     * Update shipment
-     * @param shipmentId - Shipment ID
-     * @param shipmentData - Partial<ShipmentData> object
-     * @returns ShipmentResponse object
-     */
-    async update(shipmentId, shipmentData) {
+    async update(shipmentId, data) {
         try {
-            const response = await this.stateset.request('PUT', `shipments/${shipmentId}`, shipmentData);
+            const response = await this.client.request('PUT', `shipments/${shipmentId}`, data);
             return response.shipment;
         }
         catch (error) {
-            if (error.status === 404) {
-                throw new ShipmentNotFoundError(shipmentId);
-            }
-            throw error;
+            throw this.handleApiError(error, shipmentId);
         }
     }
-    /**
-     * Package management methods
-     * @param shipmentId - Shipment ID
-     * @param packageData - Omit<Package, 'id'> object
-     * @returns ShipmentResponse object
-     */
     async addPackage(shipmentId, packageData) {
-        const response = await this.stateset.request('POST', `shipments/${shipmentId}/packages`, packageData);
+        const response = await this.client.request('POST', `shipments/${shipmentId}/packages`, packageData);
         return response.shipment;
     }
-    async updatePackage(shipmentId, packageId, packageData) {
-        const response = await this.stateset.request('PUT', `shipments/${shipmentId}/packages/${packageId}`, packageData);
-        return response.shipment;
-    }
-    /**
-     * Generate return label
-     * @param shipmentId - Shipment ID
-     * @param returnData - Return data object
-     * @returns Object with tracking_number, label_url, and carrier
-     */
-    async generateReturnLabel(shipmentId, returnData) {
-        const response = await this.stateset.request('POST', `shipments/${shipmentId}/return-label`, returnData);
+    async generateReturnLabel(shipmentId, options = {}) {
+        const response = await this.client.request('POST', `shipments/${shipmentId}/return-label`, options);
         return response.label;
     }
-    /**
-     * Tracking methods
-     * @param shipmentId - Shipment ID
-     * @param params - Filtering parameters
-     * @returns Object with status, estimated_delivery_date, actual_delivery_date, events, and proof_of_delivery_url
-     */
-    async getTrackingDetails(shipmentId, params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.include_proof_of_delivery) {
-            queryParams.append('include_pod', 'true');
-        }
-        const response = await this.stateset.request('GET', `shipments/${shipmentId}/tracking?${queryParams.toString()}`);
+    async getTrackingDetails(shipmentId, options = {}) {
+        const query = new URLSearchParams({
+            ...(options.include_proof_of_delivery && { include_pod: 'true' }),
+            ...(options.include_full_history && { full_history: 'true' }),
+        });
+        const response = await this.client.request('GET', `shipments/${shipmentId}/tracking?${query}`);
         return response.tracking;
     }
-    /**
-     * Get shipment metrics
-     * @param params - Filtering parameters
-     * @returns Object with total_shipments, average_delivery_time, on_time_delivery_rate, exception_rate, average_shipping_cost, carrier_breakdown, and status_breakdown
-     */
-    async getMetrics(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
-            queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
-            queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.carrier)
-            queryParams.append('carrier', params.carrier);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `shipments/metrics?${queryParams.toString()}`);
+    async getMetrics(params = {}) {
+        var _a, _b;
+        const query = new URLSearchParams({
+            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.start) && { start_date: params.date_range.start.toISOString() }),
+            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.end) && { end_date: params.date_range.end.toISOString() }),
+            ...(params.carrier && { carrier: params.carrier }),
+            ...(params.org_id && { org_id: params.org_id }),
+            ...(params.group_by && { group_by: params.group_by }),
+        });
+        const response = await this.client.request('GET', `shipments/metrics?${query}`);
         return response.metrics;
     }
+    handleApiError(error, shipmentId) {
+        if (error.status === 404)
+            throw new ShipmentNotFoundError(shipmentId || 'unknown');
+        if (error.status === 400)
+            throw new ShipmentValidationError(error.message, error.errors);
+        if (error.carrier_error)
+            throw new CarrierApiError(error.message, error.carrier, error.code);
+        throw new ShipmentError('Unexpected error occurred', { originalError: error });
+    }
 }
+exports.Shipments = Shipments;
 exports.default = Shipments;

@@ -415,8 +415,6 @@ class Stateset {
     list: (params?: any): Promise<AxiosResponse> => 
       this.client(this.createOptions('GET', '/waste-and-scrap', params)),
   };
-
-  // Add other resources here as needed
 }
 
 export default Stateset;

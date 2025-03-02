@@ -1,147 +1,117 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class ASN {
-    constructor(stateset) {
-        this.stateset = stateset;
+exports.ASN = exports.ASNStateError = exports.ASNNotFoundError = exports.ASNError = exports.ASNStatus = void 0;
+// Enums
+var ASNStatus;
+(function (ASNStatus) {
+    ASNStatus["DRAFT"] = "DRAFT";
+    ASNStatus["SUBMITTED"] = "SUBMITTED";
+    ASNStatus["IN_TRANSIT"] = "IN_TRANSIT";
+    ASNStatus["DELIVERED"] = "DELIVERED";
+    ASNStatus["CANCELLED"] = "CANCELLED";
+})(ASNStatus = exports.ASNStatus || (exports.ASNStatus = {}));
+// Error Classes
+class ASNError extends Error {
+    constructor(message, name) {
+        super(message);
+        this.name = name;
     }
-    handleCommandResponse(response) {
+}
+exports.ASNError = ASNError;
+class ASNNotFoundError extends ASNError {
+    constructor(asnId) {
+        super(`ASN with ID ${asnId} not found`, 'ASNNotFoundError');
+    }
+}
+exports.ASNNotFoundError = ASNNotFoundError;
+class ASNStateError extends ASNError {
+    constructor(message) {
+        super(message, 'ASNStateError');
+    }
+}
+exports.ASNStateError = ASNStateError;
+// Main ASN Class
+class ASN {
+    constructor(client) {
+        this.client = client;
+    }
+    async request(method, path, data) {
+        try {
+            const response = await this.client.request(method, path, data);
+            return this.normalizeResponse(response);
+        }
+        catch (error) {
+            if (error.status === 404) {
+                throw new ASNNotFoundError(path.split('/')[2] || 'unknown');
+            }
+            if (error.status === 400) {
+                throw new ASNStateError(error.message);
+            }
+            throw error;
+        }
+    }
+    normalizeResponse(response) {
         if (response.error) {
             throw new Error(response.error);
         }
-        if (!response.update_asns_by_pk) {
+        const asnData = response.update_asns_by_pk || response;
+        if (!(asnData === null || asnData === void 0 ? void 0 : asnData.id) || !(asnData === null || asnData === void 0 ? void 0 : asnData.status)) {
             throw new Error('Unexpected response format');
         }
-        const asnData = response.update_asns_by_pk;
-        const baseResponse = {
-            id: asnData.id,
-            object: 'asn',
-            status: asnData.status,
-        };
-        switch (asnData.status) {
-            case 'DRAFT':
-                return { ...baseResponse, status: 'DRAFT', draft: true };
-            case 'SUBMITTED':
-                return { ...baseResponse, status: 'SUBMITTED', submitted: true };
-            case 'IN_TRANSIT':
-                return { ...baseResponse, status: 'IN_TRANSIT', in_transit: true };
-            case 'DELIVERED':
-                return { ...baseResponse, status: 'DELIVERED', delivered: true };
-            case 'CANCELLED':
-                return { ...baseResponse, status: 'CANCELLED', cancelled: true };
-            default:
-                throw new Error(`Unexpected ASN status: ${asnData.status}`);
-        }
+        return asnData;
     }
-    /**
-     * List ASNs
-     * @returns Array of ASNResponse objects
-     */
-    async list() {
-        const response = await this.stateset.request('GET', 'asns');
-        return response.map((asn) => this.handleCommandResponse({ update_asns_by_pk: asn }));
+    async list(params = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, String(value));
+            }
+        });
+        const response = await this.request('GET', `asns?${queryParams.toString()}`);
+        return response;
     }
-    /**
-     * Get ASN
-     * @param asnId - ASN ID
-     * @returns ASNResponse object
-     */
     async get(asnId) {
-        const response = await this.stateset.request('GET', `asns/${asnId}`);
-        return this.handleCommandResponse({ update_asns_by_pk: response });
+        return this.request('GET', `asns/${asnId}`);
     }
-    /**
-     * Create ASN
-     * @param asnData - ASNData object
-     * @returns ASNResponse object
-     */
     async create(asnData) {
-        const response = await this.stateset.request('POST', 'asns', asnData);
-        return this.handleCommandResponse(response);
+        if (!asnData.items.length) {
+            throw new ASNStateError('ASN must contain at least one item');
+        }
+        return this.request('POST', 'asns', asnData);
     }
-    /**
-     * Update ASN
-     * @param asnId - ASN ID
-     * @param asnData - Partial<ASNData> object
-     * @returns ASNResponse object
-     */
     async update(asnId, asnData) {
-        const response = await this.stateset.request('PUT', `asns/${asnId}`, asnData);
-        return this.handleCommandResponse(response);
+        return this.request('PUT', `asns/${asnId}`, asnData);
     }
-    /**
-     * Delete ASN
-     * @param asnId - ASN ID
-     */
     async delete(asnId) {
-        await this.stateset.request('DELETE', `asns/${asnId}`);
+        await this.request('DELETE', `asns/${asnId}`);
     }
-    /**
-     * Submit ASN
-     * @param asnId - ASN ID
-     * @returns SubmittedASNResponse object
-     */
     async submit(asnId) {
-        const response = await this.stateset.request('POST', `asns/${asnId}/submit`);
-        return this.handleCommandResponse(response);
+        return this.request('POST', `asns/${asnId}/submit`);
     }
-    /**
-     * Mark ASN as in transit
-     * @param asnId - ASN ID
-     * @param transitDetails - TransitDetails object
-     * @returns InTransitASNResponse object
-     */
-    async markInTransit(asnId, transitDetails) {
-        const response = await this.stateset.request('POST', `asns/${asnId}/in-transit`, transitDetails);
-        return this.handleCommandResponse(response);
+    async markInTransit(asnId, transitDetails = {}) {
+        return this.request('POST', `asns/${asnId}/in-transit`, transitDetails);
     }
-    /**
-     * Mark ASN as delivered
-     * @param asnId - ASN ID
-     * @param deliveryDetails - DeliveryDetails object
-     * @returns DeliveredASNResponse object
-     */
     async markDelivered(asnId, deliveryDetails) {
-        const response = await this.stateset.request('POST', `asns/${asnId}/deliver`, deliveryDetails);
-        return this.handleCommandResponse(response);
+        return this.request('POST', `asns/${asnId}/deliver`, deliveryDetails);
     }
-    /**
-     * Cancel ASN
-     * @param asnId - ASN ID
-     * @returns CancelledASNResponse object
-     */
-    async cancel(asnId) {
-        const response = await this.stateset.request('POST', `asns/${asnId}/cancel`);
-        return this.handleCommandResponse(response);
+    async cancel(asnId, cancellationDetails = {}) {
+        return this.request('POST', `asns/${asnId}/cancel`, cancellationDetails);
     }
-    /**
-     * Add item to ASN
-     * @param asnId - ASN ID
-     * @param item - ASNData['items'][0] object
-     * @returns ASNResponse object
-     */
     async addItem(asnId, item) {
-        const response = await this.stateset.request('POST', `asns/${asnId}/items`, item);
-        return this.handleCommandResponse(response);
+        if (item.quantity_shipped <= 0) {
+            throw new ASNStateError('Quantity shipped must be greater than 0');
+        }
+        return this.request('POST', `asns/${asnId}/items`, item);
     }
-    /**
-     * Remove item from ASN
-     * @param asnId - ASN ID
-     * @param purchaseOrderItemId - Purchase order item ID
-     * @returns ASNResponse object
-     */
     async removeItem(asnId, purchaseOrderItemId) {
-        const response = await this.stateset.request('DELETE', `asns/${asnId}/items/${purchaseOrderItemId}`);
-        return this.handleCommandResponse(response);
+        return this.request('DELETE', `asns/${asnId}/items/${purchaseOrderItemId}`);
     }
-    /**
-     * Update shipping information for ASN
-     * @param asnId - ASN ID
-     * @param shippingInfo - ShippingInfo object
-     * @returns ASNResponse object
-     */
     async updateShippingInfo(asnId, shippingInfo) {
-        const response = await this.stateset.request('PUT', `asns/${asnId}/shipping-info`, shippingInfo);
-        return this.handleCommandResponse(response);
+        return this.request('PUT', `asns/${asnId}/shipping-info`, shippingInfo);
+    }
+    async getTracking(asnId) {
+        return this.request('GET', `asns/${asnId}/tracking`);
     }
 }
+exports.ASN = ASN;
 exports.default = ASN;

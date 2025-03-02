@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReturnStateError = exports.ReturnValidationError = exports.ReturnNotFoundError = exports.RefundMethod = exports.ReturnCondition = exports.ReturnReason = exports.ReturnStatus = void 0;
+exports.ReturnApiError = exports.ReturnStateError = exports.ReturnValidationError = exports.ReturnNotFoundError = exports.DamageSeverity = exports.RecommendedAction = exports.RefundMethod = exports.ReturnCondition = exports.ReturnReason = exports.ReturnStatus = void 0;
 // Enums for returns management
 var ReturnStatus;
 (function (ReturnStatus) {
@@ -44,6 +44,19 @@ var RefundMethod;
     RefundMethod["BANK_TRANSFER"] = "bank_transfer";
     RefundMethod["GIFT_CARD"] = "gift_card";
 })(RefundMethod = exports.RefundMethod || (exports.RefundMethod = {}));
+var RecommendedAction;
+(function (RecommendedAction) {
+    RecommendedAction["REFURBISH"] = "refurbish";
+    RecommendedAction["LIQUIDATE"] = "liquidate";
+    RecommendedAction["DISPOSE"] = "dispose";
+    RecommendedAction["RESTOCK"] = "restock";
+})(RecommendedAction = exports.RecommendedAction || (exports.RecommendedAction = {}));
+var DamageSeverity;
+(function (DamageSeverity) {
+    DamageSeverity["MINOR"] = "minor";
+    DamageSeverity["MODERATE"] = "moderate";
+    DamageSeverity["SEVERE"] = "severe";
+})(DamageSeverity = exports.DamageSeverity || (exports.DamageSeverity = {}));
 // Custom Error Classes
 class ReturnNotFoundError extends Error {
     constructor(returnId) {
@@ -60,38 +73,78 @@ class ReturnValidationError extends Error {
 }
 exports.ReturnValidationError = ReturnValidationError;
 class ReturnStateError extends Error {
-    constructor(message) {
-        super(message);
+    constructor(currentState, requiredState) {
+        const stateMessage = Array.isArray(requiredState)
+            ? `one of [${requiredState.join(', ')}]`
+            : requiredState;
+        super(`Invalid state transition. Current state: ${currentState}, required state: ${stateMessage}`);
         this.name = 'ReturnStateError';
     }
 }
 exports.ReturnStateError = ReturnStateError;
+class ReturnApiError extends Error {
+    constructor(message, status, code) {
+        super(message);
+        this.name = 'ReturnApiError';
+        this.status = status;
+        this.code = code;
+    }
+}
+exports.ReturnApiError = ReturnApiError;
+// Default no-op logger
+const defaultLogger = {
+    debug: () => { },
+    info: () => { },
+    warn: () => { },
+    error: () => { },
+};
 // Main Returns Class
 class Returns {
-    constructor(stateset) {
+    constructor(stateset, options) {
         this.stateset = stateset;
+        this.logger = (options === null || options === void 0 ? void 0 : options.logger) || defaultLogger;
     }
     /**
      * List returns with optional filtering
      * @param params - Filtering parameters
-     * @returns Array of ReturnResponse objects
+     * @returns Array of ReturnResponse objects and pagination data
      */
     async list(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.customer_id)
-            queryParams.append('customer_id', params.customer_id);
-        if (params === null || params === void 0 ? void 0 : params.order_id)
-            queryParams.append('order_id', params.order_id);
-        if (params === null || params === void 0 ? void 0 : params.date_from)
-            queryParams.append('date_from', params.date_from.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.date_to)
-            queryParams.append('date_to', params.date_to.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `returns?${queryParams.toString()}`);
-        return response.returns;
+        try {
+            const queryParams = new URLSearchParams();
+            if (params === null || params === void 0 ? void 0 : params.status)
+                queryParams.append('status', params.status);
+            if (params === null || params === void 0 ? void 0 : params.customer_id)
+                queryParams.append('customer_id', params.customer_id);
+            if (params === null || params === void 0 ? void 0 : params.order_id)
+                queryParams.append('order_id', params.order_id);
+            if (params === null || params === void 0 ? void 0 : params.date_from)
+                queryParams.append('date_from', params.date_from.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.date_to)
+                queryParams.append('date_to', params.date_to.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.org_id)
+                queryParams.append('org_id', params.org_id);
+            if (params === null || params === void 0 ? void 0 : params.limit)
+                queryParams.append('limit', params.limit.toString());
+            if (params === null || params === void 0 ? void 0 : params.offset)
+                queryParams.append('offset', params.offset.toString());
+            if (params === null || params === void 0 ? void 0 : params.sort_by)
+                queryParams.append('sort_by', params.sort_by);
+            if (params === null || params === void 0 ? void 0 : params.sort_order)
+                queryParams.append('sort_order', params.sort_order);
+            this.logger.debug('Listing returns', { params });
+            const response = await this.stateset.request('GET', `returns?${queryParams.toString()}`);
+            return {
+                returns: response.returns,
+                total_count: response.total_count,
+                limit: response.limit,
+                offset: response.offset
+            };
+        }
+        catch (error) {
+            this.logger.error('Error listing returns', { error, params });
+            this.handleApiError(error);
+        }
     }
     /**
      * Get specific return by ID
@@ -100,14 +153,16 @@ class Returns {
      */
     async get(returnId) {
         try {
+            this.logger.debug('Getting return', { returnId });
             const response = await this.stateset.request('GET', `returns/${returnId}`);
             return response.return;
         }
         catch (error) {
+            this.logger.error('Error getting return', { error, returnId });
             if (error.status === 404) {
                 throw new ReturnNotFoundError(returnId);
             }
-            throw error;
+            this.handleApiError(error);
         }
     }
     /**
@@ -116,20 +171,35 @@ class Returns {
      * @returns ReturnResponse object
      */
     async create(returnData) {
-        // Validate return items
-        if (!returnData.items.length) {
-            throw new ReturnValidationError('At least one return item is required');
-        }
-        for (const item of returnData.items) {
-            if (item.quantity <= 0) {
-                throw new ReturnValidationError('Item quantity must be greater than 0');
+        try {
+            // Validate return items
+            if (!returnData.items || !returnData.items.length) {
+                throw new ReturnValidationError('At least one return item is required');
             }
-            if (item.refund_amount < 0) {
-                throw new ReturnValidationError('Refund amount cannot be negative');
+            for (const item of returnData.items) {
+                if (item.quantity <= 0) {
+                    throw new ReturnValidationError('Item quantity must be greater than 0');
+                }
+                if (item.refund_amount < 0) {
+                    throw new ReturnValidationError('Refund amount cannot be negative');
+                }
             }
+            this.logger.debug('Creating return', {
+                order_id: returnData.order_id,
+                customer_id: returnData.customer_id,
+                item_count: returnData.items.length
+            });
+            const response = await this.stateset.request('POST', 'returns', returnData);
+            return response.return;
         }
-        const response = await this.stateset.request('POST', 'returns', returnData);
-        return response.return;
+        catch (error) {
+            this.logger.error('Error creating return', {
+                error,
+                order_id: returnData.order_id,
+                customer_id: returnData.customer_id
+            });
+            this.handleApiError(error);
+        }
     }
     /**
      * Update return request
@@ -139,14 +209,16 @@ class Returns {
      */
     async update(returnId, returnData) {
         try {
+            this.logger.debug('Updating return', { returnId });
             const response = await this.stateset.request('PUT', `returns/${returnId}`, returnData);
             return response.return;
         }
         catch (error) {
+            this.logger.error('Error updating return', { error, returnId });
             if (error.status === 404) {
                 throw new ReturnNotFoundError(returnId);
             }
-            throw error;
+            this.handleApiError(error);
         }
     }
     /**
@@ -156,8 +228,15 @@ class Returns {
      * @returns ApprovedReturnResponse object
      */
     async approve(returnId, approvalData) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/approve`, approvalData);
-        return response.return;
+        try {
+            this.logger.debug('Approving return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/approve`, approvalData);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error approving return', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
     }
     /**
      * Mark return as received
@@ -166,8 +245,15 @@ class Returns {
      * @returns ReceivedReturnResponse object
      */
     async markReceived(returnId, receiptData) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/receive`, receiptData);
-        return response.return;
+        try {
+            this.logger.debug('Marking return as received', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/receive`, receiptData);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error marking return as received', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
     }
     /**
      * Submit return inspection
@@ -176,8 +262,15 @@ class Returns {
      * @returns InspectingReturnResponse object
      */
     async submitInspection(returnId, inspection) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/inspect`, inspection);
-        return response.return;
+        try {
+            this.logger.debug('Submitting inspection for return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/inspect`, inspection);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error submitting inspection', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
     }
     /**
      * Process return refund
@@ -186,8 +279,23 @@ class Returns {
      * @returns CompletedReturnResponse object
      */
     async processRefund(returnId, refundDetails) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/refund`, refundDetails);
-        return response.return;
+        try {
+            this.logger.debug('Processing refund for return', {
+                returnId,
+                method: refundDetails.method,
+                amount: refundDetails.amount
+            });
+            const response = await this.stateset.request('POST', `returns/${returnId}/refund`, refundDetails);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error processing refund', {
+                error,
+                returnId,
+                method: refundDetails.method
+            });
+            this.handleStateTransitionError(error, returnId);
+        }
     }
     /**
      * Reject return
@@ -196,8 +304,66 @@ class Returns {
      * @returns RejectedReturnResponse object
      */
     async reject(returnId, rejectionData) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/reject`, rejectionData);
-        return response.return;
+        try {
+            this.logger.debug('Rejecting return', { returnId, reason: rejectionData.reason });
+            const response = await this.stateset.request('POST', `returns/${returnId}/reject`, rejectionData);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error rejecting return', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
+    }
+    /**
+     * Cancel a return
+     * @param returnId - Return ID
+     * @param cancellationData - Cancellation data object
+     * @returns CancelledReturnResponse object
+     */
+    async cancel(returnId, cancellationData) {
+        try {
+            this.logger.debug('Cancelling return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/cancel`, cancellationData);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error cancelling return', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
+    }
+    /**
+     * Close a return
+     * @param returnId - Return ID
+     * @param closeData - Close data object
+     * @returns ClosedReturnResponse object
+     */
+    async close(returnId, closeData) {
+        try {
+            this.logger.debug('Closing return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/close`, closeData || {});
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error closing return', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
+    }
+    /**
+     * Reopen a closed or rejected return
+     * @param returnId - Return ID
+     * @param reopenData - Reopen data object
+     * @returns ReopenedReturnResponse object
+     */
+    async reopen(returnId, reopenData) {
+        try {
+            this.logger.debug('Reopening return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/reopen`, reopenData);
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error reopening return', { error, returnId });
+            this.handleStateTransitionError(error, returnId);
+        }
     }
     /**
      * Generate shipping label
@@ -206,24 +372,160 @@ class Returns {
      * @returns ShippingLabel object
      */
     async generateShippingLabel(returnId, shippingData) {
-        const response = await this.stateset.request('POST', `returns/${returnId}/generate-label`, shippingData);
-        return response.shipping_label;
+        try {
+            this.logger.debug('Generating shipping label', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/generate-label`, shippingData || {});
+            return response.shipping_label;
+        }
+        catch (error) {
+            this.logger.error('Error generating shipping label', { error, returnId });
+            if (error.status === 404) {
+                throw new ReturnNotFoundError(returnId);
+            }
+            this.handleApiError(error);
+        }
     }
     /**
      * Get return metrics
      * @param params - Filtering parameters
-     * @returns Metrics object
+     * @returns ReturnMetrics object
      */
     async getMetrics(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
-            queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
-            queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `returns/metrics?${queryParams.toString()}`);
-        return response.metrics;
+        try {
+            const queryParams = new URLSearchParams();
+            if (params === null || params === void 0 ? void 0 : params.start_date)
+                queryParams.append('start_date', params.start_date.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.end_date)
+                queryParams.append('end_date', params.end_date.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.org_id)
+                queryParams.append('org_id', params.org_id);
+            if (params === null || params === void 0 ? void 0 : params.include_monthly_trends)
+                queryParams.append('include_monthly_trends', params.include_monthly_trends.toString());
+            if (params === null || params === void 0 ? void 0 : params.include_top_products)
+                queryParams.append('include_top_products', params.include_top_products.toString());
+            if (params === null || params === void 0 ? void 0 : params.product_limit)
+                queryParams.append('product_limit', params.product_limit.toString());
+            this.logger.debug('Getting return metrics', { params });
+            const response = await this.stateset.request('GET', `returns/metrics?${queryParams.toString()}`);
+            return response.metrics;
+        }
+        catch (error) {
+            this.logger.error('Error getting metrics', { error });
+            this.handleApiError(error);
+        }
+    }
+    /**
+     * Add a note to a return
+     * @param returnId - Return ID
+     * @param note - Note text
+     * @returns ReturnResponse object
+     */
+    async addNote(returnId, note) {
+        try {
+            this.logger.debug('Adding note to return', { returnId });
+            const response = await this.stateset.request('POST', `returns/${returnId}/notes`, { note });
+            return response.return;
+        }
+        catch (error) {
+            this.logger.error('Error adding note', { error, returnId });
+            if (error.status === 404) {
+                throw new ReturnNotFoundError(returnId);
+            }
+            this.handleApiError(error);
+        }
+    }
+    /**
+     * Export returns data
+     * @param params - Filter parameters
+     * @param format - Export format
+     * @returns Buffer with export data
+     */
+    async exportData(params, format = 'csv') {
+        try {
+            const queryParams = new URLSearchParams();
+            if (params === null || params === void 0 ? void 0 : params.status)
+                queryParams.append('status', params.status);
+            if (params === null || params === void 0 ? void 0 : params.customer_id)
+                queryParams.append('customer_id', params.customer_id);
+            if (params === null || params === void 0 ? void 0 : params.order_id)
+                queryParams.append('order_id', params.order_id);
+            if (params === null || params === void 0 ? void 0 : params.date_from)
+                queryParams.append('date_from', params.date_from.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.date_to)
+                queryParams.append('date_to', params.date_to.toISOString());
+            if (params === null || params === void 0 ? void 0 : params.org_id)
+                queryParams.append('org_id', params.org_id);
+            queryParams.append('format', format);
+            this.logger.debug('Exporting returns data', { params, format });
+            const response = await this.stateset.request('GET', `returns/export?${queryParams.toString()}`, { responseType: 'arraybuffer' });
+            return Buffer.from(response);
+        }
+        catch (error) {
+            this.logger.error('Error exporting data', { error });
+            this.handleApiError(error);
+        }
+    }
+    /**
+     * Check if a transition to the target state is allowed
+     * @param returnId - Return ID
+     * @param targetState - Target state to check
+     * @returns Boolean indicating if transition is allowed
+     */
+    async canTransitionTo(returnId, targetState) {
+        try {
+            this.logger.debug('Checking state transition', { returnId, targetState });
+            const response = await this.stateset.request('GET', `returns/${returnId}/can-transition?target=${targetState}`);
+            return response.can_transition;
+        }
+        catch (error) {
+            this.logger.error('Error checking transition', { error, returnId, targetState });
+            if (error.status === 404) {
+                throw new ReturnNotFoundError(returnId);
+            }
+            this.handleApiError(error);
+            return false;
+        }
+    }
+    /**
+     * Get return history
+     * @param returnId - Return ID
+     * @returns Array of history events
+     */
+    async getHistory(returnId) {
+        try {
+            this.logger.debug('Getting return history', { returnId });
+            const response = await this.stateset.request('GET', `returns/${returnId}/history`);
+            return response.history;
+        }
+        catch (error) {
+            this.logger.error('Error getting history', { error, returnId });
+            if (error.status === 404) {
+                throw new ReturnNotFoundError(returnId);
+            }
+            this.handleApiError(error);
+        }
+    }
+    // Helper method to handle API errors
+    handleApiError(error) {
+        if (error.status && error.message) {
+            throw new ReturnApiError(error.message, error.status, error.code);
+        }
+        throw error;
+    }
+    // Helper method to handle state transition errors
+    handleStateTransitionError(error, returnId) {
+        var _a, _b, _c;
+        if (error.status === 404) {
+            throw new ReturnNotFoundError(returnId);
+        }
+        if (error.status === 400 && ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('Invalid state transition'))) {
+            const currentState = (_b = error.data) === null || _b === void 0 ? void 0 : _b.current_state;
+            const requiredState = (_c = error.data) === null || _c === void 0 ? void 0 : _c.required_state;
+            if (currentState && requiredState) {
+                throw new ReturnStateError(currentState, requiredState);
+            }
+        }
+        this.handleApiError(error);
     }
 }
 exports.default = Returns;

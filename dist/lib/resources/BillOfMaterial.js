@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BOMStateError = exports.BOMValidationError = exports.BOMNotFoundError = exports.ComponentType = exports.BOMStatus = void 0;
-// Enums and Types
+exports.BillOfMaterials = exports.BOMStateError = exports.BOMValidationError = exports.BOMNotFoundError = exports.BOMError = exports.ComponentType = exports.BOMStatus = void 0;
+// Enums
 var BOMStatus;
 (function (BOMStatus) {
     BOMStatus["DRAFT"] = "DRAFT";
@@ -16,218 +16,138 @@ var ComponentType;
     ComponentType["FINISHED_GOOD"] = "finished_good";
     ComponentType["PACKAGING"] = "packaging";
 })(ComponentType = exports.ComponentType || (exports.ComponentType = {}));
-// Custom Error Classes
-class BOMNotFoundError extends Error {
+// Error Classes
+class BOMError extends Error {
+    constructor(message, name) {
+        super(message);
+        this.name = name;
+    }
+}
+exports.BOMError = BOMError;
+class BOMNotFoundError extends BOMError {
     constructor(bomId) {
-        super(`Bill of Materials with ID ${bomId} not found`);
-        this.name = 'BOMNotFoundError';
+        super(`Bill of Materials with ID ${bomId} not found`, 'BOMNotFoundError');
     }
 }
 exports.BOMNotFoundError = BOMNotFoundError;
-class BOMValidationError extends Error {
+class BOMValidationError extends BOMError {
     constructor(message) {
-        super(message);
-        this.name = 'BOMValidationError';
+        super(message, 'BOMValidationError');
     }
 }
 exports.BOMValidationError = BOMValidationError;
-class BOMStateError extends Error {
+class BOMStateError extends BOMError {
     constructor(message) {
-        super(message);
-        this.name = 'BOMStateError';
+        super(message, 'BOMStateError');
     }
 }
 exports.BOMStateError = BOMStateError;
 // Main BillOfMaterials Class
 class BillOfMaterials {
-    constructor(stateset) {
-        this.stateset = stateset;
+    constructor(client) {
+        this.client = client;
     }
-    /**
-     * Validates a BOM component
-     */
-    validateComponent(component) {
-        if (component.quantity <= 0) {
-            throw new BOMValidationError('Component quantity must be greater than 0');
-        }
-        if (component.minimum_order_quantity && component.minimum_order_quantity < 0) {
-            throw new BOMValidationError('Minimum order quantity cannot be negative');
-        }
-        if (component.unit_cost && component.unit_cost < 0) {
-            throw new BOMValidationError('Unit cost cannot be negative');
-        }
-    }
-    /**
-     * Processes API response into typed BOMResponse
-     */
-    handleCommandResponse(response) {
-        if (response.error) {
-            throw new Error(response.error);
-        }
-        if (!response.update_billofmaterials_by_pk) {
-            throw new Error('Unexpected response format');
-        }
-        const bomData = response.update_billofmaterials_by_pk;
-        const baseResponse = {
-            id: bomData.id,
-            object: 'billofmaterials',
-            created_at: bomData.created_at,
-            updated_at: bomData.updated_at,
-            status: bomData.status,
-            data: bomData.data
-        };
-        switch (bomData.status) {
-            case BOMStatus.DRAFT:
-                return { ...baseResponse, status: BOMStatus.DRAFT, draft: true };
-            case BOMStatus.ACTIVE:
-                return { ...baseResponse, status: BOMStatus.ACTIVE, active: true };
-            case BOMStatus.OBSOLETE:
-                return { ...baseResponse, status: BOMStatus.OBSOLETE, obsolete: true };
-            case BOMStatus.REVISION:
-                return {
-                    ...baseResponse,
-                    status: BOMStatus.REVISION,
-                    revision: true,
-                    previous_version_id: bomData.previous_version_id
-                };
-            default:
-                throw new Error(`Unexpected BOM status: ${bomData.status}`);
-        }
-    }
-    /**
-     * List all BOMs with optional filtering
-     */
-    async list(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.product_id)
-            queryParams.append('product_id', params.product_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.effective_after)
-            queryParams.append('effective_after', params.effective_after.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.effective_before)
-            queryParams.append('effective_before', params.effective_before.toISOString());
-        const response = await this.stateset.request('GET', `billofmaterials?${queryParams.toString()}`);
-        return response.map((bom) => this.handleCommandResponse({ update_billofmaterials_by_pk: bom }));
-    }
-    /**
-     * Get a specific BOM by ID
-     */
-    async get(bomId) {
+    async request(method, path, data) {
         try {
-            const response = await this.stateset.request('GET', `billofmaterials/${bomId}`);
-            return this.handleCommandResponse({ update_billofmaterials_by_pk: response });
+            const response = await this.client.request(method, path, data);
+            return response.update_billofmaterials_by_pk || response;
         }
         catch (error) {
+            if (error === null || error === void 0 ? void 0 : error.error) {
+                throw new BOMValidationError(error.error);
+            }
             if (error.status === 404) {
-                throw new BOMNotFoundError(bomId);
+                throw new BOMNotFoundError(path.split('/')[2] || 'unknown');
+            }
+            if (error.status === 400) {
+                throw new BOMStateError(error.message);
             }
             throw error;
         }
     }
-    /**
-     * Create a new BOM
-     * @param bomData - BOMData object
-     * @returns BOMResponse object
-     */
-    async create(bomData) {
-        // Validate all components
-        bomData.components.forEach(this.validateComponent);
-        const response = await this.stateset.request('POST', 'billofmaterials', bomData);
-        return this.handleCommandResponse(response);
+    validateComponent(component) {
+        if (component.quantity <= 0) {
+            throw new BOMValidationError(`Invalid quantity ${component.quantity} for component ${component.item_id}`);
+        }
+        if (component.unit_cost && component.unit_cost < 0) {
+            throw new BOMValidationError(`Invalid unit cost ${component.unit_cost} for component ${component.item_id}`);
+        }
+        if (component.minimum_order_quantity && component.minimum_order_quantity < 0) {
+            throw new BOMValidationError(`Invalid MOQ ${component.minimum_order_quantity} for component ${component.item_id}`);
+        }
+        if (component.lead_time && component.lead_time < 0) {
+            throw new BOMValidationError(`Invalid lead time ${component.lead_time} for component ${component.item_id}`);
+        }
     }
-    /**
-     * Update an existing BOM
-     * @param bomId - BOM ID
-     * @param bomData - Partial<BOMData> object
-     * @returns BOMResponse object
-     */
+    async list(params = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
+            }
+        });
+        return this.request('GET', `billofmaterials?${queryParams.toString()}`);
+    }
+    async get(bomId) {
+        return this.request('GET', `billofmaterials/${bomId}`);
+    }
+    async create(bomData) {
+        if (!bomData.components.length) {
+            throw new BOMValidationError('BOM must contain at least one component');
+        }
+        bomData.components.forEach(this.validateComponent);
+        return this.request('POST', 'billofmaterials', bomData);
+    }
     async update(bomId, bomData) {
         if (bomData.components) {
             bomData.components.forEach(this.validateComponent);
         }
-        try {
-            const response = await this.stateset.request('PUT', `billofmaterials/${bomId}`, bomData);
-            return this.handleCommandResponse(response);
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new BOMNotFoundError(bomId);
-            }
-            throw error;
-        }
+        return this.request('PUT', `billofmaterials/${bomId}`, bomData);
     }
-    /**
-     * Delete a BOM
-     */
     async delete(bomId) {
-        try {
-            await this.stateset.request('DELETE', `billofmaterials/${bomId}`);
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new BOMNotFoundError(bomId);
-            }
-            throw error;
-        }
+        await this.request('DELETE', `billofmaterials/${bomId}`);
     }
-    /**
-     * Status management methods
-     */
+    // Status Management
     async setActive(bomId) {
-        const response = await this.stateset.request('POST', `billofmaterials/${bomId}/set-active`);
-        return this.handleCommandResponse(response);
+        return this.request('POST', `billofmaterials/${bomId}/set-active`);
     }
     async setObsolete(bomId) {
-        const response = await this.stateset.request('POST', `billofmaterials/${bomId}/set-obsolete`);
-        return this.handleCommandResponse(response);
+        return this.request('POST', `billofmaterials/${bomId}/set-obsolete`);
     }
     async startRevision(bomId, revisionNotes) {
-        const response = await this.stateset.request('POST', `billofmaterials/${bomId}/start-revision`, { revision_notes: revisionNotes });
-        return this.handleCommandResponse(response);
+        return this.request('POST', `billofmaterials/${bomId}/start-revision`, { revision_notes: revisionNotes });
     }
     async completeRevision(bomId) {
-        const response = await this.stateset.request('POST', `billofmaterials/${bomId}/complete-revision`);
-        return this.handleCommandResponse(response);
+        return this.request('POST', `billofmaterials/${bomId}/complete-revision`);
     }
-    /**
-     * Component management methods
-     */
+    // Component Management
     async addComponent(bomId, component) {
-        this.validateComponent(component);
-        const response = await this.stateset.request('POST', `billofmaterials/${bomId}/add-component`, component);
-        return this.handleCommandResponse(response);
+        this.validateComponent({ ...component, id: 'temp' }); // Temporary ID for validation
+        return this.request('POST', `billofmaterials/${bomId}/add-component`, component);
     }
     async updateComponent(bomId, componentId, updates) {
-        const response = await this.stateset.request('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
-        return this.handleCommandResponse(response);
+        this.validateComponent({ ...updates, id: componentId, item_id: 'temp', quantity: updates.quantity || 1, type: ComponentType.RAW_MATERIAL });
+        return this.request('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
     }
     async removeComponent(bomId, componentId) {
-        const response = await this.stateset.request('DELETE', `billofmaterials/${bomId}/components/${componentId}`);
-        return this.handleCommandResponse(response);
+        return this.request('DELETE', `billofmaterials/${bomId}/components/${componentId}`);
     }
-    /**
-     * Cost calculation methods
-     */
+    // Cost Management
     async calculateTotalCost(bomId) {
-        const response = await this.stateset.request('GET', `billofmaterials/${bomId}/cost-analysis`);
-        return response;
+        return this.request('GET', `billofmaterials/${bomId}/cost-analysis`);
     }
-    /**
-     * Version management methods
-     */
+    // Version Management
     async getVersionHistory(bomId) {
-        const response = await this.stateset.request('GET', `billofmaterials/${bomId}/versions`);
-        return response.versions;
+        return this.request('GET', `billofmaterials/${bomId}/versions`);
     }
-    /**
-     * Export methods
-     */
+    // Export
     async export(bomId, format) {
-        const response = await this.stateset.request('GET', `billofmaterials/${bomId}/export?format=${format}`);
-        return response.url;
+        return this.request('GET', `billofmaterials/${bomId}/export?format=${format}`);
+    }
+    // Validation
+    async validateBOM(bomId) {
+        return this.request('GET', `billofmaterials/${bomId}/validate`);
     }
 }
+exports.BillOfMaterials = BillOfMaterials;
 exports.default = BillOfMaterials;

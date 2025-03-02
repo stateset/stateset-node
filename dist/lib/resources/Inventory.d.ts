@@ -90,6 +90,7 @@ export interface InventoryResponse {
     pending_shipment_quantity: number;
 }
 export interface InventoryHistoryEntry {
+    id: string;
     timestamp: string;
     action: string;
     quantity_before: number;
@@ -98,114 +99,86 @@ export interface InventoryHistoryEntry {
     transfer?: InventoryTransfer;
     performed_by: string;
 }
-export declare class InventoryNotFoundError extends Error {
+export declare class InventoryError extends Error {
+    constructor(message: string, name: string);
+}
+export declare class InventoryNotFoundError extends InventoryError {
     constructor(inventoryId: string);
 }
-export declare class InsufficientInventoryError extends Error {
+export declare class InsufficientInventoryError extends InventoryError {
     constructor(message: string);
 }
-export declare class InventoryValidationError extends Error {
+export declare class InventoryValidationError extends InventoryError {
     constructor(message: string);
 }
-declare class Inventory {
-    private readonly stateset;
-    constructor(stateset: stateset);
-    /**
-     * Validates inventory quantities and thresholds
-     */
+export declare class Inventory {
+    private readonly client;
+    constructor(client: stateset);
+    private request;
     private validateInventoryData;
-    /**
-     * List inventory with optional filtering
-     */
     list(params?: {
         status?: InventoryStatus;
         location_type?: LocationType;
+        item_id?: string;
         low_stock?: boolean;
         expiring_before?: Date;
         org_id?: string;
-    }): Promise<InventoryResponse[]>;
-    /**
-     * Get specific inventory by ID
-     * @param inventoryId - Inventory ID
-     * @returns InventoryResponse object
-     */
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        inventory: InventoryResponse[];
+        total: number;
+    }>;
     get(inventoryId: string): Promise<InventoryResponse>;
-    /**
-     * Create new inventory
-     * @param inventoryData - InventoryData object
-     * @returns InventoryResponse object
-     */
     create(inventoryData: InventoryData): Promise<InventoryResponse>;
-    /**
-     * Update existing inventory
-     * @param inventoryId - Inventory ID
-     * @param inventoryData - Partial<InventoryData> object
-     * @returns InventoryResponse object
-     */
     update(inventoryId: string, inventoryData: Partial<InventoryData>): Promise<InventoryResponse>;
-    /**
-     * Delete inventory
-     * @param inventoryId - Inventory ID
-     */
     delete(inventoryId: string): Promise<void>;
-    /**
-     * Adjust inventory quantity
-     * @param inventoryId - Inventory ID
-     * @param adjustment - InventoryAdjustment object
-     * @returns InventoryResponse object
-     */
     adjustQuantity(inventoryId: string, adjustment: InventoryAdjustment): Promise<InventoryResponse>;
-    /**
-     * Transfer inventory between locations
-     * @param transfer - InventoryTransfer object
-     * @returns Object with source, destination, and transfer_id
-     */
     transfer(transfer: InventoryTransfer): Promise<{
         source: InventoryResponse;
         destination: InventoryResponse;
         transfer_id: string;
     }>;
-    /**
-     * Get inventory history
-     * @param inventoryId - Inventory ID
-     * @param params - Optional filtering parameters
-     * @returns Array of InventoryHistoryEntry objects
-     */
     getHistory(inventoryId: string, params?: {
         start_date?: Date;
         end_date?: Date;
         action_type?: AdjustmentType;
         limit?: number;
-    }): Promise<InventoryHistoryEntry[]>;
-    /**
-     * Reserve inventory
-     * @param inventoryId - Inventory ID
-     * @param quantity - Number of items to reserve
-     * @param params - Optional reservation parameters
-     * @returns InventoryResponse object
-     */
+        offset?: number;
+    }): Promise<{
+        history: InventoryHistoryEntry[];
+        total: number;
+    }>;
     reserve(inventoryId: string, quantity: number, params?: {
         order_id?: string;
         reservation_expires?: Date;
         notes?: string;
-    }): Promise<InventoryResponse>;
-    /**
-     * Release reserved inventory
-     * @param inventoryId - Inventory ID
-     * @param reservationId - Reservation ID
-     * @returns InventoryResponse object
-     */
+    }): Promise<InventoryResponse & {
+        reservation_id: string;
+    }>;
     releaseReservation(inventoryId: string, reservationId: string): Promise<InventoryResponse>;
-    /**
-     * Get low stock alerts
-     * @param params - Optional filtering parameters
-     * @returns Array of InventoryResponse objects with threshold
-     */
     getLowStockAlerts(params?: {
         org_id?: string;
         location_type?: LocationType;
+        threshold?: number;
     }): Promise<Array<InventoryResponse & {
         threshold: number;
     }>>;
+    getInventoryValue(params?: {
+        org_id?: string;
+        location_type?: LocationType;
+        status?: InventoryStatus;
+    }): Promise<{
+        total_value: number;
+        currency: string;
+        breakdown: Record<string, {
+            quantity: number;
+            value: number;
+        }>;
+    }>;
+    bulkAdjust(adjustments: Array<{
+        inventory_id: string;
+        adjustment: InventoryAdjustment;
+    }>): Promise<InventoryResponse[]>;
 }
 export default Inventory;

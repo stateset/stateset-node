@@ -1,6 +1,6 @@
 import { stateset } from '../../stateset-client';
 
-// Enums for inventory management
+// Enums
 export enum InventoryStatus {
   IN_STOCK = 'in_stock',
   LOW_STOCK = 'low_stock',
@@ -27,7 +27,7 @@ export enum AdjustmentType {
   CYCLE_COUNT = 'cycle_count'
 }
 
-// Interfaces for inventory data structures
+// Interfaces
 export interface InventoryLocation {
   id: string;
   name: string;
@@ -87,7 +87,7 @@ export interface InventoryTransfer {
   shipping_method?: string;
 }
 
-// Response Interfaces
+// Response Types
 export interface InventoryResponse {
   id: string;
   object: 'inventory';
@@ -103,6 +103,7 @@ export interface InventoryResponse {
 }
 
 export interface InventoryHistoryEntry {
+  id: string;
   timestamp: string;
   action: string;
   quantity_before: number;
@@ -112,171 +113,137 @@ export interface InventoryHistoryEntry {
   performed_by: string;
 }
 
-// Custom Error Classes
-export class InventoryNotFoundError extends Error {
+// Error Classes
+export class InventoryError extends Error {
+  constructor(message: string, name: string) {
+    super(message);
+    this.name = name;
+  }
+}
+
+export class InventoryNotFoundError extends InventoryError {
   constructor(inventoryId: string) {
-    super(`Inventory with ID ${inventoryId} not found`);
-    this.name = 'InventoryNotFoundError';
+    super(`Inventory with ID ${inventoryId} not found`, 'InventoryNotFoundError');
   }
 }
 
-export class InsufficientInventoryError extends Error {
+export class InsufficientInventoryError extends InventoryError {
   constructor(message: string) {
-    super(message);
-    this.name = 'InsufficientInventoryError';
+    super(message, 'InsufficientInventoryError');
   }
 }
 
-export class InventoryValidationError extends Error {
+export class InventoryValidationError extends InventoryError {
   constructor(message: string) {
-    super(message);
-    this.name = 'InventoryValidationError';
+    super(message, 'InventoryValidationError');
   }
 }
 
 // Main Inventory Class
-class Inventory {
-  constructor(private readonly stateset: stateset) {}
+export class Inventory {
+  constructor(private readonly client: stateset) {}
 
-  /**
-   * Validates inventory quantities and thresholds
-   */
+  private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    data?: any
+  ): Promise<T> {
+    try {
+      const response = await this.client.request(method, path, data);
+      return response.inventory || response;
+    } catch (error: any) {
+      if (error.status === 404) {
+        throw new InventoryNotFoundError(path.split('/')[2] || 'unknown');
+      }
+      if (error.status === 400) {
+        if (error.code === 'INSUFFICIENT_QUANTITY') {
+          throw new InsufficientInventoryError(error.message);
+        }
+        throw new InventoryValidationError(error.message);
+      }
+      throw error;
+    }
+  }
+
   private validateInventoryData(data: Partial<InventoryData>): void {
     if (data.quantity !== undefined && data.quantity < 0) {
       throw new InventoryValidationError('Quantity cannot be negative');
     }
-
-    if (data.minimum_quantity !== undefined && data.maximum_quantity !== undefined) {
-      if (data.minimum_quantity > data.maximum_quantity) {
-        throw new InventoryValidationError('Minimum quantity cannot be greater than maximum quantity');
-      }
+    if (data.minimum_quantity !== undefined && data.minimum_quantity < 0) {
+      throw new InventoryValidationError('Minimum quantity cannot be negative');
     }
-
-    if (data.reorder_point !== undefined && data.reorder_quantity !== undefined) {
-      if (data.reorder_point > data.reorder_quantity) {
-        throw new InventoryValidationError('Reorder point cannot be greater than reorder quantity');
-      }
+    if (data.maximum_quantity !== undefined && data.maximum_quantity < 0) {
+      throw new InventoryValidationError('Maximum quantity cannot be negative');
+    }
+    if (data.reorder_point !== undefined && data.reorder_point < 0) {
+      throw new InventoryValidationError('Reorder point cannot be negative');
+    }
+    if (data.reorder_quantity !== undefined && data.reorder_quantity < 0) {
+      throw new InventoryValidationError('Reorder quantity cannot be negative');
+    }
+    if (data.unit_cost !== undefined && data.unit_cost < 0) {
+      throw new InventoryValidationError('Unit cost cannot be negative');
+    }
+    if (data.unit_price !== undefined && data.unit_price < 0) {
+      throw new InventoryValidationError('Unit price cannot be negative');
     }
   }
 
-  /**
-   * List inventory with optional filtering
-   */
-  async list(params?: {
+  async list(params: {
     status?: InventoryStatus;
     location_type?: LocationType;
+    item_id?: string;
     low_stock?: boolean;
     expiring_before?: Date;
     org_id?: string;
-  }): Promise<InventoryResponse[]> {
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ inventory: InventoryResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
-    
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.location_type) queryParams.append('location_type', params.location_type);
-    if (params?.low_stock !== undefined) queryParams.append('low_stock', params.low_stock.toString());
-    if (params?.expiring_before) queryParams.append('expiring_before', params.expiring_before.toISOString());
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `inventory?${queryParams.toString()}`);
-    return response.inventory;
-  }
-
-  /**
-   * Get specific inventory by ID
-   * @param inventoryId - Inventory ID
-   * @returns InventoryResponse object
-   */
-  async get(inventoryId: string): Promise<InventoryResponse> {
-    try {
-      const response = await this.stateset.request('GET', `inventory/${inventoryId}`);
-      return response.inventory;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new InventoryNotFoundError(inventoryId);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
       }
-      throw error;
-    }
+    });
+
+    return this.request<{ inventory: InventoryResponse[]; total: number }>(
+      'GET',
+      `inventory?${queryParams.toString()}`
+    );
   }
 
-  /**
-   * Create new inventory
-   * @param inventoryData - InventoryData object
-   * @returns InventoryResponse object
-   */
+  async get(inventoryId: string): Promise<InventoryResponse> {
+    return this.request<InventoryResponse>('GET', `inventory/${inventoryId}`);
+  }
+
   async create(inventoryData: InventoryData): Promise<InventoryResponse> {
     this.validateInventoryData(inventoryData);
-    const response = await this.stateset.request('POST', 'inventory', inventoryData);
-    return response.inventory;
+    return this.request<InventoryResponse>('POST', 'inventory', inventoryData);
   }
 
-  /**
-   * Update existing inventory
-   * @param inventoryId - Inventory ID
-   * @param inventoryData - Partial<InventoryData> object
-   * @returns InventoryResponse object
-   */
   async update(inventoryId: string, inventoryData: Partial<InventoryData>): Promise<InventoryResponse> {
     this.validateInventoryData(inventoryData);
-    try {
-      const response = await this.stateset.request('PUT', `inventory/${inventoryId}`, inventoryData);
-      return response.inventory;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new InventoryNotFoundError(inventoryId);
-      }
-      throw error;
-    }
+    return this.request<InventoryResponse>('PUT', `inventory/${inventoryId}`, inventoryData);
   }
 
-  /**
-   * Delete inventory
-   * @param inventoryId - Inventory ID
-   */
   async delete(inventoryId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `inventory/${inventoryId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new InventoryNotFoundError(inventoryId);
-      }
-      throw error;
-    }
+    await this.request<void>('DELETE', `inventory/${inventoryId}`);
   }
 
-  /**
-   * Adjust inventory quantity
-   * @param inventoryId - Inventory ID
-   * @param adjustment - InventoryAdjustment object
-   * @returns InventoryResponse object
-   */
   async adjustQuantity(
-    inventoryId: string, 
+    inventoryId: string,
     adjustment: InventoryAdjustment
   ): Promise<InventoryResponse> {
     if (adjustment.quantity === 0) {
       throw new InventoryValidationError('Adjustment quantity cannot be zero');
     }
-
-    try {
-      const response = await this.stateset.request(
-        'POST', 
-        `inventory/${inventoryId}/adjust`, 
-        adjustment
-      );
-      return response.inventory;
-    } catch (error: any) {
-      if (error.status === 400 && error.code === 'INSUFFICIENT_QUANTITY') {
-        throw new InsufficientInventoryError(error.message);
-      }
-      throw error;
-    }
+    return this.request<InventoryResponse>(
+      'POST',
+      `inventory/${inventoryId}/adjust`,
+      adjustment
+    );
   }
 
-  /**
-   * Transfer inventory between locations
-   * @param transfer - InventoryTransfer object
-   * @returns Object with source, destination, and transfer_id
-   */
   async transfer(transfer: InventoryTransfer): Promise<{
     source: InventoryResponse;
     destination: InventoryResponse;
@@ -285,51 +252,32 @@ class Inventory {
     if (transfer.quantity <= 0) {
       throw new InventoryValidationError('Transfer quantity must be positive');
     }
-
-    const response = await this.stateset.request('POST', 'inventory/transfer', transfer);
-    return {
-      source: response.source_inventory,
-      destination: response.destination_inventory,
-      transfer_id: response.transfer_id
-    };
+    return this.request('POST', 'inventory/transfer', transfer);
   }
 
-  /**
-   * Get inventory history
-   * @param inventoryId - Inventory ID
-   * @param params - Optional filtering parameters
-   * @returns Array of InventoryHistoryEntry objects
-   */
   async getHistory(
     inventoryId: string,
-    params?: {
+    params: {
       start_date?: Date;
       end_date?: Date;
       action_type?: AdjustmentType;
       limit?: number;
-    }
-  ): Promise<InventoryHistoryEntry[]> {
+      offset?: number;
+    } = {}
+  ): Promise<{ history: InventoryHistoryEntry[]; total: number }> {
     const queryParams = new URLSearchParams();
-    
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.action_type) queryParams.append('action_type', params.action_type);
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
+      }
+    });
 
-    const response = await this.stateset.request(
+    return this.request<{ history: InventoryHistoryEntry[]; total: number }>(
       'GET',
       `inventory/${inventoryId}/history?${queryParams.toString()}`
     );
-    return response.history;
   }
 
-  /**
-   * Reserve inventory
-   * @param inventoryId - Inventory ID
-   * @param quantity - Number of items to reserve
-   * @param params - Optional reservation parameters
-   * @returns InventoryResponse object
-   */
   async reserve(
     inventoryId: string,
     quantity: number,
@@ -338,49 +286,69 @@ class Inventory {
       reservation_expires?: Date;
       notes?: string;
     } = {}
-  ): Promise<InventoryResponse> {
-    const response = await this.stateset.request('POST', `inventory/${inventoryId}/reserve`, {
-      quantity,
-      ...params
-    });
-    return response.inventory;
+  ): Promise<InventoryResponse & { reservation_id: string }> {
+    if (quantity <= 0) {
+      throw new InventoryValidationError('Reservation quantity must be positive');
+    }
+    return this.request('POST', `inventory/${inventoryId}/reserve`, { quantity, ...params });
   }
 
-  /**
-   * Release reserved inventory
-   * @param inventoryId - Inventory ID
-   * @param reservationId - Reservation ID
-   * @returns InventoryResponse object
-   */
   async releaseReservation(
     inventoryId: string,
     reservationId: string
   ): Promise<InventoryResponse> {
-    const response = await this.stateset.request(
+    return this.request(
       'POST',
       `inventory/${inventoryId}/release-reservation/${reservationId}`
     );
-    return response.inventory;
   }
 
-  /**
-   * Get low stock alerts
-   * @param params - Optional filtering parameters
-   * @returns Array of InventoryResponse objects with threshold
-   */
-  async getLowStockAlerts(params?: {
+  async getLowStockAlerts(params: {
     org_id?: string;
     location_type?: LocationType;
-  }): Promise<Array<InventoryResponse & { threshold: number }>> {
+    threshold?: number;
+  } = {}): Promise<Array<InventoryResponse & { threshold: number }>> {
     const queryParams = new URLSearchParams();
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.location_type) queryParams.append('location_type', params.location_type);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) queryParams.append(key, String(value));
+    });
 
-    const response = await this.stateset.request(
-      'GET',
-      `inventory/low-stock-alerts?${queryParams.toString()}`
-    );
-    return response.alerts;
+    return this.request('GET', `inventory/low-stock-alerts?${queryParams.toString()}`);
+  }
+
+  async getInventoryValue(params: {
+    org_id?: string;
+    location_type?: LocationType;
+    status?: InventoryStatus;
+  } = {}): Promise<{
+    total_value: number;
+    currency: string;
+    breakdown: Record<string, { quantity: number; value: number }>;
+  }> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) queryParams.append(key, String(value));
+    });
+
+    return this.request('GET', `inventory/value?${queryParams.toString()}`);
+  }
+
+  async bulkAdjust(
+    adjustments: Array<{
+      inventory_id: string;
+      adjustment: InventoryAdjustment;
+    }>
+  ): Promise<InventoryResponse[]> {
+    if (!adjustments.length) {
+      throw new InventoryValidationError('At least one adjustment is required');
+    }
+    adjustments.forEach(({ adjustment }) => {
+      if (adjustment.quantity === 0) {
+        throw new InventoryValidationError('Adjustment quantity cannot be zero');
+      }
+    });
+
+    return this.request('POST', 'inventory/bulk-adjust', { adjustments });
   }
 }
 

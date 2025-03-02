@@ -1,6 +1,6 @@
 {
   "name": "stateset-node",
-  "version": "0.0.88",
+  "version": "0.0.89",
   "description": "TypeScript/Node.js library for the Stateset API",
   "keywords": [
     "stateset",

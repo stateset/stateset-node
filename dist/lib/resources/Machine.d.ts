@@ -47,13 +47,11 @@ export interface MachineSpecs {
         value: number;
         unit: string;
     };
-    operating_parameters?: {
-        min_temperature?: number;
-        max_temperature?: number;
-        min_pressure?: number;
-        max_pressure?: number;
-        [key: string]: any;
-    };
+    operating_parameters?: Record<string, {
+        min?: number;
+        max?: number;
+        unit?: string;
+    }>;
 }
 export interface MaintenanceSchedule {
     frequency: string;
@@ -73,6 +71,7 @@ export interface MachineData {
     warranty_expiration?: string;
     maintenance_schedule?: MaintenanceSchedule;
     org_id?: string;
+    metadata?: Record<string, any>;
 }
 export interface RuntimeData {
     start_time: string;
@@ -97,6 +96,7 @@ export interface MaintenanceData {
     parts_required?: string[];
     procedures?: string[];
     cost_estimate?: number;
+    currency?: string;
     priority?: 'high' | 'medium' | 'low';
 }
 export interface MalfunctionReport {
@@ -108,25 +108,6 @@ export interface MalfunctionReport {
     impact_assessment?: string;
     images?: string[];
 }
-export interface PerformanceMetrics {
-    time_period: {
-        start: string;
-        end: string;
-    };
-    efficiency: number;
-    availability: number;
-    quality: number;
-    oee: number;
-    uptime: number;
-    downtime: number;
-    mtbf: number;
-    mttr: number;
-    output_rate: number;
-    energy_efficiency: number;
-    maintenance_costs: number;
-    production_volume: number;
-    defect_rate: number;
-}
 interface BaseMachineResponse {
     id: string;
     object: 'machine';
@@ -135,132 +116,96 @@ interface BaseMachineResponse {
     status: MachineStatus;
     data: MachineData;
 }
-interface OperationalMachineResponse extends BaseMachineResponse {
-    status: MachineStatus.OPERATIONAL;
-    operational: true;
-    current_runtime?: RuntimeData;
+export type MachineResponse = BaseMachineResponse & {
+    [K in MachineStatus]: {
+        status: K;
+    } & (K extends MachineStatus.OPERATIONAL ? {
+        operational: true;
+        current_runtime?: RuntimeData;
+    } : K extends MachineStatus.MAINTENANCE ? {
+        maintenance: true;
+        maintenance_data: MaintenanceData;
+    } : K extends MachineStatus.OFFLINE ? {
+        offline: true;
+        last_runtime?: RuntimeData;
+    } : K extends MachineStatus.MALFUNCTION ? {
+        malfunction: true;
+        malfunction_report: MalfunctionReport;
+    } : K extends MachineStatus.STANDBY ? {
+        standby: true;
+    } : K extends MachineStatus.SETUP ? {
+        setup: true;
+    } : {});
+}[MachineStatus];
+export declare class MachineError extends Error {
+    constructor(message: string, name: string);
 }
-interface MaintenanceMachineResponse extends BaseMachineResponse {
-    status: MachineStatus.MAINTENANCE;
-    maintenance: true;
-    maintenance_data: MaintenanceData;
-}
-interface OfflineMachineResponse extends BaseMachineResponse {
-    status: MachineStatus.OFFLINE;
-    offline: true;
-    last_runtime?: RuntimeData;
-}
-interface MalfunctionMachineResponse extends BaseMachineResponse {
-    status: MachineStatus.MALFUNCTION;
-    malfunction: true;
-    malfunction_report: MalfunctionReport;
-}
-export type MachineResponse = OperationalMachineResponse | MaintenanceMachineResponse | OfflineMachineResponse | MalfunctionMachineResponse;
-export declare class MachineNotFoundError extends Error {
+export declare class MachineNotFoundError extends MachineError {
     constructor(machineId: string);
 }
-export declare class MachineStateError extends Error {
+export declare class MachineStateError extends MachineError {
     constructor(message: string);
 }
-export declare class MachineValidationError extends Error {
+export declare class MachineValidationError extends MachineError {
     constructor(message: string);
 }
-declare class Machines {
-    private readonly stateset;
-    constructor(stateset: stateset);
-    /**
-     * List machines with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of MachineResponse objects
-     */
+export declare class Machines {
+    private readonly client;
+    constructor(client: stateset);
+    private request;
+    private validateRuntimeData;
     list(params?: {
         status?: MachineStatus;
         facility_id?: string;
         manufacturer?: string;
         maintenance_due?: boolean;
         org_id?: string;
-    }): Promise<MachineResponse[]>;
-    /**
-     * Get specific machine by ID
-     * @param machineId - Machine ID
-     * @returns MachineResponse object
-     */
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        machines: MachineResponse[];
+        total: number;
+    }>;
     get(machineId: string): Promise<MachineResponse>;
-    /**
-     * Create new machine
-     * @param machineData - MachineData object
-     * @returns MachineResponse object
-     */
     create(machineData: MachineData): Promise<MachineResponse>;
-    /**
-     * Update existing machine
-     * @param machineId - Machine ID
-     * @param machineData - Partial<MachineData> object
-     * @returns MachineResponse object
-     */
     update(machineId: string, machineData: Partial<MachineData>): Promise<MachineResponse>;
-    /**
-     * Delete machine
-     * @param machineId - Machine ID
-     */
     delete(machineId: string): Promise<void>;
-    /**
-     * Log machine runtime
-     * @param machineId - Machine ID
-     * @param data - RuntimeData object
-     * @returns MachineResponse object
-     */
     logRuntime(machineId: string, data: RuntimeData): Promise<MachineResponse>;
-    /**
-     * Schedule maintenance
-     * @param machineId - Machine ID
-     * @param data - MaintenanceData object
-     * @returns MaintenanceMachineResponse object
-     */
-    scheduleMaintenance(machineId: string, data: MaintenanceData): Promise<MaintenanceMachineResponse>;
-    /**
-     * Get performance metrics
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns PerformanceMetrics object
-     */
+    scheduleMaintenance(machineId: string, data: MaintenanceData): Promise<MachineResponse>;
     getPerformanceMetrics(machineId: string, params?: {
         start_date?: Date;
         end_date?: Date;
-        metrics?: (keyof PerformanceMetrics)[];
-    }): Promise<PerformanceMetrics>;
-    /**
-     * Set machine status to operational
-     * @param machineId - Machine ID
-     * @returns OperationalMachineResponse object
-     */
-    setOperational(machineId: string): Promise<OperationalMachineResponse>;
-    setOffline(machineId: string, reason?: string): Promise<OfflineMachineResponse>;
-    reportMalfunction(machineId: string, report: MalfunctionReport): Promise<MalfunctionMachineResponse>;
-    /**
-     * Get maintenance history
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns Array of MaintenanceData objects
-     */
+        metrics?: string[];
+    }): Promise<{
+        time_period: {
+            start: string;
+            end: string;
+        };
+        metrics: Record<string, number>;
+    }>;
+    setStatus(machineId: string, status: MachineStatus, details?: {
+        reason?: string;
+        operator_id?: string;
+    }): Promise<MachineResponse>;
+    reportMalfunction(machineId: string, report: MalfunctionReport): Promise<MachineResponse>;
     getMaintenanceHistory(machineId: string, params?: {
         start_date?: Date;
         end_date?: Date;
         type?: MaintenanceType;
         limit?: number;
-    }): Promise<Array<MaintenanceData & {
-        completed_at: string;
-    }>>;
-    /**
-     * Get machine alerts
-     * @param machineId - Machine ID
-     * @param params - Optional filtering parameters
-     * @returns Array of MalfunctionAlert objects
-     */
+        offset?: number;
+    }): Promise<{
+        history: Array<MaintenanceData & {
+            completed_at?: string;
+            actual_cost?: number;
+        }>;
+        total: number;
+    }>;
     getAlerts(machineId: string, params?: {
         severity?: MalfunctionSeverity;
         start_date?: Date;
         resolved?: boolean;
+        limit?: number;
     }): Promise<Array<{
         id: string;
         type: string;
@@ -268,6 +213,23 @@ declare class Machines {
         message: string;
         created_at: string;
         resolved_at?: string;
+        resolution_notes?: string;
     }>>;
+    getUtilization(machineId: string, params?: {
+        start_date?: Date;
+        end_date?: Date;
+    }): Promise<{
+        utilization_rate: number;
+        total_hours: number;
+        operating_hours: number;
+        downtime_hours: number;
+        downtime_reasons: Record<string, number>;
+    }>;
+    completeMaintenance(machineId: string, maintenanceId: string, completionData: {
+        actual_duration: number;
+        actual_cost?: number;
+        notes?: string;
+        parts_used?: string[];
+    }): Promise<MachineResponse>;
 }
 export default Machines;

@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderValidationError = exports.OrderStateError = exports.OrderNotFoundError = exports.FulfillmentPriority = exports.PaymentStatus = exports.OrderStatus = void 0;
-// Enums for order management
+exports.Orders = exports.OrderValidationError = exports.OrderStateError = exports.OrderNotFoundError = exports.OrderError = exports.FulfillmentPriority = exports.PaymentStatus = exports.OrderStatus = void 0;
+// Constants and Enums
+const DEFAULT_CURRENCY = 'USD';
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["DRAFT"] = "DRAFT";
@@ -35,230 +36,128 @@ var FulfillmentPriority;
     FulfillmentPriority["LOW"] = "low";
 })(FulfillmentPriority = exports.FulfillmentPriority || (exports.FulfillmentPriority = {}));
 // Custom Error Classes
-class OrderNotFoundError extends Error {
+class OrderError extends Error {
+    constructor(message, name) {
+        super(message);
+        this.name = name;
+    }
+}
+exports.OrderError = OrderError;
+class OrderNotFoundError extends OrderError {
     constructor(orderId) {
-        super(`Order with ID ${orderId} not found`);
-        this.name = 'OrderNotFoundError';
+        super(`Order with ID ${orderId} not found`, 'OrderNotFoundError');
     }
 }
 exports.OrderNotFoundError = OrderNotFoundError;
-class OrderStateError extends Error {
+class OrderStateError extends OrderError {
     constructor(message) {
-        super(message);
-        this.name = 'OrderStateError';
+        super(message, 'OrderStateError');
     }
 }
 exports.OrderStateError = OrderStateError;
-class OrderValidationError extends Error {
+class OrderValidationError extends OrderError {
     constructor(message) {
-        super(message);
-        this.name = 'OrderValidationError';
+        super(message, 'OrderValidationError');
     }
 }
 exports.OrderValidationError = OrderValidationError;
+// Utility Functions
+const validateOrderTotals = (orderData) => {
+    const calculatedTotal = orderData.items.reduce((total, item) => total + item.total_amount, 0);
+    if (Math.abs(calculatedTotal - orderData.totals.subtotal) > 0.01) {
+        throw new OrderValidationError('Order items total does not match subtotal');
+    }
+};
 // Main Orders Class
 class Orders {
-    constructor(stateset) {
-        this.stateset = stateset;
+    constructor(client) {
+        this.client = client;
     }
-    /**
-     * List orders with optional filtering
-     * @param params - Optional filtering parameters
-     * @returns Array of OrderResponse objects
-     */
-    async list(params) {
-        const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
-            queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.customer_id)
-            queryParams.append('customer_id', params.customer_id);
-        if (params === null || params === void 0 ? void 0 : params.date_from)
-            queryParams.append('date_from', params.date_from.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.date_to)
-            queryParams.append('date_to', params.date_to.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.priority)
-            queryParams.append('priority', params.priority);
-        if (params === null || params === void 0 ? void 0 : params.payment_status)
-            queryParams.append('payment_status', params.payment_status);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
-            queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `orders?${queryParams.toString()}`);
-        return response.orders;
-    }
-    /**
-     * Get specific order by ID
-     * @param orderId - Order ID
-     * @returns OrderResponse object
-     */
-    async get(orderId) {
+    async request(method, path, data) {
         try {
-            const response = await this.stateset.request('GET', `orders/${orderId}`);
-            return response.order;
+            return await this.client.request(method, path, data);
         }
         catch (error) {
             if (error.status === 404) {
-                throw new OrderNotFoundError(orderId);
+                throw new OrderNotFoundError(path.split('/')[2] || 'unknown');
             }
-            throw error;
-        }
-    }
-    /**
-     * Create new order
-     * @param orderData - OrderData object
-     * @returns OrderResponse object
-     */
-    async create(orderData) {
-        // Validate order totals
-        const calculatedTotal = orderData.items.reduce((total, item) => total + item.total_amount, 0);
-        if (calculatedTotal !== orderData.totals.subtotal) {
-            throw new OrderValidationError('Order items total does not match subtotal');
-        }
-        try {
-            const response = await this.stateset.request('POST', 'orders', orderData);
-            return response.order;
-        }
-        catch (error) {
             if (error.status === 400) {
                 throw new OrderValidationError(error.message);
             }
             throw error;
         }
     }
-    /**
-     * Update existing order
-     * @param orderId - Order ID
-     * @param orderData - Partial<OrderData> object
-     * @returns OrderResponse object
-     */
-    async update(orderId, orderData) {
-        try {
-            const response = await this.stateset.request('PUT', `orders/${orderId}`, orderData);
-            return response.order;
-        }
-        catch (error) {
-            if (error.status === 404) {
-                throw new OrderNotFoundError(orderId);
+    async list(params = {}) {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined) {
+                queryParams.append(key, value instanceof Date ? value.toISOString() : String(value));
             }
-            throw error;
+        });
+        const response = await this.request('GET', `orders?${queryParams.toString()}`);
+        return response;
+    }
+    async get(orderId) {
+        return this.request('GET', `orders/${orderId}`);
+    }
+    async create(orderData) {
+        validateOrderTotals(orderData);
+        return this.request('POST', 'orders', {
+            ...orderData,
+            totals: { ...orderData.totals, currency: orderData.totals.currency || DEFAULT_CURRENCY },
+        });
+    }
+    async update(orderId, orderData) {
+        if (orderData.totals && orderData.items) {
+            validateOrderTotals(orderData);
         }
+        return this.request('PUT', `orders/${orderId}`, orderData);
     }
-    /**
-     * Process order status changes
-     * @param orderId - Order ID
-     * @returns ConfirmedOrderResponse object
-     */
     async confirm(orderId) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/confirm`);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/confirm`);
     }
-    /**
-     * Start processing an order
-     * @param orderId - Order ID
-     * @returns ProcessingOrderResponse object
-     */
     async process(orderId) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/process`);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/process`);
     }
-    /**
-     * Ship an order
-     * @param orderId - Order ID
-     * @param shippingDetails - ShippingDetails object
-     * @returns ShippedOrderResponse object
-     */
     async ship(orderId, shippingDetails) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/ship`, shippingDetails);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/ship`, shippingDetails);
     }
-    /**
-     * Mark an order as delivered
-     * @param orderId - Order ID
-     * @param confirmation - Optional confirmation object
-     * @returns DeliveredOrderResponse object
-     */
     async markDelivered(orderId, confirmation) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/deliver`, confirmation);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/deliver`, confirmation);
     }
-    /**
-     * Cancel an order
-     * @param orderId - Order ID
-     * @param cancellationData - Cancellation data
-     * @returns CancelledOrderResponse object
-     */
     async cancel(orderId, cancellationData) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/cancel`, cancellationData);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/cancel`, cancellationData);
     }
-    /**
-     * Process a return for an order
-     * @param orderId - Order ID
-     * @param returnData - Return data
-     * @returns ReturnedOrderResponse object
-     */
     async processReturn(orderId, returnData) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/return`, returnData);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/return`, returnData);
     }
-    /**
-     * Process a refund for an order
-     * @param orderId - Order ID
-     * @param refundData - Refund data
-     * @returns RefundedOrderResponse object
-     */
     async processRefund(orderId, refundData) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/refund`, refundData);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/refund`, refundData);
     }
-    /**
-     * Add a fulfillment event to an order
-     * @param orderId - Order ID
-     * @param event - FulfillmentEvent object
-     * @returns OrderResponse object
-     */
     async addFulfillmentEvent(orderId, event) {
-        const response = await this.stateset.request('POST', `orders/${orderId}/fulfillment-events`, event);
-        return response.order;
+        return this.request('POST', `orders/${orderId}/fulfillment-events`, event);
     }
-    /**
-     * Get fulfillment history for an order
-     * @param orderId - Order ID
-     * @param params - Optional filtering parameters
-     * @returns Array of FulfillmentEvent objects
-     */
-    async getFulfillmentHistory(orderId, params) {
+    async getFulfillmentHistory(orderId, params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        const response = await this.stateset.request('GET', `orders/${orderId}/fulfillment-history?${queryParams.toString()}`);
-        return response.history;
+        return this.request('GET', `orders/${orderId}/fulfillment-history?${queryParams.toString()}`);
     }
-    /**
-     * Get tracking information for an order
-     * @param orderId - Order ID
-     * @returns Tracking information object
-     */
     async getTracking(orderId) {
-        const response = await this.stateset.request('GET', `orders/${orderId}/tracking`);
-        return response.tracking;
+        return this.request('GET', `orders/${orderId}/tracking`);
     }
-    /**
-     * Get order metrics
-     * @param params - Optional filtering parameters
-     * @returns Metrics object
-     */
-    async getMetrics(params) {
+    async getMetrics(params = {}) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params.org_id)
             queryParams.append('org_id', params.org_id);
-        const response = await this.stateset.request('GET', `orders/metrics?${queryParams.toString()}`);
-        return response.metrics;
+        return this.request('GET', `orders/metrics?${queryParams.toString()}`);
     }
 }
+exports.Orders = Orders;
 exports.default = Orders;
