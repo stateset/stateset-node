@@ -47,6 +47,19 @@ import Promotions from './lib/resources/Promotion';
 import Schedule from './lib/resources/Schedule';
 import ShipTo from './lib/resources/ShipTo';
 import Logs from './lib/resources/Log';
+import MaintenanceSchedules from './lib/resources/MaintenanceSchedule';
+import QualityControl from './lib/resources/QualityControl';
+import ResourceUtilization from './lib/resources/ResourceUtilization';
+import Payments from './lib/resources/Payment';
+import Refunds from './lib/resources/Refund';
+import CreditsDebits from './lib/resources/CreditsDebits';
+import Ledger from './lib/resources/Ledger';
+import Opportunities from './lib/resources/Opportunity';
+import Contacts from './lib/resources/Contact';
+import CasesTickets from './lib/resources/CaseTicket';
+import Carriers from './lib/resources/Carrier';
+import Routes from './lib/resources/Route';
+import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
 
 interface StatesetOptions {
   apiKey: string;
@@ -105,6 +118,19 @@ export class stateset {
   public contracts: Contracts;
   public promotions: Promotions;
   public logs: Logs;
+  public maintenanceSchedules: MaintenanceSchedules;
+  public qualityControl: QualityControl;
+  public resourceUtilization: ResourceUtilization;
+  public payments: Payments;
+  public refunds: Refunds;
+  public creditsDebits: CreditsDebits;
+  public ledger: Ledger;
+  public opportunities: Opportunities;
+  public contacts: Contacts;
+  public casesTickets: CasesTickets;
+  public carriers: Carriers;
+  public routes: Routes;
+  public deliveryConfirmations: DeliveryConfirmations;
 
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey;
@@ -158,6 +184,19 @@ export class stateset {
     this.contracts = new Contracts(this);
     this.promotions = new Promotions(this);
     this.logs = new Logs(this);
+    this.maintenanceSchedules = new MaintenanceSchedules(this);
+    this.qualityControl = new QualityControl(this);
+    this.resourceUtilization = new ResourceUtilization(this);
+    this.payments = new Payments(this);
+    this.refunds = new Refunds(this);
+    this.creditsDebits = new CreditsDebits(this);
+    this.ledger = new Ledger(this);
+    this.opportunities = new Opportunities(this);
+    this.contacts = new Contacts(this);
+    this.casesTickets = new CasesTickets(this);
+    this.carriers = new Carriers(this);
+    this.routes = new Routes(this);
+    this.deliveryConfirmations = new DeliveryConfirmations(this);
   }
 
   async request(method: string, path: string, data?: any) {
