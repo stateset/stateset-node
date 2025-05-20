@@ -37,6 +37,8 @@ npm install stateset-node
 import stateset from 'stateset-node';
 
 const client = new stateset({
+  // apiKey and baseUrl can be omitted if the STATESET_API_KEY and
+  // STATESET_BASE_URL environment variables are set.
   apiKey: process.env.STATESET_API_KEY,
   // Optional retry logic for transient failures
   retry: 3,
@@ -69,6 +71,7 @@ This repository contains sample Node and web apps demonstrating how the SDK can 
 2. **Obtain an API key from the Stateset Cloud Platform Dashboard.**
 3. **Navigate to the `samples` folder and run `npm install`.**
 4. **Set your API key as an environment variable: `export STATESET_API_KEY=YOUR_API_KEY`.**
+   You can also override the API base URL with `export STATESET_BASE_URL=https://your-endpoint`.
 5. **Open the sample file you're interested in, e.g., `returns_list.js`.**
 6. **Run the sample file: `node returns_list.js`.**
 
