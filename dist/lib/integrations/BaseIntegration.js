@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/lib/integrations/BaseIntegration.ts
-const node_fetch_1 = __importDefault(require("node-fetch"));
+const axios_1 = __importDefault(require("axios"));
 class BaseIntegration {
     constructor(apiKey, baseUrl) {
         this.apiKey = apiKey;
@@ -12,21 +12,17 @@ class BaseIntegration {
     }
     async request(method, path, data) {
         const url = `${this.baseUrl}/${path}`;
-        const headers = {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-        };
         try {
-            const response = await (0, node_fetch_1.default)(url, {
+            const response = await axios_1.default.request({
                 method,
-                headers,
-                body: data ? JSON.stringify(data) : undefined,
+                url,
+                data,
+                headers: {
+                    Authorization: `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-            }
-            return await response.json();
+            return response.data;
         }
         catch (error) {
             console.error('Error in integration request:', error);

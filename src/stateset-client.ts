@@ -1,3 +1,4 @@
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import Returns from './lib/resources/Return';
 import Warranties from './lib/resources/Warranty';
 import Products from './lib/resources/Product';
@@ -69,6 +70,7 @@ interface StatesetOptions {
 export class stateset {
   private baseUrl: string;
   private apiKey: string;
+  private httpClient: AxiosInstance;
   public returns: Returns;
   public returnItems: ReturnLines;
   public warranties: Warranties;
@@ -135,6 +137,14 @@ export class stateset {
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey;
     this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+
+    this.httpClient = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
     this.returns = new Returns(this);
     this.returnItems = new ReturnLines(this);
     this.warranties = new Warranties(this);
@@ -199,32 +209,16 @@ export class stateset {
     this.deliveryConfirmations = new DeliveryConfirmations(this);
   }
 
-  async request(method: string, path: string, data?: any) {
-    const url = `${this.baseUrl}/${path}`;
-    const headers = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-    };
-
-    console.log(`Making ${method} request to ${url}`);
-
+  async request(method: string, path: string, data?: any, options: AxiosRequestConfig = {}) {
     try {
-      const response = await fetch(url, {
+      const response = await this.httpClient.request({
         method,
-        headers,
-        body: data ? JSON.stringify(data) : undefined,
+        url: path,
+        data,
+        ...options
       });
-
-      console.log(`Response status: ${response.status}`);
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`Error response body: ${errorBody}`);
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-      }
-
-      return await response.json();
-    } catch (error) {
+      return response.data;
+    } catch (error: any) {
       console.error('Error in Stateset request:', error);
       throw error;
     }

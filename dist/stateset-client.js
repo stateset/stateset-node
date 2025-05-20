@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stateset = void 0;
+const axios_1 = __importDefault(require("axios"));
 const Return_1 = __importDefault(require("./lib/resources/Return"));
 const Warranty_1 = __importDefault(require("./lib/resources/Warranty"));
 const Product_1 = __importDefault(require("./lib/resources/Product"));
@@ -57,6 +58,13 @@ class stateset {
     constructor(options) {
         this.apiKey = options.apiKey;
         this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+        this.httpClient = axios_1.default.create({
+            baseURL: this.baseUrl,
+            headers: {
+                Authorization: `Bearer ${this.apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
         this.returns = new Return_1.default(this);
         this.returnItems = new ReturnLine_1.default(this);
         this.warranties = new Warranty_1.default(this);
@@ -107,26 +115,15 @@ class stateset {
         this.promotions = new Promotion_1.default(this);
         this.logs = new Log_1.default(this);
     }
-    async request(method, path, data) {
-        const url = `${this.baseUrl}/${path}`;
-        const headers = {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-        };
-        console.log(`Making ${method} request to ${url}`);
+    async request(method, path, data, options = {}) {
         try {
-            const response = await fetch(url, {
+            const response = await this.httpClient.request({
                 method,
-                headers,
-                body: data ? JSON.stringify(data) : undefined,
+                url: path,
+                data,
+                ...options
             });
-            console.log(`Response status: ${response.status}`);
-            if (!response.ok) {
-                const errorBody = await response.text();
-                console.error(`Error response body: ${errorBody}`);
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-            }
-            return await response.json();
+            return response.data;
         }
         catch (error) {
             console.error('Error in Stateset request:', error);

@@ -54,6 +54,7 @@ interface StatesetOptions {
 export declare class stateset {
     private baseUrl;
     private apiKey;
+    private httpClient;
     returns: Returns;
     returnItems: ReturnLines;
     warranties: Warranties;
@@ -104,6 +105,6 @@ export declare class stateset {
     promotions: Promotions;
     logs: Logs;
     constructor(options: StatesetOptions);
-    request(method: string, path: string, data?: any): Promise<any>;
+    request(method: string, path: string, data?: any, options?: any): Promise<any>;
 }
 export default stateset;

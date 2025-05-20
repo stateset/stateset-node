@@ -1,5 +1,5 @@
 // src/lib/integrations/BaseIntegration.ts
-import fetch from 'node-fetch';
+import axios from 'axios';
 
 export default abstract class BaseIntegration {
   protected apiKey: string;
@@ -12,24 +12,17 @@ export default abstract class BaseIntegration {
 
   protected async request(method: string, path: string, data?: any) {
     const url = `${this.baseUrl}/${path}`;
-    const headers = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-    };
-
     try {
-      const response = await fetch(url, {
+      const response = await axios.request({
         method,
-        headers,
-        body: data ? JSON.stringify(data) : undefined,
+        url,
+        data,
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        }
       });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-      }
-
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error('Error in integration request:', error);
       throw error;
