@@ -92,6 +92,8 @@ const ticket = await client.casesTickets.create({
 await client.casesTickets.assign(ticket.id, 'agent_123');
 await client.casesTickets.addNote(ticket.id, 'Customer will provide photos.');
 await client.casesTickets.escalate(ticket.id, 'HIGH');
+await client.casesTickets.close(ticket.id);
+await client.casesTickets.reopen(ticket.id, 'Additional information received.');
 ```
 
 ## Try out a sample app

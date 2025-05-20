@@ -219,6 +219,24 @@ export default class CasesTickets {
     }
   }
 
+  async close(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse> {
+    try {
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/close`);
+      return this.mapResponse(response.case_ticket);
+    } catch (error: any) {
+      throw this.handleError(error, 'close', caseTicketId);
+    }
+  }
+
+  async reopen(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
+    try {
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, { note });
+      return this.mapResponse(response.case_ticket);
+    } catch (error: any) {
+      throw this.handleError(error, 'reopen', caseTicketId);
+    }
+  }
+
   private handleError(error: any, operation: string, caseTicketId?: string): never {
     if (error.status === 404) throw new CaseTicketNotFoundError(caseTicketId || 'unknown');
     if (error.status === 400) throw new CaseTicketValidationError(error.message, error.errors);
