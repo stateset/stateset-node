@@ -1,4 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageVersion: string = require('../package.json').version;
 import Returns from './lib/resources/Return';
 import Warranties from './lib/resources/Warranty';
 import Products from './lib/resources/Product';
@@ -73,6 +75,14 @@ interface StatesetOptions {
    * Delay in milliseconds between retries.
    */
   retryDelayMs?: number;
+  /**
+   * Request timeout in milliseconds. Defaults to 60000 (60s).
+   */
+  timeout?: number;
+  /**
+   * Custom User-Agent header value. Defaults to `stateset-node/<version>`.
+   */
+  userAgent?: string;
 }
 
 export class stateset {
@@ -81,6 +91,8 @@ export class stateset {
   private httpClient: AxiosInstance;
   private retry: number;
   private retryDelayMs: number;
+  private timeout: number;
+  private userAgent: string;
   public returns: Returns;
   public returnItems: ReturnLines;
   public warranties: Warranties;
@@ -149,12 +161,16 @@ export class stateset {
     this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
     this.retry = options.retry ?? 0;
     this.retryDelayMs = options.retryDelayMs ?? 1000;
+    this.timeout = options.timeout ?? 60000;
+    this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
 
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
+      timeout: this.timeout,
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': this.userAgent
       }
     });
     // Simple automatic retry mechanism for transient failures

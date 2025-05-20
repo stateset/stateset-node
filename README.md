@@ -41,6 +41,9 @@ const client = new stateset({
   // Optional retry logic for transient failures
   retry: 3,
   retryDelayMs: 1000,
+  // Optional request timeout and custom User-Agent
+  timeout: 60000,
+  userAgent: 'my-app/1.0'
 });
 ```
 
