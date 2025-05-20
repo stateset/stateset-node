@@ -104,6 +104,58 @@ const notes = await client.casesTickets.listNotes(ticket.id);
 console.log(notes);
 ```
 
+### Managing orders
+
+```javascript
+const order = await client.orders.create({
+  customer_id: 'cust_123',
+  items: [], // order items here
+  shipping_address: {
+    first_name: 'John',
+    last_name: 'Doe',
+    street_address1: '1 Market St',
+    city: 'San Francisco',
+    state: 'CA',
+    postal_code: '94105',
+    country: 'US'
+  },
+  payment_details: {
+    payment_method: 'card',
+    status: 'authorized',
+    amount_paid: 0,
+    currency: 'USD'
+  },
+  totals: {
+    subtotal: 0,
+    shipping_total: 0,
+    tax_total: 0,
+    discount_total: 0,
+    grand_total: 0,
+    currency: 'USD'
+  }
+});
+
+await client.orders.updateShippingAddress(order.id, {
+  first_name: 'Jane',
+  last_name: 'Doe',
+  street_address1: '2 Market St',
+  city: 'San Francisco',
+  state: 'CA',
+  postal_code: '94105',
+  country: 'US'
+});
+
+await client.orders.updateBillingAddress(order.id, {
+  first_name: 'Jane',
+  last_name: 'Doe',
+  street_address1: '2 Market St',
+  city: 'San Francisco',
+  state: 'CA',
+  postal_code: '94105',
+  country: 'US'
+});
+```
+
 ## Try out a sample app
 
 This repository contains sample Node and web apps demonstrating how the SDK can access and utilize the Stateset API for various use cases.

@@ -134,6 +134,12 @@ class Orders {
     async processRefund(orderId, refundData) {
         return this.request('POST', `orders/${orderId}/refund`, refundData);
     }
+    async updateShippingAddress(orderId, address) {
+        return this.request('PUT', `orders/${orderId}/shipping-address`, address);
+    }
+    async updateBillingAddress(orderId, address) {
+        return this.request('PUT', `orders/${orderId}/billing-address`, address);
+    }
     async addFulfillmentEvent(orderId, event) {
         return this.request('POST', `orders/${orderId}/fulfillment-events`, event);
     }
