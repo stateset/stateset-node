@@ -75,6 +75,20 @@ export default class CasesTickets {
             offset: number;
         };
     }>;
+    search(query: string, params?: {
+        status?: CaseTicketStatus;
+        priority?: CaseTicketPriority;
+        org_id?: string;
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        cases_tickets: CaseTicketResponse[];
+        pagination: {
+            total: number;
+            limit: number;
+            offset: number;
+        };
+    }>;
     get(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse>;
     create(data: CaseTicketData): Promise<CaseTicketResponse>;
     update(caseTicketId: NonEmptyString<string>, data: Partial<CaseTicketData>): Promise<CaseTicketResponse>;
@@ -82,6 +96,7 @@ export default class CasesTickets {
     resolve(caseTicketId: NonEmptyString<string>, resolutionNotes: string): Promise<CaseTicketResponse>;
     assign(caseTicketId: NonEmptyString<string>, agentId: NonEmptyString<string>): Promise<CaseTicketResponse>;
     addNote(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse>;
+    listNotes(caseTicketId: NonEmptyString<string>): Promise<string[]>;
     escalate(caseTicketId: NonEmptyString<string>, level: EscalationLevel): Promise<CaseTicketResponse>;
     close(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse>;
     reopen(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse>;

@@ -147,6 +147,44 @@ export default class CasesTickets {
     }
   }
 
+  async search(
+    query: string,
+    params: {
+      status?: CaseTicketStatus;
+      priority?: CaseTicketPriority;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
+    cases_tickets: CaseTicketResponse[];
+    pagination: { total: number; limit: number; offset: number };
+  }> {
+    const queryParams = new URLSearchParams({ query });
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority);
+    if (params.org_id) queryParams.append('org_id', params.org_id);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+
+    try {
+      const response = await this.stateset.request(
+        'GET',
+        `cases_tickets/search?${queryParams.toString()}`
+      );
+      return {
+        cases_tickets: response.cases_tickets.map(this.mapResponse),
+        pagination: {
+          total: response.total || response.cases_tickets.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
+      };
+    } catch (error: any) {
+      throw this.handleError(error, 'search');
+    }
+  }
+
   async get(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse> {
     try {
       const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}`);
@@ -207,6 +245,15 @@ export default class CasesTickets {
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'addNote', caseTicketId);
+    }
+  }
+
+  async listNotes(caseTicketId: NonEmptyString<string>): Promise<string[]> {
+    try {
+      const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}/notes`);
+      return response.notes || [];
+    } catch (error: any) {
+      throw this.handleError(error, 'listNotes', caseTicketId);
     }
   }
 
