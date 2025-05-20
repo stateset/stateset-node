@@ -152,6 +152,21 @@ export declare class stateset {
     routes: Routes;
     deliveryConfirmations: DeliveryConfirmations;
     constructor(options: StatesetOptions);
+    /**
+     * Update the API key used for requests after initialization.
+     * @param apiKey - new API key string
+     */
+    setApiKey(apiKey: string): void;
+    /**
+     * Update the base URL used for requests after initialization.
+     * @param baseUrl - new base URL string
+     */
+    setBaseUrl(baseUrl: string): void;
+    /**
+     * Update the request timeout used for HTTP requests.
+     * @param timeout - timeout in milliseconds
+     */
+    setTimeout(timeout: number): void;
     request(method: string, path: string, data?: any, options?: AxiosRequestConfig): Promise<any>;
 }
 export default stateset;

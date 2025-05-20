@@ -22,3 +22,14 @@ test('uses environment variables when options are omitted', () => {
   delete process.env.STATESET_API_KEY;
   delete process.env.STATESET_BASE_URL;
 });
+
+test('allows updating configuration after init', () => {
+  const client: any = new stateset({ apiKey: 'init-key', baseUrl: 'https://a' });
+  client.setApiKey('new-key');
+  client.setBaseUrl('https://b');
+  client.setTimeout(12345);
+
+  expect(client.httpClient.defaults.headers['Authorization']).toBe('Bearer new-key');
+  expect(client.httpClient.defaults.baseURL).toBe('https://b');
+  expect(client.httpClient.defaults.timeout).toBe(12345);
+});
