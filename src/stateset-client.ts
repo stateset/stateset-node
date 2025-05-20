@@ -171,8 +171,15 @@ export class stateset {
     if (!this.apiKey) {
       throw new Error('Stateset API key is required');
     }
-    this.retry = options.retry ?? 0;
-    this.retryDelayMs = options.retryDelayMs ?? 1000;
+    const envRetry = process.env.STATESET_RETRY
+      ? parseInt(process.env.STATESET_RETRY, 10)
+      : undefined;
+    const envRetryDelay = process.env.STATESET_RETRY_DELAY_MS
+      ? parseInt(process.env.STATESET_RETRY_DELAY_MS, 10)
+      : undefined;
+
+    this.retry = options.retry ?? envRetry ?? 0;
+    this.retryDelayMs = options.retryDelayMs ?? envRetryDelay ?? 1000;
     this.timeout = options.timeout ?? 60000;
     this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
     this.additionalHeaders = options.additionalHeaders || {};
@@ -293,6 +300,16 @@ export class stateset {
   setTimeout(timeout: number): void {
     this.timeout = timeout;
     this.httpClient.defaults.timeout = timeout;
+  }
+
+  /**
+   * Update retry configuration used for requests.
+   * @param retry - number of retries
+   * @param retryDelayMs - delay in ms between retries
+   */
+  setRetryOptions(retry: number, retryDelayMs: number = this.retryDelayMs): void {
+    this.retry = retry;
+    this.retryDelayMs = retryDelayMs;
   }
 
   /**
