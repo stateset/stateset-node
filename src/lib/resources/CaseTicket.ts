@@ -20,6 +20,13 @@ export enum CaseTicketPriority {
   URGENT = 'URGENT'
 }
 
+export enum EscalationLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
 // Interfaces
 export interface CaseTicketData {
   customer_id: NonEmptyString<string>;
@@ -182,6 +189,33 @@ export default class CasesTickets {
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'resolve', caseTicketId);
+    }
+  }
+
+  async assign(caseTicketId: NonEmptyString<string>, agentId: NonEmptyString<string>): Promise<CaseTicketResponse> {
+    try {
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, { agent_id: agentId });
+      return this.mapResponse(response.case_ticket);
+    } catch (error: any) {
+      throw this.handleError(error, 'assign', caseTicketId);
+    }
+  }
+
+  async addNote(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
+    try {
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, { note });
+      return this.mapResponse(response.case_ticket);
+    } catch (error: any) {
+      throw this.handleError(error, 'addNote', caseTicketId);
+    }
+  }
+
+  async escalate(caseTicketId: NonEmptyString<string>, level: EscalationLevel): Promise<CaseTicketResponse> {
+    try {
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/escalate`, { level });
+      return this.mapResponse(response.case_ticket);
+    } catch (error: any) {
+      throw this.handleError(error, 'escalate', caseTicketId);
     }
   }
 

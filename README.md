@@ -78,6 +78,22 @@ try {
 }
 ```
 
+### Working with case tickets
+
+```javascript
+const ticket = await client.casesTickets.create({
+  customer_id: 'cust_123',
+  status: 'OPEN',
+  priority: 'MEDIUM',
+  subject: 'Question about my order',
+  description: 'The package arrived damaged.'
+});
+
+await client.casesTickets.assign(ticket.id, 'agent_123');
+await client.casesTickets.addNote(ticket.id, 'Customer will provide photos.');
+await client.casesTickets.escalate(ticket.id, 'HIGH');
+```
+
 ## Try out a sample app
 
 This repository contains sample Node and web apps demonstrating how the SDK can access and utilize the Stateset API for various use cases.
