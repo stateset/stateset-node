@@ -119,6 +119,33 @@ class CasesTickets {
             throw this.handleError(error, 'list');
         }
     }
+    async search(query, params = {}) {
+        const queryParams = new URLSearchParams({ query });
+        if (params.status)
+            queryParams.append('status', params.status);
+        if (params.priority)
+            queryParams.append('priority', params.priority);
+        if (params.org_id)
+            queryParams.append('org_id', params.org_id);
+        if (params.limit)
+            queryParams.append('limit', params.limit.toString());
+        if (params.offset)
+            queryParams.append('offset', params.offset.toString());
+        try {
+            const response = await this.stateset.request('GET', `cases_tickets/search?${queryParams.toString()}`);
+            return {
+                cases_tickets: response.cases_tickets.map(this.mapResponse),
+                pagination: {
+                    total: response.total || response.cases_tickets.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
+            };
+        }
+        catch (error) {
+            throw this.handleError(error, 'search');
+        }
+    }
     async get(caseTicketId) {
         try {
             const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}`);
@@ -180,6 +207,15 @@ class CasesTickets {
         }
         catch (error) {
             throw this.handleError(error, 'addNote', caseTicketId);
+        }
+    }
+    async listNotes(caseTicketId) {
+        try {
+            const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}/notes`);
+            return response.notes || [];
+        }
+        catch (error) {
+            throw this.handleError(error, 'listNotes', caseTicketId);
         }
     }
     async escalate(caseTicketId, level) {

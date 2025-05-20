@@ -94,6 +94,14 @@ await client.casesTickets.addNote(ticket.id, 'Customer will provide photos.');
 await client.casesTickets.escalate(ticket.id, 'HIGH');
 await client.casesTickets.close(ticket.id);
 await client.casesTickets.reopen(ticket.id, 'Additional information received.');
+
+const searchResults = await client.casesTickets.search('damaged', {
+  status: 'OPEN'
+});
+console.log(searchResults.cases_tickets);
+
+const notes = await client.casesTickets.listNotes(ticket.id);
+console.log(notes);
 ```
 
 ## Try out a sample app

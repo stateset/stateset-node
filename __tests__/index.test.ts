@@ -55,3 +55,9 @@ test('applies additional headers from options', () => {
 
   expect(client.httpClient.defaults.headers['X-Example']).toBe('example');
 });
+
+test('exposes customer service helper methods', () => {
+  const client: any = new stateset({ apiKey: 'test-key' });
+  expect(typeof client.casesTickets.search).toBe('function');
+  expect(typeof client.casesTickets.listNotes).toBe('function');
+});
