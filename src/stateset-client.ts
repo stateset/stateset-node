@@ -65,12 +65,22 @@ import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
 interface StatesetOptions {
   apiKey: string;
   baseUrl?: string;
+  /**
+   * Number of times to retry a failed request. Defaults to 0 (no retries).
+   */
+  retry?: number;
+  /**
+   * Delay in milliseconds between retries.
+   */
+  retryDelayMs?: number;
 }
 
 export class stateset {
   private baseUrl: string;
   private apiKey: string;
   private httpClient: AxiosInstance;
+  private retry: number;
+  private retryDelayMs: number;
   public returns: Returns;
   public returnItems: ReturnLines;
   public warranties: Warranties;
@@ -137,6 +147,8 @@ export class stateset {
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey;
     this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+    this.retry = options.retry ?? 0;
+    this.retryDelayMs = options.retryDelayMs ?? 1000;
 
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
@@ -145,6 +157,23 @@ export class stateset {
         'Content-Type': 'application/json'
       }
     });
+    // Simple automatic retry mechanism for transient failures
+    this.httpClient.interceptors.response.use(
+      (resp) => resp,
+      async (error) => {
+        const config = error.config;
+        if (!config || this.retry <= 0) {
+          return Promise.reject(error);
+        }
+        config.__retryCount = config.__retryCount || 0;
+        if (config.__retryCount >= this.retry) {
+          return Promise.reject(error);
+        }
+        config.__retryCount += 1;
+        await new Promise((resolve) => setTimeout(resolve, this.retryDelayMs));
+        return this.httpClient.request(config);
+      }
+    );
     this.returns = new Returns(this);
     this.returnItems = new ReturnLines(this);
     this.warranties = new Warranties(this);

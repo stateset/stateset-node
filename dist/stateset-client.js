@@ -54,16 +54,46 @@ const Promotion_1 = __importDefault(require("./lib/resources/Promotion"));
 const Schedule_1 = __importDefault(require("./lib/resources/Schedule"));
 const ShipTo_1 = __importDefault(require("./lib/resources/ShipTo"));
 const Log_1 = __importDefault(require("./lib/resources/Log"));
+const MaintenanceSchedule_1 = __importDefault(require("./lib/resources/MaintenanceSchedule"));
+const QualityControl_1 = __importDefault(require("./lib/resources/QualityControl"));
+const ResourceUtilization_1 = __importDefault(require("./lib/resources/ResourceUtilization"));
+const Payment_1 = __importDefault(require("./lib/resources/Payment"));
+const Refund_1 = __importDefault(require("./lib/resources/Refund"));
+const CreditsDebits_1 = __importDefault(require("./lib/resources/CreditsDebits"));
+const Ledger_1 = __importDefault(require("./lib/resources/Ledger"));
+const Opportunity_1 = __importDefault(require("./lib/resources/Opportunity"));
+const Contact_1 = __importDefault(require("./lib/resources/Contact"));
+const CaseTicket_1 = __importDefault(require("./lib/resources/CaseTicket"));
+const Carrier_1 = __importDefault(require("./lib/resources/Carrier"));
+const Route_1 = __importDefault(require("./lib/resources/Route"));
+const DeliveryConfirmation_1 = __importDefault(require("./lib/resources/DeliveryConfirmation"));
 class stateset {
     constructor(options) {
+        var _a, _b;
         this.apiKey = options.apiKey;
         this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+        this.retry = (_a = options.retry) !== null && _a !== void 0 ? _a : 0;
+        this.retryDelayMs = (_b = options.retryDelayMs) !== null && _b !== void 0 ? _b : 1000;
         this.httpClient = axios_1.default.create({
             baseURL: this.baseUrl,
             headers: {
                 Authorization: `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json'
             }
+        });
+        // Simple automatic retry mechanism for transient failures
+        this.httpClient.interceptors.response.use((resp) => resp, async (error) => {
+            const config = error.config;
+            if (!config || this.retry <= 0) {
+                return Promise.reject(error);
+            }
+            config.__retryCount = config.__retryCount || 0;
+            if (config.__retryCount >= this.retry) {
+                return Promise.reject(error);
+            }
+            config.__retryCount += 1;
+            await new Promise((resolve) => setTimeout(resolve, this.retryDelayMs));
+            return this.httpClient.request(config);
         });
         this.returns = new Return_1.default(this);
         this.returnItems = new ReturnLine_1.default(this);
@@ -114,6 +144,19 @@ class stateset {
         this.contracts = new Contract_1.default(this);
         this.promotions = new Promotion_1.default(this);
         this.logs = new Log_1.default(this);
+        this.maintenanceSchedules = new MaintenanceSchedule_1.default(this);
+        this.qualityControl = new QualityControl_1.default(this);
+        this.resourceUtilization = new ResourceUtilization_1.default(this);
+        this.payments = new Payment_1.default(this);
+        this.refunds = new Refund_1.default(this);
+        this.creditsDebits = new CreditsDebits_1.default(this);
+        this.ledger = new Ledger_1.default(this);
+        this.opportunities = new Opportunity_1.default(this);
+        this.contacts = new Contact_1.default(this);
+        this.casesTickets = new CaseTicket_1.default(this);
+        this.carriers = new Carrier_1.default(this);
+        this.routes = new Route_1.default(this);
+        this.deliveryConfirmations = new DeliveryConfirmation_1.default(this);
     }
     async request(method, path, data, options = {}) {
         try {

@@ -36,7 +36,12 @@ npm install stateset-node
 ```javascript
 import stateset from 'stateset-node';
 
-const client = new stateset({apiKey: process.env.STATESET_API_KEY});
+const client = new stateset({
+  apiKey: process.env.STATESET_API_KEY,
+  // Optional retry logic for transient failures
+  retry: 3,
+  retryDelayMs: 1000,
+});
 ```
 
 3. **Make an API call**
