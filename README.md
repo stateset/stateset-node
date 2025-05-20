@@ -49,6 +49,16 @@ const client = new stateset({
 });
 ```
 
+### Updating configuration after initialization
+
+The SDK exposes helper methods to update the API key, base URL and timeout on an existing client instance:
+
+```javascript
+client.setApiKey('new-key');
+client.setBaseUrl('https://api.example.com');
+client.setTimeout(30000);
+```
+
 3. **Make an API call**
 
 ```javascript

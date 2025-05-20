@@ -170,6 +170,30 @@ class stateset {
         this.routes = new Route_1.default(this);
         this.deliveryConfirmations = new DeliveryConfirmation_1.default(this);
     }
+    /**
+     * Update the API key used for requests after initialization.
+     * @param apiKey - new API key string
+     */
+    setApiKey(apiKey) {
+        this.apiKey = apiKey;
+        this.httpClient.defaults.headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    /**
+     * Update the base URL used for requests after initialization.
+     * @param baseUrl - new base URL string
+     */
+    setBaseUrl(baseUrl) {
+        this.baseUrl = baseUrl;
+        this.httpClient.defaults.baseURL = baseUrl;
+    }
+    /**
+     * Update the request timeout used for HTTP requests.
+     * @param timeout - timeout in milliseconds
+     */
+    setTimeout(timeout) {
+        this.timeout = timeout;
+        this.httpClient.defaults.timeout = timeout;
+    }
     async request(method, path, data, options = {}) {
         try {
             const response = await this.httpClient.request({

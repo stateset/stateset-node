@@ -261,6 +261,33 @@ export class stateset {
     this.deliveryConfirmations = new DeliveryConfirmations(this);
   }
 
+  /**
+   * Update the API key used for requests after initialization.
+   * @param apiKey - new API key string
+   */
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    (this.httpClient.defaults.headers as any)['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  /**
+   * Update the base URL used for requests after initialization.
+   * @param baseUrl - new base URL string
+   */
+  setBaseUrl(baseUrl: string): void {
+    this.baseUrl = baseUrl;
+    this.httpClient.defaults.baseURL = baseUrl;
+  }
+
+  /**
+   * Update the request timeout used for HTTP requests.
+   * @param timeout - timeout in milliseconds
+   */
+  setTimeout(timeout: number): void {
+    this.timeout = timeout;
+    this.httpClient.defaults.timeout = timeout;
+  }
+
   async request(method: string, path: string, data?: any, options: AxiosRequestConfig = {}) {
     try {
       const response = await this.httpClient.request({
