@@ -216,6 +216,8 @@ export declare class Orders {
         amount: number;
         reason: string;
     }): Promise<OrderResponse>;
+    updateShippingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
+    updateBillingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
     addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse>;
     getFulfillmentHistory(orderId: string, params?: {
         start_date?: Date;

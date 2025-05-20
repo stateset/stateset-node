@@ -312,6 +312,14 @@ export class Orders {
     return this.request<OrderResponse>('POST', `orders/${orderId}/refund`, refundData);
   }
 
+  async updateShippingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse> {
+    return this.request<OrderResponse>('PUT', `orders/${orderId}/shipping-address`, address);
+  }
+
+  async updateBillingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse> {
+    return this.request<OrderResponse>('PUT', `orders/${orderId}/billing-address`, address);
+  }
+
   async addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse> {
     return this.request<OrderResponse>(
       'POST',
