@@ -97,6 +97,20 @@ class Orders {
         const response = await this.request('GET', `orders?${queryParams.toString()}`);
         return response;
     }
+    async search(query, params = {}) {
+        const queryParams = new URLSearchParams({ query });
+        if (params.status)
+            queryParams.append('status', params.status);
+        if (params.customer_id)
+            queryParams.append('customer_id', params.customer_id);
+        if (params.org_id)
+            queryParams.append('org_id', params.org_id);
+        if (params.limit)
+            queryParams.append('limit', params.limit.toString());
+        if (params.offset)
+            queryParams.append('offset', params.offset.toString());
+        return this.request('GET', `orders/search?${queryParams.toString()}`);
+    }
     async get(orderId) {
         return this.request('GET', `orders/${orderId}`);
     }
@@ -139,6 +153,9 @@ class Orders {
     }
     async updateBillingAddress(orderId, address) {
         return this.request('PUT', `orders/${orderId}/billing-address`, address);
+    }
+    async delete(orderId) {
+        await this.request('DELETE', `orders/${orderId}`);
     }
     async addFulfillmentEvent(orderId, event) {
         return this.request('POST', `orders/${orderId}/fulfillment-events`, event);

@@ -256,6 +256,29 @@ export class Orders {
     return response;
   }
 
+  async search(
+    query: string,
+    params: {
+      status?: OrderStatus;
+      customer_id?: string;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ orders: OrderResponse[]; total: number }> {
+    const queryParams = new URLSearchParams({ query });
+    if (params.status) queryParams.append('status', params.status);
+    if (params.customer_id) queryParams.append('customer_id', params.customer_id);
+    if (params.org_id) queryParams.append('org_id', params.org_id);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+
+    return this.request<{ orders: OrderResponse[]; total: number }>(
+      'GET',
+      `orders/search?${queryParams.toString()}`
+    );
+  }
+
   async get(orderId: string): Promise<OrderResponse> {
     return this.request<OrderResponse>('GET', `orders/${orderId}`);
   }
@@ -318,6 +341,10 @@ export class Orders {
 
   async updateBillingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse> {
     return this.request<OrderResponse>('PUT', `orders/${orderId}/billing-address`, address);
+  }
+
+  async delete(orderId: string): Promise<void> {
+    await this.request<void>('DELETE', `orders/${orderId}`);
   }
 
   async addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse> {

@@ -154,6 +154,11 @@ await client.orders.updateBillingAddress(order.id, {
   postal_code: '94105',
   country: 'US'
 });
+
+// Search orders and delete when necessary
+const searchResults = await client.orders.search('Doe', { status: 'CONFIRMED' });
+console.log(searchResults.orders);
+await client.orders.delete(order.id);
 ```
 
 ## Try out a sample app

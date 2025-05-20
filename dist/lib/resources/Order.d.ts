@@ -194,6 +194,16 @@ export declare class Orders {
         orders: OrderResponse[];
         total: number;
     }>;
+    search(query: string, params?: {
+        status?: OrderStatus;
+        customer_id?: string;
+        org_id?: string;
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        orders: OrderResponse[];
+        total: number;
+    }>;
     get(orderId: string): Promise<OrderResponse>;
     create(orderData: OrderData): Promise<OrderResponse>;
     update(orderId: string, orderData: Partial<OrderData>): Promise<OrderResponse>;
@@ -218,6 +228,7 @@ export declare class Orders {
     }): Promise<OrderResponse>;
     updateShippingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
     updateBillingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
+    delete(orderId: string): Promise<void>;
     addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse>;
     getFulfillmentHistory(orderId: string, params?: {
         start_date?: Date;
