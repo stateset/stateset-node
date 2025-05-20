@@ -228,6 +228,8 @@ export declare class Orders {
     }): Promise<OrderResponse>;
     updateShippingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
     updateBillingAddress(orderId: string, address: ShippingAddress): Promise<OrderResponse>;
+    addNote(orderId: string, note: string): Promise<OrderResponse>;
+    listNotes(orderId: string): Promise<string[]>;
     delete(orderId: string): Promise<void>;
     addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse>;
     getFulfillmentHistory(orderId: string, params?: {

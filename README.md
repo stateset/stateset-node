@@ -155,6 +155,10 @@ await client.orders.updateBillingAddress(order.id, {
   country: 'US'
 });
 
+await client.orders.addNote(order.id, 'Customer requested gift wrap');
+const orderNotes = await client.orders.listNotes(order.id);
+console.log(orderNotes);
+
 // Search orders and delete when necessary
 const searchResults = await client.orders.search('Doe', { status: 'CONFIRMED' });
 console.log(searchResults.orders);

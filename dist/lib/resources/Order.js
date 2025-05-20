@@ -154,6 +154,13 @@ class Orders {
     async updateBillingAddress(orderId, address) {
         return this.request('PUT', `orders/${orderId}/billing-address`, address);
     }
+    async addNote(orderId, note) {
+        return this.request('POST', `orders/${orderId}/notes`, { note });
+    }
+    async listNotes(orderId) {
+        const response = await this.request('GET', `orders/${orderId}/notes`);
+        return response.notes || [];
+    }
     async delete(orderId) {
         await this.request('DELETE', `orders/${orderId}`);
     }
