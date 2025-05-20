@@ -343,6 +343,15 @@ export class Orders {
     return this.request<OrderResponse>('PUT', `orders/${orderId}/billing-address`, address);
   }
 
+  async addNote(orderId: string, note: string): Promise<OrderResponse> {
+    return this.request<OrderResponse>('POST', `orders/${orderId}/notes`, { note });
+  }
+
+  async listNotes(orderId: string): Promise<string[]> {
+    const response = await this.request<{ notes: string[] }>('GET', `orders/${orderId}/notes`);
+    return response.notes || [];
+  }
+
   async delete(orderId: string): Promise<void> {
     await this.request<void>('DELETE', `orders/${orderId}`);
   }

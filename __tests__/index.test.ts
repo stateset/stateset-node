@@ -60,4 +60,6 @@ test('exposes customer service helper methods', () => {
   const client: any = new stateset({ apiKey: 'test-key' });
   expect(typeof client.casesTickets.search).toBe('function');
   expect(typeof client.casesTickets.listNotes).toBe('function');
+  expect(typeof client.orders.addNote).toBe('function');
+  expect(typeof client.orders.listNotes).toBe('function');
 });
