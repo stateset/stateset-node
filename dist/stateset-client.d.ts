@@ -62,7 +62,7 @@ import Carriers from './lib/resources/Carrier';
 import Routes from './lib/resources/Route';
 import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
 interface StatesetOptions {
-    apiKey: string;
+    apiKey?: string;
     baseUrl?: string;
     /**
      * Number of times to retry a failed request. Defaults to 0 (no retries).
@@ -72,6 +72,14 @@ interface StatesetOptions {
      * Delay in milliseconds between retries.
      */
     retryDelayMs?: number;
+    /**
+     * Request timeout in milliseconds. Defaults to 60000 (60s).
+     */
+    timeout?: number;
+    /**
+     * Custom User-Agent header value. Defaults to `stateset-node/<version>`.
+     */
+    userAgent?: string;
 }
 export declare class stateset {
     private baseUrl;
@@ -79,6 +87,8 @@ export declare class stateset {
     private httpClient;
     private retry;
     private retryDelayMs;
+    private timeout;
+    private userAgent;
     returns: Returns;
     returnItems: ReturnLines;
     warranties: Warranties;

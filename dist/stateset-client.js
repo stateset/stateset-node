@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stateset = void 0;
 const axios_1 = __importDefault(require("axios"));
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageVersion = require('../package.json').version;
 const Return_1 = __importDefault(require("./lib/resources/Return"));
 const Warranty_1 = __importDefault(require("./lib/resources/Warranty"));
 const Product_1 = __importDefault(require("./lib/resources/Product"));
@@ -69,16 +71,26 @@ const Route_1 = __importDefault(require("./lib/resources/Route"));
 const DeliveryConfirmation_1 = __importDefault(require("./lib/resources/DeliveryConfirmation"));
 class stateset {
     constructor(options) {
-        var _a, _b;
-        this.apiKey = options.apiKey;
-        this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+        var _a, _b, _c;
+        this.apiKey = options.apiKey || process.env.STATESET_API_KEY || '';
+        this.baseUrl =
+            options.baseUrl ||
+                process.env.STATESET_BASE_URL ||
+                'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+        if (!this.apiKey) {
+            throw new Error('Stateset API key is required');
+        }
         this.retry = (_a = options.retry) !== null && _a !== void 0 ? _a : 0;
         this.retryDelayMs = (_b = options.retryDelayMs) !== null && _b !== void 0 ? _b : 1000;
+        this.timeout = (_c = options.timeout) !== null && _c !== void 0 ? _c : 60000;
+        this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
         this.httpClient = axios_1.default.create({
             baseURL: this.baseUrl,
+            timeout: this.timeout,
             headers: {
                 Authorization: `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'User-Agent': this.userAgent
             }
         });
         // Simple automatic retry mechanism for transient failures

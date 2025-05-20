@@ -65,7 +65,7 @@ import Routes from './lib/resources/Route';
 import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
 
 interface StatesetOptions {
-  apiKey: string;
+  apiKey?: string;
   baseUrl?: string;
   /**
    * Number of times to retry a failed request. Defaults to 0 (no retries).
@@ -157,8 +157,15 @@ export class stateset {
   public deliveryConfirmations: DeliveryConfirmations;
 
   constructor(options: StatesetOptions) {
-    this.apiKey = options.apiKey;
-    this.baseUrl = options.baseUrl || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+    this.apiKey = options.apiKey || process.env.STATESET_API_KEY || '';
+    this.baseUrl =
+      options.baseUrl ||
+      process.env.STATESET_BASE_URL ||
+      'https://stateset-proxy-server.stateset.cloud.stateset.app/api';
+
+    if (!this.apiKey) {
+      throw new Error('Stateset API key is required');
+    }
     this.retry = options.retry ?? 0;
     this.retryDelayMs = options.retryDelayMs ?? 1000;
     this.timeout = options.timeout ?? 60000;
