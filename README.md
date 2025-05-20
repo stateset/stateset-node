@@ -51,6 +51,9 @@ const client = new stateset({
 });
 ```
 
+Retry behaviour can also be configured using the `STATESET_RETRY` and
+`STATESET_RETRY_DELAY_MS` environment variables.
+
 ### Updating configuration after initialization
 
 The SDK exposes helper methods to update the API key, base URL and timeout on an existing client instance:
@@ -59,6 +62,7 @@ The SDK exposes helper methods to update the API key, base URL and timeout on an
 client.setApiKey('new-key');
 client.setBaseUrl('https://api.example.com');
 client.setTimeout(30000);
+client.setRetryOptions(5, 500);
 client.setHeaders({ 'X-Customer-ID': 'abc123' });
 ```
 
