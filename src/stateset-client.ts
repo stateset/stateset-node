@@ -83,6 +83,10 @@ interface StatesetOptions {
    * Custom User-Agent header value. Defaults to `stateset-node/<version>`.
    */
   userAgent?: string;
+  /**
+   * Additional headers to include with every request.
+   */
+  additionalHeaders?: Record<string, string>;
 }
 
 export class stateset {
@@ -93,6 +97,7 @@ export class stateset {
   private retryDelayMs: number;
   private timeout: number;
   private userAgent: string;
+  private additionalHeaders: Record<string, string>;
   public returns: Returns;
   public returnItems: ReturnLines;
   public warranties: Warranties;
@@ -170,6 +175,7 @@ export class stateset {
     this.retryDelayMs = options.retryDelayMs ?? 1000;
     this.timeout = options.timeout ?? 60000;
     this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
+    this.additionalHeaders = options.additionalHeaders || {};
 
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
@@ -177,7 +183,8 @@ export class stateset {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': this.userAgent
+        'User-Agent': this.userAgent,
+        ...this.additionalHeaders
       }
     });
     // Simple automatic retry mechanism for transient failures
@@ -286,6 +293,15 @@ export class stateset {
   setTimeout(timeout: number): void {
     this.timeout = timeout;
     this.httpClient.defaults.timeout = timeout;
+  }
+
+  /**
+   * Merge additional headers to include with every request.
+   * @param headers - headers object
+   */
+  setHeaders(headers: Record<string, string>): void {
+    this.additionalHeaders = { ...this.additionalHeaders, ...headers };
+    Object.assign(this.httpClient.defaults.headers, this.additionalHeaders);
   }
 
   async request(method: string, path: string, data?: any, options: AxiosRequestConfig = {}) {

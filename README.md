@@ -45,7 +45,9 @@ const client = new stateset({
   retryDelayMs: 1000,
   // Optional request timeout and custom User-Agent
   timeout: 60000,
-  userAgent: 'my-app/1.0'
+  userAgent: 'my-app/1.0',
+  // Additional headers sent with every request
+  additionalHeaders: { 'X-Customer-ID': 'abc123' }
 });
 ```
 
@@ -57,6 +59,7 @@ The SDK exposes helper methods to update the API key, base URL and timeout on an
 client.setApiKey('new-key');
 client.setBaseUrl('https://api.example.com');
 client.setTimeout(30000);
+client.setHeaders({ 'X-Customer-ID': 'abc123' });
 ```
 
 3. **Make an API call**
