@@ -31,6 +31,7 @@ The SDK exposes helper classes for building intelligent agents. These include:
 - **Attributes** describing agent skills or traits.
 - **Knowledge** base entries for retrieval.
 - **Evals** to record evaluation metrics.
+- **OpenAIIntegration** for generating chat completions.
 
 ## Usage example
 
@@ -113,6 +114,18 @@ console.log(searchResults.cases_tickets);
 
 const notes = await client.casesTickets.listNotes(ticket.id);
 console.log(notes);
+```
+
+### Generating responses with OpenAI
+
+```javascript
+import { OpenAIIntegration } from 'stateset-node';
+
+const openai = new OpenAIIntegration(process.env.OPENAI_API_KEY || 'sk-test');
+const completion = await openai.createChatCompletion([
+  { role: 'user', content: 'Where is my order?' }
+]);
+console.log(completion.choices[0].message.content);
 ```
 
 ### Managing orders

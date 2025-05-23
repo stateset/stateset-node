@@ -1,4 +1,5 @@
 import stateset from '../src';
+import { OpenAIIntegration } from '../src';
 
 test('exports stateset class', () => {
   expect(typeof stateset).toBe('function');
@@ -62,4 +63,24 @@ test('exposes customer service helper methods', () => {
   expect(typeof client.casesTickets.listNotes).toBe('function');
   expect(typeof client.orders.addNote).toBe('function');
   expect(typeof client.orders.listNotes).toBe('function');
+});
+
+test('OpenAIIntegration sends chat completion request', async () => {
+  const integration: any = new OpenAIIntegration('test-key', 'https://example.com');
+  const mockPost = jest
+    .spyOn(integration.client, 'post')
+    .mockResolvedValue({
+      data: {
+        choices: [
+          { index: 0, message: { role: 'assistant', content: 'hi' }, finish_reason: 'stop' }
+        ]
+      }
+    });
+
+  const res = await integration.createChatCompletion([
+    { role: 'user', content: 'hello' }
+  ]);
+
+  expect(mockPost).toHaveBeenCalledWith('/chat/completions', expect.any(Object));
+  expect(res.choices[0].message.content).toBe('hi');
 });
