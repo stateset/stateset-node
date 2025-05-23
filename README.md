@@ -189,6 +189,14 @@ console.log(searchResults.orders);
 await client.orders.delete(order.id);
 ```
 
+### Generating shipping labels
+
+```javascript
+// Generate a shipping label for an existing shipment
+const label = await client.shipments.generateLabel('ship_123', { format: 'PDF' });
+console.log(label.label_url);
+```
+
 ## Try out a sample app
 
 This repository contains sample Node and web apps demonstrating how the SDK can access and utilize the Stateset API for various use cases.

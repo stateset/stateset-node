@@ -84,3 +84,13 @@ test('OpenAIIntegration sends chat completion request', async () => {
   expect(mockPost).toHaveBeenCalledWith('/chat/completions', expect.any(Object));
   expect(res.choices[0].message.content).toBe('hi');
 });
+
+test('Shipments.generateLabel sends request', async () => {
+  const client: any = new stateset({ apiKey: 'key' });
+  const mock = jest
+    .spyOn(client, 'request')
+    .mockResolvedValue({ label: { tracking_number: '1', label_url: 'url', carrier: 'UPS', created_at: 'now' } });
+  const res = await client.shipments.generateLabel('ship_1', { format: 'PDF' });
+  expect(mock).toHaveBeenCalledWith('POST', 'shipments/ship_1/label', { format: 'PDF' });
+  expect(res.label_url).toBe('url');
+});
