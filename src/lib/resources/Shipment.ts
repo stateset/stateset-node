@@ -187,6 +187,15 @@ export interface Rate {
   };
 }
 
+export interface ShippingLabel {
+  tracking_number: string;
+  label_url: string;
+  carrier: ShippingCarrier;
+  cost?: number;
+  created_at: string;
+  expires_at?: string;
+}
+
 // Response Types with Discriminated Unions
 export type ShipmentResponse = {
   id: NonEmptyString<string>;
@@ -313,6 +322,14 @@ export class Shipments {
     expires_at: string;
   }> {
     const response = await this.client.request('POST', `shipments/${shipmentId}/return-label`, options);
+    return response.label;
+  }
+
+  async generateLabel(
+    shipmentId: string,
+    options: { format?: 'PDF' | 'PNG' | 'ZPL'; test_label?: boolean } = {}
+  ): Promise<ShippingLabel> {
+    const response = await this.client.request('POST', `shipments/${shipmentId}/label`, options);
     return response.label;
   }
 
