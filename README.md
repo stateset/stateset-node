@@ -21,6 +21,17 @@ The package needs to be configured with your account's secret key, which is avai
 3. **Create an API key.**
 4. **Try the Node.js quickstart**
 
+### AI Agent capabilities
+
+The SDK exposes helper classes for building intelligent agents. These include:
+
+- **Agents** for managing agent state and assignments.
+- **Responses** to store generated replies.
+- **Rules** to automate behaviour.
+- **Attributes** describing agent skills or traits.
+- **Knowledge** base entries for retrieval.
+- **Evals** to record evaluation metrics.
+
 ## Usage example
 
 See the Node.js quickstart for complete code.
