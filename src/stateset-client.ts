@@ -66,6 +66,9 @@ import CasesTickets from './lib/resources/CaseTicket';
 import Carriers from './lib/resources/Carrier';
 import Routes from './lib/resources/Route';
 import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
+import Activities from './lib/resources/Activities';
+import Fulfillment from './lib/resources/Fulfillment';
+import ProductionJob from './lib/resources/ProductionJob';
 
 interface StatesetOptions {
   apiKey?: string;
@@ -166,6 +169,9 @@ export class stateset {
   public carriers: Carriers;
   public routes: Routes;
   public deliveryConfirmations: DeliveryConfirmations;
+  public activities: Activities;
+  public fulfillment: Fulfillment;
+  public productionJob: ProductionJob;
 
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey || process.env.STATESET_API_KEY || '';
@@ -282,6 +288,9 @@ export class stateset {
     this.carriers = new Carriers(this);
     this.routes = new Routes(this);
     this.deliveryConfirmations = new DeliveryConfirmations(this);
+    this.activities = new Activities(this);
+    this.fulfillment = new Fulfillment(this);
+    this.productionJob = new ProductionJob(this);
   }
 
   /**
