@@ -94,3 +94,11 @@ test('Shipments.generateLabel sends request', async () => {
   expect(mock).toHaveBeenCalledWith('POST', 'shipments/ship_1/label', { format: 'PDF' });
   expect(res.label_url).toBe('url');
 });
+
+test('exposes newly added commerce resources', () => {
+  const client: any = new stateset({ apiKey: 'k' });
+  expect(typeof client.salesOrders.list).toBe('function');
+  expect(typeof client.fulfillmentOrders.list).toBe('function');
+  expect(typeof client.itemReceipts.list).toBe('function');
+  expect(typeof client.cashSales.list).toBe('function');
+});

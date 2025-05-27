@@ -69,6 +69,10 @@ import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
 import Activities from './lib/resources/Activities';
 import Fulfillment from './lib/resources/Fulfillment';
 import ProductionJob from './lib/resources/ProductionJob';
+import SalesOrders from './lib/resources/SalesOrder';
+import FulfillmentOrders from './lib/resources/FulfillmentOrder';
+import ItemReceipts from './lib/resources/ItemReceipt';
+import CashSales from './lib/resources/CashSale';
 
 interface StatesetOptions {
   apiKey?: string;
@@ -172,6 +176,10 @@ export class stateset {
   public activities: Activities;
   public fulfillment: Fulfillment;
   public productionJob: ProductionJob;
+  public salesOrders: SalesOrders;
+  public fulfillmentOrders: FulfillmentOrders;
+  public itemReceipts: ItemReceipts;
+  public cashSales: CashSales;
 
   constructor(options: StatesetOptions) {
     this.apiKey = options.apiKey || process.env.STATESET_API_KEY || '';
@@ -291,6 +299,10 @@ export class stateset {
     this.activities = new Activities(this);
     this.fulfillment = new Fulfillment(this);
     this.productionJob = new ProductionJob(this);
+    this.salesOrders = new SalesOrders(this);
+    this.fulfillmentOrders = new FulfillmentOrders(this);
+    this.itemReceipts = new ItemReceipts(this);
+    this.cashSales = new CashSales(this);
   }
 
   /**
