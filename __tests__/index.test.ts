@@ -57,6 +57,22 @@ test('applies additional headers from options', () => {
   expect(client.httpClient.defaults.headers['X-Example']).toBe('example');
 });
 
+test('supports proxy configuration', () => {
+  process.env.STATESET_PROXY = 'http://localhost:8080';
+  const clientEnv: any = new stateset({ apiKey: 'proxy-key' });
+  expect(clientEnv.httpClient.defaults.proxy.host).toBe('localhost');
+  expect(clientEnv.httpClient.defaults.proxy.port).toBe(8080);
+  delete process.env.STATESET_PROXY;
+
+  const clientOpt: any = new stateset({
+    apiKey: 'proxy-key',
+    proxy: 'http://example.com:3128'
+  });
+  expect(clientOpt.httpClient.defaults.proxy.host).toBe('example.com');
+  clientOpt.setProxy('http://another:9000');
+  expect(clientOpt.httpClient.defaults.proxy.port).toBe(9000);
+});
+
 test('exposes customer service helper methods', () => {
   const client: any = new stateset({ apiKey: 'test-key' });
   expect(typeof client.casesTickets.search).toBe('function');

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosProxyConfig } from 'axios';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageVersion: string = require('../package.json').version;
 import Returns from './lib/resources/Return';
@@ -97,6 +97,12 @@ interface StatesetOptions {
    * Additional headers to include with every request.
    */
   additionalHeaders?: Record<string, string>;
+
+  /**
+   * Proxy server URL (e.g. "http://localhost:3128"). Can also be set with
+   * the STATESET_PROXY environment variable.
+   */
+  proxy?: string;
 }
 
 export class stateset {
@@ -108,6 +114,7 @@ export class stateset {
   private timeout: number;
   private userAgent: string;
   private additionalHeaders: Record<string, string>;
+  private proxy?: AxiosProxyConfig;
   public returns: Returns;
   public returnItems: ReturnLines;
   public warranties: Warranties;
@@ -204,6 +211,26 @@ export class stateset {
     this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
     this.additionalHeaders = options.additionalHeaders || {};
 
+    const proxyEnv =
+      options.proxy ||
+      process.env.STATESET_PROXY ||
+      process.env.HTTPS_PROXY ||
+      process.env.HTTP_PROXY;
+    if (proxyEnv) {
+      const parsed = new URL(proxyEnv);
+      this.proxy = {
+        protocol: parsed.protocol.replace(':', ''),
+        host: parsed.hostname,
+        port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80)
+      };
+      if (parsed.username || parsed.password) {
+        this.proxy.auth = {
+          username: decodeURIComponent(parsed.username),
+          password: decodeURIComponent(parsed.password)
+        };
+      }
+    }
+
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
       timeout: this.timeout,
@@ -212,7 +239,8 @@ export class stateset {
         'Content-Type': 'application/json',
         'User-Agent': this.userAgent,
         ...this.additionalHeaders
-      }
+      },
+      proxy: this.proxy
     });
     // Simple automatic retry mechanism for transient failures
     this.httpClient.interceptors.response.use(
@@ -340,6 +368,26 @@ export class stateset {
   setRetryOptions(retry: number, retryDelayMs: number = this.retryDelayMs): void {
     this.retry = retry;
     this.retryDelayMs = retryDelayMs;
+  }
+
+  /**
+   * Update proxy configuration used for requests.
+   * @param proxyUrl - proxy server URL
+   */
+  setProxy(proxyUrl: string): void {
+    const parsed = new URL(proxyUrl);
+    this.proxy = {
+      protocol: parsed.protocol.replace(':', ''),
+      host: parsed.hostname,
+      port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80)
+    };
+    if (parsed.username || parsed.password) {
+      this.proxy.auth = {
+        username: decodeURIComponent(parsed.username),
+        password: decodeURIComponent(parsed.password)
+      };
+    }
+    this.httpClient.defaults.proxy = this.proxy;
   }
 
   /**

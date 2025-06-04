@@ -59,12 +59,15 @@ const client = new stateset({
   timeout: 60000,
   userAgent: 'my-app/1.0',
   // Additional headers sent with every request
-  additionalHeaders: { 'X-Customer-ID': 'abc123' }
+  additionalHeaders: { 'X-Customer-ID': 'abc123' },
+  // Optional HTTP proxy
+  proxy: 'http://localhost:3128'
 });
 ```
 
 Retry behaviour can also be configured using the `STATESET_RETRY` and
-`STATESET_RETRY_DELAY_MS` environment variables.
+`STATESET_RETRY_DELAY_MS` environment variables. Proxy settings can be provided
+via the `STATESET_PROXY` environment variable.
 
 ### Updating configuration after initialization
 
@@ -76,6 +79,7 @@ client.setBaseUrl('https://api.example.com');
 client.setTimeout(30000);
 client.setRetryOptions(5, 500);
 client.setHeaders({ 'X-Customer-ID': 'abc123' });
+client.setProxy('http://localhost:3128');
 ```
 
 3. **Make an API call**
