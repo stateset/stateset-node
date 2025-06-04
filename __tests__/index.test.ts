@@ -118,3 +118,13 @@ test('exposes newly added commerce resources', () => {
   expect(typeof client.itemReceipts.list).toBe('function');
   expect(typeof client.cashSales.list).toBe('function');
 });
+
+test('request method throws typed Stateset errors', async () => {
+  const client: any = new stateset({ apiKey: 'key' });
+  jest.spyOn(client.httpClient, 'request').mockRejectedValue({
+    response: { status: 404, data: { message: 'Not found' } },
+    config: { url: 'test' }
+  });
+  const { StatesetNotFoundError } = require('../src');
+  await expect(client.request('GET', 'missing')).rejects.toBeInstanceOf(StatesetNotFoundError);
+});

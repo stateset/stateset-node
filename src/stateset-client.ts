@@ -1,4 +1,12 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosProxyConfig } from 'axios';
+import {
+  StatesetError,
+  StatesetAPIError,
+  StatesetAuthenticationError,
+  StatesetConnectionError,
+  StatesetInvalidRequestError,
+  StatesetNotFoundError
+} from './StatesetError';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageVersion: string = require('../package.json').version;
 import Returns from './lib/resources/Return';
@@ -410,7 +418,36 @@ export class stateset {
       return response.data;
     } catch (error: any) {
       console.error('Error in Stateset request:', error);
-      throw error;
+      if (error.response) {
+        const status = error.response.status;
+        const raw = {
+          type: 'api_error',
+          message: error.response.data?.message || error.message,
+          code: error.response.data?.code,
+          detail: error.response.data?.detail,
+          path: error.config?.url,
+          statusCode: status
+        };
+        if (status === 400) {
+          throw new StatesetInvalidRequestError(raw);
+        }
+        if (status === 401 || status === 403) {
+          throw new StatesetAuthenticationError(raw);
+        }
+        if (status === 404) {
+          throw new StatesetNotFoundError(raw);
+        }
+        if (status >= 500) {
+          throw new StatesetAPIError(raw);
+        }
+        throw new StatesetError(raw);
+      }
+      throw new StatesetConnectionError({
+        type: 'connection_error',
+        message: error.message,
+        detail: error.stack,
+        path: error.config?.url
+      });
     }
   }
 }
