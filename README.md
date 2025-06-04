@@ -94,6 +94,25 @@ try {
 }
 ```
 
+### Error handling
+
+All failed requests throw subclasses of `StatesetError`. You can check the
+instance type to handle specific cases:
+
+```javascript
+import { StatesetNotFoundError } from 'stateset-node';
+
+try {
+  await client.orders.get('ord_123');
+} catch (err) {
+  if (err instanceof StatesetNotFoundError) {
+    console.log('Order not found');
+  } else {
+    console.error('API request failed', err);
+  }
+}
+```
+
 ### Working with case tickets
 
 ```javascript
