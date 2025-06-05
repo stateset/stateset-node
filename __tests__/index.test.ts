@@ -73,6 +73,12 @@ test('supports proxy configuration', () => {
   expect(clientOpt.httpClient.defaults.proxy.port).toBe(9000);
 });
 
+test('allows setting app info for user agent', () => {
+  const client: any = new stateset({ apiKey: 'key' });
+  client.setAppInfo({ name: 'TestApp', version: '2.0', url: 'https://a.com' });
+  expect(client.httpClient.defaults.headers['User-Agent']).toMatch(/TestApp\/2.0/);
+});
+
 test('exposes customer service helper methods', () => {
   const client: any = new stateset({ apiKey: 'test-key' });
   expect(typeof client.casesTickets.search).toBe('function');

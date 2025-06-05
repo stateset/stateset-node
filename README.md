@@ -58,6 +58,8 @@ const client = new stateset({
   // Optional request timeout and custom User-Agent
   timeout: 60000,
   userAgent: 'my-app/1.0',
+  // Information about your app added to the User-Agent header
+  appInfo: { name: 'MyApp', version: '1.0', url: 'https://example.com' },
   // Additional headers sent with every request
   additionalHeaders: { 'X-Customer-ID': 'abc123' },
   // Optional HTTP proxy
@@ -80,6 +82,7 @@ client.setTimeout(30000);
 client.setRetryOptions(5, 500);
 client.setHeaders({ 'X-Customer-ID': 'abc123' });
 client.setProxy('http://localhost:3128');
+client.setAppInfo({ name: 'MyApp', version: '1.0', url: 'https://example.com' });
 ```
 
 3. **Make an API call**

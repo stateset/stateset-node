@@ -111,6 +111,16 @@ interface StatesetOptions {
    * the STATESET_PROXY environment variable.
    */
   proxy?: string;
+
+  /**
+   * Information about your application to be appended to the User-Agent
+   * header for telemetry and debugging purposes.
+   */
+  appInfo?: {
+    name: string;
+    version?: string;
+    url?: string;
+  };
 }
 
 export class stateset {
@@ -121,6 +131,7 @@ export class stateset {
   private retryDelayMs: number;
   private timeout: number;
   private userAgent: string;
+  private appInfo?: { name: string; version?: string; url?: string };
   private additionalHeaders: Record<string, string>;
   private proxy?: AxiosProxyConfig;
   public returns: Returns;
@@ -216,7 +227,8 @@ export class stateset {
     this.retry = options.retry ?? envRetry ?? 0;
     this.retryDelayMs = options.retryDelayMs ?? envRetryDelay ?? 1000;
     this.timeout = options.timeout ?? 60000;
-    this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
+    this.appInfo = options.appInfo;
+    this.userAgent = options.userAgent || this.buildUserAgent();
     this.additionalHeaders = options.additionalHeaders || {};
 
     const proxyEnv =
@@ -396,6 +408,29 @@ export class stateset {
       };
     }
     this.httpClient.defaults.proxy = this.proxy;
+  }
+
+  private buildUserAgent(): string {
+    let ua = `stateset-node/${packageVersion}`;
+    if (this.appInfo) {
+      ua += ` ${this.appInfo.name}`;
+      if (this.appInfo.version) {
+        ua += `/${this.appInfo.version}`;
+      }
+      if (this.appInfo.url) {
+        ua += ` (${this.appInfo.url})`;
+      }
+    }
+    return ua;
+  }
+
+  /**
+   * Provide information about your application for the User-Agent header.
+   * @param info - object containing name, version and optional url
+   */
+  setAppInfo(info: { name: string; version?: string; url?: string }): void {
+    this.appInfo = info;
+    (this.httpClient.defaults.headers as any)['User-Agent'] = this.buildUserAgent();
   }
 
   /**
