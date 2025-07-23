@@ -1,225 +1,576 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatesetClient = void 0;
 const http_client_1 = require("./core/http-client");
 const logger_1 = require("./utils/logger");
-// Import resources
-const returns_1 = require("./resources/returns");
-const resources_1 = require("./resources");
+// Import all resource classes
+const Return_1 = __importDefault(require("./lib/resources/Return"));
+const Warranty_1 = __importDefault(require("./lib/resources/Warranty"));
+const Product_1 = __importDefault(require("./lib/resources/Product"));
+const Order_1 = __importDefault(require("./lib/resources/Order"));
+const Shipment_1 = __importDefault(require("./lib/resources/Shipment"));
+const Inventory_1 = __importDefault(require("./lib/resources/Inventory"));
+const Customer_1 = __importDefault(require("./lib/resources/Customer"));
+const WorkOrder_1 = __importDefault(require("./lib/resources/WorkOrder"));
+const BillOfMaterial_1 = __importDefault(require("./lib/resources/BillOfMaterial"));
+const PurchaseOrder_1 = __importDefault(require("./lib/resources/PurchaseOrder"));
+const ManufactureOrder_1 = __importDefault(require("./lib/resources/ManufactureOrder"));
+const Channel_1 = __importDefault(require("./lib/resources/Channel"));
+const Message_1 = __importDefault(require("./lib/resources/Message"));
+const Agent_1 = __importDefault(require("./lib/resources/Agent"));
+const Rule_1 = __importDefault(require("./lib/resources/Rule"));
+const Attribute_1 = __importDefault(require("./lib/resources/Attribute"));
+const Response_1 = __importDefault(require("./lib/resources/Response"));
+const Knowledge_1 = __importDefault(require("./lib/resources/Knowledge"));
+const Eval_1 = __importDefault(require("./lib/resources/Eval"));
+const Workflow_1 = __importDefault(require("./lib/resources/Workflow"));
+const User_1 = __importDefault(require("./lib/resources/User"));
+const ReturnLine_1 = __importDefault(require("./lib/resources/ReturnLine"));
+const WarrantyLine_1 = __importDefault(require("./lib/resources/WarrantyLine"));
+const OrderLine_1 = __importDefault(require("./lib/resources/OrderLine"));
+const ShipmentLine_1 = __importDefault(require("./lib/resources/ShipmentLine"));
+const WorkOrderLine_1 = __importDefault(require("./lib/resources/WorkOrderLine"));
+const PurchaseOrderLine_1 = __importDefault(require("./lib/resources/PurchaseOrderLine"));
+const ManufactureOrderLine_1 = __importDefault(require("./lib/resources/ManufactureOrderLine"));
+const PackingList_1 = __importDefault(require("./lib/resources/PackingList"));
+const PackingListLine_1 = __importDefault(require("./lib/resources/PackingListLine"));
+const AdvancedShippingNotice_1 = __importDefault(require("./lib/resources/AdvancedShippingNotice"));
+const AdvancedShippingNoticeLine_1 = __importDefault(require("./lib/resources/AdvancedShippingNoticeLine"));
+const Settlement_1 = __importDefault(require("./lib/resources/Settlement"));
+const Payout_1 = __importDefault(require("./lib/resources/Payout"));
+const Pick_1 = __importDefault(require("./lib/resources/Pick"));
+const CycleCount_1 = __importDefault(require("./lib/resources/CycleCount"));
+const Machine_1 = __importDefault(require("./lib/resources/Machine"));
+const WasteAndScrap_1 = __importDefault(require("./lib/resources/WasteAndScrap"));
+const Warehouse_1 = __importDefault(require("./lib/resources/Warehouse"));
+const Supplier_1 = __importDefault(require("./lib/resources/Supplier"));
+const Location_1 = __importDefault(require("./lib/resources/Location"));
+const Vendor_1 = __importDefault(require("./lib/resources/Vendor"));
+const Invoice_1 = __importDefault(require("./lib/resources/Invoice"));
+const InvoiceLine_1 = __importDefault(require("./lib/resources/InvoiceLine"));
+const Compliance_1 = __importDefault(require("./lib/resources/Compliance"));
+const Lead_1 = __importDefault(require("./lib/resources/Lead"));
+const Asset_1 = __importDefault(require("./lib/resources/Asset"));
+const Contract_1 = __importDefault(require("./lib/resources/Contract"));
+const Promotion_1 = __importDefault(require("./lib/resources/Promotion"));
+const Schedule_1 = __importDefault(require("./lib/resources/Schedule"));
+const ShipTo_1 = __importDefault(require("./lib/resources/ShipTo"));
+const Log_1 = __importDefault(require("./lib/resources/Log"));
+const MaintenanceSchedule_1 = __importDefault(require("./lib/resources/MaintenanceSchedule"));
+const QualityControl_1 = __importDefault(require("./lib/resources/QualityControl"));
+const ResourceUtilization_1 = __importDefault(require("./lib/resources/ResourceUtilization"));
+const Payment_1 = __importDefault(require("./lib/resources/Payment"));
+const Refund_1 = __importDefault(require("./lib/resources/Refund"));
+const CreditsDebits_1 = __importDefault(require("./lib/resources/CreditsDebits"));
+const Ledger_1 = __importDefault(require("./lib/resources/Ledger"));
+const Opportunity_1 = __importDefault(require("./lib/resources/Opportunity"));
+const Contact_1 = __importDefault(require("./lib/resources/Contact"));
+const CaseTicket_1 = __importDefault(require("./lib/resources/CaseTicket"));
+const Carrier_1 = __importDefault(require("./lib/resources/Carrier"));
+const Route_1 = __importDefault(require("./lib/resources/Route"));
+const DeliveryConfirmation_1 = __importDefault(require("./lib/resources/DeliveryConfirmation"));
+const Activities_1 = __importDefault(require("./lib/resources/Activities"));
+const Fulfillment_1 = __importDefault(require("./lib/resources/Fulfillment"));
+const ProductionJob_1 = __importDefault(require("./lib/resources/ProductionJob"));
+const SalesOrder_1 = __importDefault(require("./lib/resources/SalesOrder"));
+const FulfillmentOrder_1 = __importDefault(require("./lib/resources/FulfillmentOrder"));
+const ItemReceipt_1 = __importDefault(require("./lib/resources/ItemReceipt"));
+const CashSale_1 = __importDefault(require("./lib/resources/CashSale"));
 class StatesetClient {
     httpClient;
     config;
-    // Resources
+    // Core Commerce Resources
     returns;
-    orders;
+    returnItems;
+    warranties;
+    warrantyItems;
     products;
-    customers;
+    orders;
+    orderItems;
     shipments;
-    workOrders;
-    agents;
+    shipmentItems;
+    shipTo;
     inventory;
+    customers;
+    // Manufacturing & Supply Chain
+    workorders;
+    workorderItems;
+    billofmaterials;
+    purchaseorders;
+    purchaseorderItems;
+    manufacturerorders;
+    manufacturerorderItems;
+    packinglists;
+    packinglistItems;
+    asns;
+    asnItems;
+    // AI & Automation
+    channels;
+    messages;
+    agents;
+    rules;
+    attributes;
+    responses;
+    knowledge;
+    evals;
+    workflows;
+    schedules;
+    users;
+    // Financial & Settlement
+    settlements;
+    payouts;
+    payments;
+    refunds;
+    creditsDebits;
+    ledger;
+    // Warehouse & Operations
+    picks;
+    cycleCounts;
+    machines;
+    wasteAndScrap;
+    warehouses;
+    suppliers;
+    locations;
+    vendors;
+    // Accounting & Compliance
+    invoices;
+    invoiceLines;
+    compliance;
+    leads;
+    assets;
+    contracts;
+    promotions;
+    // Maintenance & Quality
+    logs;
+    maintenanceSchedules;
+    qualityControl;
+    resourceUtilization;
+    // Sales & CRM
+    opportunities;
+    contacts;
+    casesTickets;
+    // Logistics & Delivery
+    carriers;
+    routes;
+    deliveryConfirmations;
+    activities;
+    fulfillment;
+    productionJob;
+    salesOrders;
+    fulfillmentOrders;
+    itemReceipts;
+    cashSales;
+    // Legacy compatibility
+    workOrders;
     constructor(config = {}) {
-        this.config = this.normalizeConfig(config);
-        this.validateConfig();
-        this.httpClient = new http_client_1.HttpClient(this.config);
-        logger_1.logger.info('Stateset client initialized', {
-            operation: 'client_init',
+        // Validate required configuration
+        this.validateConfig(config);
+        // Build complete configuration with defaults
+        this.config = this.buildConfig(config);
+        // Initialize HTTP client
+        this.httpClient = new http_client_1.EnhancedHttpClient(this.buildHttpClientOptions());
+        // Setup custom interceptors
+        this.setupCustomInterceptors();
+        // Initialize all resources
+        this.initializeResources();
+        logger_1.logger.info('StatesetClient initialized successfully', {
+            operation: 'client.init',
             metadata: {
                 baseUrl: this.config.baseUrl,
                 timeout: this.config.timeout,
-                retry: this.config.retry,
+                retryEnabled: this.config.retry && this.config.retry > 0,
+                maxSockets: this.config.maxSockets,
             },
         });
-        // Initialize resources
-        this.returns = new returns_1.ReturnsResource(this.httpClient);
-        this.orders = new resources_1.OrdersResource(this.httpClient);
-        this.products = new resources_1.ProductsResource(this.httpClient);
-        this.customers = new resources_1.CustomersResource(this.httpClient);
-        this.shipments = new resources_1.ShipmentsResource(this.httpClient);
-        this.workOrders = new resources_1.WorkOrdersResource(this.httpClient);
-        this.agents = new resources_1.AgentsResource(this.httpClient);
-        this.inventory = new resources_1.InventoryResource(this.httpClient);
     }
-    normalizeConfig(config) {
-        const packageVersion = require('../package.json').version;
-        return {
-            apiKey: config.apiKey || process.env.STATESET_API_KEY,
-            baseUrl: config.baseUrl ||
-                process.env.STATESET_BASE_URL ||
-                'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
-            retry: config.retry ??
-                (process.env.STATESET_RETRY ? parseInt(process.env.STATESET_RETRY, 10) : 3),
-            retryDelayMs: config.retryDelayMs ??
-                (process.env.STATESET_RETRY_DELAY_MS ?
-                    parseInt(process.env.STATESET_RETRY_DELAY_MS, 10) : 1000),
-            timeout: config.timeout ?? 60000,
-            userAgent: config.userAgent || `stateset-node/${packageVersion}`,
-            additionalHeaders: config.additionalHeaders || {},
-            proxy: config.proxy ||
-                process.env.STATESET_PROXY ||
-                process.env.HTTPS_PROXY ||
-                process.env.HTTP_PROXY,
-            appInfo: config.appInfo,
-        };
-    }
-    validateConfig() {
-        if (!this.config.apiKey) {
-            throw new Error('Stateset API key is required. ' +
-                'Set it in the config or STATESET_API_KEY environment variable.');
+    validateConfig(config) {
+        if (!config.apiKey && !process.env.STATESET_API_KEY) {
+            throw new Error('Stateset API key is required. Provide it in config.apiKey or STATESET_API_KEY environment variable.');
         }
-        if (!this.config.baseUrl) {
-            throw new Error('Stateset base URL is required.');
+        if (config.baseUrl && !this.isValidUrl(config.baseUrl)) {
+            throw new Error('Invalid base URL provided');
         }
-        // Validate URL format
-        try {
-            new URL(this.config.baseUrl);
+        if (config.timeout && (config.timeout < 1000 || config.timeout > 600000)) {
+            throw new Error('Timeout must be between 1000ms and 600000ms (10 minutes)');
         }
-        catch (error) {
-            throw new Error(`Invalid base URL: ${this.config.baseUrl}`);
-        }
-        // Validate timeout
-        if (this.config.timeout && (this.config.timeout < 1000 || this.config.timeout > 300000)) {
-            throw new Error('Timeout must be between 1000ms and 300000ms (5 minutes)');
-        }
-        // Validate retry settings
-        if (this.config.retry && (this.config.retry < 0 || this.config.retry > 10)) {
+        if (config.retry && (config.retry < 0 || config.retry > 10)) {
             throw new Error('Retry count must be between 0 and 10');
         }
-        if (this.config.retryDelayMs && (this.config.retryDelayMs < 100 || this.config.retryDelayMs > 30000)) {
-            throw new Error('Retry delay must be between 100ms and 30000ms');
+    }
+    isValidUrl(url) {
+        try {
+            new URL(url);
+            return true;
+        }
+        catch {
+            return false;
         }
     }
-    // Configuration methods for backward compatibility
-    setApiKey(apiKey) {
-        this.config.apiKey = apiKey;
-        this.httpClient.setApiKey(apiKey);
-        logger_1.logger.info('API key updated', {
-            operation: 'config_update',
-            metadata: { field: 'apiKey' },
-        });
+    buildConfig(config) {
+        return {
+            apiKey: config.apiKey || process.env.STATESET_API_KEY || '',
+            baseUrl: config.baseUrl || process.env.STATESET_BASE_URL || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
+            timeout: config.timeout ?? 60000,
+            retry: config.retry ?? parseInt(process.env.STATESET_RETRY || '0', 10),
+            retryDelayMs: config.retryDelayMs ?? parseInt(process.env.STATESET_RETRY_DELAY_MS || '1000', 10),
+            userAgent: config.userAgent || this.buildUserAgent(),
+            additionalHeaders: config.additionalHeaders || {},
+            proxy: config.proxy || process.env.STATESET_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+            appInfo: config.appInfo,
+            maxSockets: config.maxSockets ?? 10,
+            keepAlive: config.keepAlive ?? true,
+            requestInterceptors: config.requestInterceptors || [],
+            responseInterceptors: config.responseInterceptors || [],
+            errorInterceptors: config.errorInterceptors || [],
+        };
     }
-    setBaseUrl(baseUrl) {
+    buildUserAgent() {
+        const packageVersion = process.env.npm_package_version || '1.0.0';
+        let ua = `stateset-node/${packageVersion}`;
+        if (this.config?.appInfo) {
+            ua += ` ${this.config.appInfo.name}`;
+            if (this.config.appInfo.version) {
+                ua += `/${this.config.appInfo.version}`;
+            }
+            if (this.config.appInfo.url) {
+                ua += ` (${this.config.appInfo.url})`;
+            }
+        }
+        return ua;
+    }
+    buildHttpClientOptions() {
+        const proxy = this.config.proxy ? this.parseProxyUrl(this.config.proxy) : undefined;
+        return {
+            baseURL: this.config.baseUrl,
+            apiKey: this.config.apiKey,
+            timeout: this.config.timeout,
+            retry: {
+                maxAttempts: (this.config.retry || 0) + 1, // retry count + initial attempt
+                baseDelay: this.config.retryDelayMs,
+            },
+            userAgent: this.config.userAgent,
+            additionalHeaders: this.config.additionalHeaders,
+            maxSockets: this.config.maxSockets,
+            keepAlive: this.config.keepAlive,
+            proxy,
+        };
+    }
+    parseProxyUrl(proxyUrl) {
         try {
-            new URL(baseUrl);
+            const parsed = new URL(proxyUrl);
+            return {
+                protocol: parsed.protocol.replace(':', ''),
+                host: parsed.hostname,
+                port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80),
+                auth: parsed.username || parsed.password ? {
+                    username: decodeURIComponent(parsed.username),
+                    password: decodeURIComponent(parsed.password),
+                } : undefined,
+            };
         }
         catch (error) {
-            throw new Error(`Invalid base URL: ${baseUrl}`);
+            logger_1.logger.warn('Invalid proxy URL provided', {
+                operation: 'client.init',
+                metadata: { proxyUrl: '[REDACTED]' },
+            });
+            return undefined;
         }
-        this.config.baseUrl = baseUrl;
-        this.httpClient.setBaseUrl(baseUrl);
-        logger_1.logger.info('Base URL updated', {
-            operation: 'config_update',
-            metadata: { field: 'baseUrl', value: baseUrl },
+    }
+    setupCustomInterceptors() {
+        // Add custom request interceptors
+        this.config.requestInterceptors.forEach(interceptor => {
+            this.httpClient.addRequestInterceptor(interceptor);
+        });
+        // Add custom response interceptors
+        this.config.responseInterceptors.forEach(interceptor => {
+            this.httpClient.addResponseInterceptor(interceptor);
+        });
+        // Add custom error interceptors
+        this.config.errorInterceptors.forEach(interceptor => {
+            this.httpClient.addErrorInterceptor(interceptor);
+        });
+    }
+    initializeResources() {
+        // Note: Resources need to be updated to accept EnhancedHttpClient instead of stateset
+        // For now, we'll pass `this` as the client parameter and update resources later
+        const clientInstance = this;
+        // Core Commerce Resources
+        this.returns = new Return_1.default(clientInstance);
+        this.returnItems = new ReturnLine_1.default(clientInstance);
+        this.warranties = new Warranty_1.default(clientInstance);
+        this.warrantyItems = new WarrantyLine_1.default(clientInstance);
+        this.products = new Product_1.default(clientInstance);
+        this.orders = new Order_1.default(clientInstance);
+        this.orderItems = new OrderLine_1.default(clientInstance);
+        this.shipments = new Shipment_1.default(clientInstance);
+        this.shipmentItems = new ShipmentLine_1.default(clientInstance);
+        this.shipTo = new ShipTo_1.default(clientInstance);
+        this.inventory = new Inventory_1.default(clientInstance);
+        this.customers = new Customer_1.default(clientInstance);
+        // Manufacturing & Supply Chain
+        this.workorders = new WorkOrder_1.default(clientInstance);
+        this.workorderItems = new WorkOrderLine_1.default(clientInstance);
+        this.billofmaterials = new BillOfMaterial_1.default(clientInstance);
+        this.purchaseorders = new PurchaseOrder_1.default(clientInstance);
+        this.purchaseorderItems = new PurchaseOrderLine_1.default(clientInstance);
+        this.manufacturerorders = new ManufactureOrder_1.default(clientInstance);
+        this.manufacturerorderItems = new ManufactureOrderLine_1.default(clientInstance);
+        this.packinglists = new PackingList_1.default(clientInstance);
+        this.packinglistItems = new PackingListLine_1.default(clientInstance);
+        this.asns = new AdvancedShippingNotice_1.default(clientInstance);
+        this.asnItems = new AdvancedShippingNoticeLine_1.default(clientInstance);
+        // AI & Automation
+        this.channels = new Channel_1.default(clientInstance);
+        this.messages = new Message_1.default(clientInstance);
+        this.agents = new Agent_1.default(clientInstance);
+        this.rules = new Rule_1.default(clientInstance);
+        this.attributes = new Attribute_1.default(clientInstance);
+        this.responses = new Response_1.default(clientInstance);
+        this.knowledge = new Knowledge_1.default(clientInstance);
+        this.evals = new Eval_1.default(clientInstance);
+        this.workflows = new Workflow_1.default(clientInstance);
+        this.schedules = new Schedule_1.default(clientInstance);
+        this.users = new User_1.default(clientInstance);
+        // Financial & Settlement
+        this.settlements = new Settlement_1.default(clientInstance);
+        this.payouts = new Payout_1.default(clientInstance);
+        this.payments = new Payment_1.default(clientInstance);
+        this.refunds = new Refund_1.default(clientInstance);
+        this.creditsDebits = new CreditsDebits_1.default(clientInstance);
+        this.ledger = new Ledger_1.default(clientInstance);
+        // Warehouse & Operations
+        this.picks = new Pick_1.default(clientInstance);
+        this.cycleCounts = new CycleCount_1.default(clientInstance);
+        this.machines = new Machine_1.default(clientInstance);
+        this.wasteAndScrap = new WasteAndScrap_1.default(clientInstance);
+        this.warehouses = new Warehouse_1.default(clientInstance);
+        this.suppliers = new Supplier_1.default(clientInstance);
+        this.locations = new Location_1.default(clientInstance);
+        this.vendors = new Vendor_1.default(clientInstance);
+        // Accounting & Compliance
+        this.invoices = new Invoice_1.default(clientInstance);
+        this.invoiceLines = new InvoiceLine_1.default(clientInstance);
+        this.compliance = new Compliance_1.default(clientInstance);
+        this.leads = new Lead_1.default(clientInstance);
+        this.assets = new Asset_1.default(clientInstance);
+        this.contracts = new Contract_1.default(clientInstance);
+        this.promotions = new Promotion_1.default(clientInstance);
+        // Maintenance & Quality
+        this.logs = new Log_1.default(clientInstance);
+        this.maintenanceSchedules = new MaintenanceSchedule_1.default(clientInstance);
+        this.qualityControl = new QualityControl_1.default(clientInstance);
+        this.resourceUtilization = new ResourceUtilization_1.default(clientInstance);
+        // Sales & CRM
+        this.opportunities = new Opportunity_1.default(clientInstance);
+        this.contacts = new Contact_1.default(clientInstance);
+        this.casesTickets = new CaseTicket_1.default(clientInstance);
+        // Logistics & Delivery
+        this.carriers = new Carrier_1.default(clientInstance);
+        this.routes = new Route_1.default(clientInstance);
+        this.deliveryConfirmations = new DeliveryConfirmation_1.default(clientInstance);
+        this.activities = new Activities_1.default(clientInstance);
+        this.fulfillment = new Fulfillment_1.default(clientInstance);
+        this.productionJob = new ProductionJob_1.default(clientInstance);
+        this.salesOrders = new SalesOrder_1.default(clientInstance);
+        this.fulfillmentOrders = new FulfillmentOrder_1.default(clientInstance);
+        this.itemReceipts = new ItemReceipt_1.default(clientInstance);
+        this.cashSales = new CashSale_1.default(clientInstance);
+        // Legacy compatibility
+        this.workOrders = this.workorders;
+    }
+    /**
+     * Update the API key used for requests
+     */
+    updateApiKey(apiKey) {
+        if (!apiKey) {
+            throw new Error('API key cannot be empty');
+        }
+        this.config.apiKey = apiKey;
+        this.httpClient.updateApiKey(apiKey);
+        logger_1.logger.info('API key updated successfully', {
+            operation: 'client.update_api_key',
+        });
+    }
+    setApiKey(apiKey) {
+        this.updateApiKey(apiKey);
+    }
+    /**
+     * Update the base URL used for requests
+     */
+    updateBaseURL(baseURL) {
+        if (!this.isValidUrl(baseURL)) {
+            throw new Error('Invalid base URL provided');
+        }
+        this.config.baseUrl = baseURL;
+        this.httpClient.updateBaseURL(baseURL);
+        logger_1.logger.info('Base URL updated successfully', {
+            operation: 'client.update_base_url',
+            metadata: { baseURL },
+        });
+    }
+    setBaseUrl(baseURL) {
+        this.updateBaseURL(baseURL);
+    }
+    /**
+     * Update the request timeout
+     */
+    updateTimeout(timeout) {
+        if (timeout < 1000 || timeout > 600000) {
+            throw new Error('Timeout must be between 1000ms and 600000ms (10 minutes)');
+        }
+        this.config.timeout = timeout;
+        this.httpClient.updateTimeout(timeout);
+        logger_1.logger.info('Timeout updated successfully', {
+            operation: 'client.update_timeout',
+            metadata: { timeout },
         });
     }
     setTimeout(timeout) {
-        if (timeout < 1000 || timeout > 300000) {
-            throw new Error('Timeout must be between 1000ms and 300000ms (5 minutes)');
-        }
-        this.config.timeout = timeout;
-        this.httpClient.setTimeout(timeout);
-        logger_1.logger.info('Timeout updated', {
-            operation: 'config_update',
-            metadata: { field: 'timeout', value: timeout },
-        });
+        this.updateTimeout(timeout);
     }
-    setRetryOptions(retry, retryDelayMs) {
+    /**
+     * Update retry configuration
+     */
+    updateRetryOptions(retry, retryDelayMs) {
+        const delay = retryDelayMs ?? this.config.retryDelayMs ?? 1000;
         if (retry < 0 || retry > 10) {
             throw new Error('Retry count must be between 0 and 10');
         }
-        if (retryDelayMs < 100 || retryDelayMs > 30000) {
+        if (delay < 100 || delay > 30000) {
             throw new Error('Retry delay must be between 100ms and 30000ms');
         }
         this.config.retry = retry;
-        this.config.retryDelayMs = retryDelayMs;
-        this.httpClient.setRetryOptions(retry, retryDelayMs);
-        logger_1.logger.info('Retry options updated', {
-            operation: 'config_update',
-            metadata: { field: 'retry', retry, retryDelayMs },
+        this.config.retryDelayMs = delay;
+        logger_1.logger.info('Retry options updated successfully', {
+            operation: 'client.update_retry_options',
+            metadata: { retry, retryDelayMs: delay },
+        });
+    }
+    setRetryOptions(retry, retryDelayMs) {
+        this.updateRetryOptions(retry, retryDelayMs);
+    }
+    /**
+     * Update headers
+     */
+    updateHeaders(headers) {
+        this.config.additionalHeaders = { ...this.config.additionalHeaders, ...headers };
+        this.httpClient.updateHeaders(headers);
+        logger_1.logger.info('Headers updated successfully', {
+            operation: 'client.update_headers',
+            metadata: { headerCount: Object.keys(headers).length },
         });
     }
     setHeaders(headers) {
-        this.config.additionalHeaders = { ...this.config.additionalHeaders, ...headers };
-        this.httpClient.setHeaders(headers);
-        logger_1.logger.info('Headers updated', {
-            operation: 'config_update',
-            metadata: { field: 'headers', count: Object.keys(headers).length },
+        this.updateHeaders(headers);
+    }
+    /**
+     * Update app info for user agent
+     */
+    updateAppInfo(info) {
+        this.config.appInfo = info;
+        const userAgent = this.buildUserAgent();
+        this.config.userAgent = userAgent;
+        this.httpClient.updateHeaders({ 'User-Agent': userAgent });
+        logger_1.logger.info('App info updated successfully', {
+            operation: 'client.update_app_info',
+            metadata: { appName: info.name, appVersion: info.version },
         });
     }
-    setProxy(proxy) {
-        this.config.proxy = proxy;
-        this.httpClient.setProxy(proxy);
-        logger_1.logger.info('Proxy updated', {
-            operation: 'config_update',
-            metadata: { field: 'proxy' },
-        });
+    setAppInfo(info) {
+        this.updateAppInfo(info);
     }
-    setAppInfo(appInfo) {
-        this.config.appInfo = appInfo;
-        this.httpClient.setAppInfo(appInfo);
-        logger_1.logger.info('App info updated', {
-            operation: 'config_update',
-            metadata: { field: 'appInfo', app: appInfo.name },
-        });
+    /**
+     * Add custom request interceptor
+     */
+    addRequestInterceptor(interceptor) {
+        this.httpClient.addRequestInterceptor(interceptor);
     }
-    // Health and monitoring methods
+    /**
+     * Add custom response interceptor
+     */
+    addResponseInterceptor(interceptor) {
+        this.httpClient.addResponseInterceptor(interceptor);
+    }
+    /**
+     * Add custom error interceptor
+     */
+    addErrorInterceptor(interceptor) {
+        this.httpClient.addErrorInterceptor(interceptor);
+    }
+    /**
+     * Health check endpoint
+     */
     async healthCheck() {
+        logger_1.logger.debug('Performing health check', {
+            operation: 'client.health_check',
+        });
         try {
             const result = await this.httpClient.healthCheck();
             logger_1.logger.info('Health check completed', {
-                operation: 'health_check',
+                operation: 'client.health_check',
                 metadata: { status: result.status },
             });
-            return {
-                ...result,
-                details: {
-                    circuitBreakerState: this.httpClient.getCircuitBreakerState(),
-                },
-            };
+            return result;
         }
         catch (error) {
             logger_1.logger.error('Health check failed', {
-                operation: 'health_check',
+                operation: 'client.health_check',
             }, error);
-            return {
-                status: 'error',
-                timestamp: new Date().toISOString(),
-                details: {
-                    error: error.message,
-                    circuitBreakerState: this.httpClient.getCircuitBreakerState(),
-                },
-            };
+            throw error;
         }
     }
+    /**
+     * Get circuit breaker state
+     */
     getCircuitBreakerState() {
         return this.httpClient.getCircuitBreakerState();
     }
+    /**
+     * Reset circuit breaker
+     */
     resetCircuitBreaker() {
         this.httpClient.resetCircuitBreaker();
         logger_1.logger.info('Circuit breaker reset', {
-            operation: 'circuit_breaker_reset',
+            operation: 'client.reset_circuit_breaker',
         });
     }
-    // Legacy method for backward compatibility
-    async request(method, path, data, options = {}) {
-        logger_1.logger.warn('Using deprecated request method, consider using resource methods instead', {
-            operation: 'deprecated_request',
-            metadata: { method, path },
-        });
-        return this.httpClient.request(method, path, data, options);
-    }
-    // Get current configuration (without sensitive data)
+    /**
+     * Get current configuration (sanitized)
+     */
     getConfig() {
-        const { apiKey, ...safeConfig } = this.config;
+        const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } = this.config;
         return safeConfig;
     }
-    // Destroy client and cleanup resources
-    destroy() {
-        logger_1.logger.info('Stateset client destroyed', {
-            operation: 'client_destroy',
+    /**
+     * Legacy request method for backward compatibility
+     */
+    async request(method, path, data, options = {}) {
+        logger_1.logger.debug('Legacy request method called', {
+            operation: 'client.legacy_request',
+            metadata: { method, path },
         });
-        // Any cleanup logic would go here
+        const config = {
+            method: method.toLowerCase(),
+            url: path,
+            data,
+            ...options,
+        };
+        const response = await this.httpClient.request(config);
+        return response.data;
+    }
+    /**
+     * Clean up resources
+     */
+    destroy() {
+        this.httpClient.destroy();
+        logger_1.logger.info('StatesetClient destroyed', {
+            operation: 'client.destroy',
+        });
     }
 }
 exports.StatesetClient = StatesetClient;
+exports.default = StatesetClient;
 //# sourceMappingURL=client.js.map

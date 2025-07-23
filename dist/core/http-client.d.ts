@@ -1,43 +1,80 @@
-import { AxiosRequestConfig } from 'axios';
-import { StatesetConfig, RequestOptions } from '../types';
-export interface HttpRequestConfig extends AxiosRequestConfig {
-    requestId?: string;
-    retries?: number;
-    circuitBreaker?: boolean;
-    metadata?: any;
+import { AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { RetryOptions } from '../utils/retry';
+export interface HttpClientOptions {
+    baseURL: string;
+    apiKey: string;
+    timeout?: number;
+    retry?: Partial<RetryOptions>;
+    userAgent?: string;
+    additionalHeaders?: Record<string, string>;
+    maxSockets?: number;
+    keepAlive?: boolean;
+    proxy?: {
+        protocol: string;
+        host: string;
+        port: number;
+        auth?: {
+            username: string;
+            password: string;
+        };
+    };
 }
-export declare class HttpClient {
-    private config;
-    private client;
+export interface RequestMetadata {
+    requestId: string;
+    startTime: number;
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+}
+export interface ResponseMetadata extends RequestMetadata {
+    endTime: number;
+    statusCode: number;
+    responseTime: number;
+    responseSize: number;
+}
+export type RequestInterceptor = (config: InternalAxiosRequestConfig & {
+    metadata?: RequestMetadata;
+}) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
+export type ResponseInterceptor = (response: AxiosResponse & {
+    metadata?: ResponseMetadata;
+}) => AxiosResponse | Promise<AxiosResponse>;
+export type ErrorInterceptor = (error: AxiosError & {
+    metadata?: RequestMetadata;
+}) => Promise<AxiosError>;
+export declare class EnhancedHttpClient {
+    private axiosInstance;
     private circuitBreaker;
-    private defaultRetries;
-    constructor(config: StatesetConfig);
-    private buildUserAgent;
-    private setupProxy;
+    private retryOptions;
+    private requestInterceptors;
+    private responseInterceptors;
+    private errorInterceptors;
+    constructor(options: HttpClientOptions);
     private setupInterceptors;
+    private applyRequestInterceptors;
+    private applyResponseInterceptors;
+    private applyErrorInterceptors;
     private transformError;
-    request<T = any>(method: string, path: string, data?: any, options?: RequestOptions): Promise<T>;
-    get<T = any>(path: string, options?: RequestOptions): Promise<T>;
-    post<T = any>(path: string, data?: any, options?: RequestOptions): Promise<T>;
-    put<T = any>(path: string, data?: any, options?: RequestOptions): Promise<T>;
-    patch<T = any>(path: string, data?: any, options?: RequestOptions): Promise<T>;
-    delete<T = any>(path: string, options?: RequestOptions): Promise<T>;
-    setApiKey(apiKey: string): void;
-    setBaseUrl(baseUrl: string): void;
-    setTimeout(timeout: number): void;
-    setHeaders(headers: Record<string, string>): void;
-    setRetryOptions(retry: number, retryDelayMs: number): void;
-    setProxy(proxy: string): void;
-    setAppInfo(appInfo: {
-        name: string;
-        version?: string;
-        url?: string;
-    }): void;
+    private sanitizeHeaders;
+    addRequestInterceptor(interceptor: RequestInterceptor): void;
+    addResponseInterceptor(interceptor: ResponseInterceptor): void;
+    addErrorInterceptor(interceptor: ErrorInterceptor): void;
+    get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    request<T = any>(config: AxiosRequestConfig): Promise<AxiosResponse<T>>;
     healthCheck(): Promise<{
-        status: 'ok' | 'error';
+        status: string;
         timestamp: string;
+        details: any;
     }>;
+    updateApiKey(apiKey: string): void;
+    updateBaseURL(baseURL: string): void;
+    updateTimeout(timeout: number): void;
+    updateHeaders(headers: Record<string, string>): void;
     getCircuitBreakerState(): string;
     resetCircuitBreaker(): void;
+    destroy(): void;
 }
 //# sourceMappingURL=http-client.d.ts.map

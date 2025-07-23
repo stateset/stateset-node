@@ -2,10 +2,10 @@ import { logger } from './logger';
 
 export interface RetryOptions {
   maxAttempts: number;
-  baseDelay: number;
-  maxDelay: number;
-  backoffMultiplier: number;
-  jitter: boolean;
+  baseDelay?: number;
+  maxDelay?: number;
+  backoffMultiplier?: number;
+  jitter?: boolean;
   retryCondition?: (error: Error) => boolean;
 }
 
@@ -26,29 +26,13 @@ export class RetryError extends Error {
   }
 }
 
-const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 30000,
   backoffMultiplier: 2,
   jitter: true,
-  retryCondition: (error: Error) => {
-    // Retry on network errors and 5xx status codes
-    if (error.message.includes('ECONNRESET') || 
-        error.message.includes('ENOTFOUND') ||
-        error.message.includes('ETIMEDOUT')) {
-      return true;
-    }
-    
-    // Check for HTTP status codes that should be retried
-    const statusMatch = error.message.match(/status code (\d+)/);
-    if (statusMatch) {
-      const status = parseInt(statusMatch[1], 10);
-      return status >= 500 || status === 429; // 5xx errors or rate limit
-    }
-    
-    return false;
-  },
+  retryCondition: () => true, // Default: retry all errors
 };
 
 export async function withRetry<T>(
@@ -74,13 +58,18 @@ export async function withRetry<T>(
     } catch (error) {
       lastError = error as Error;
       
-      // Check retry condition first
-      const retryConditionMet = config.retryCondition?.(lastError) ?? true;
-      const shouldRetry = attempt < config.maxAttempts && retryConditionMet;
-      
-      if (!shouldRetry) {
+      // For the last attempt, don't check retry condition and don't delay
+      if (attempt === config.maxAttempts) {
         attempts.push({ attempt, delay: 0, error: lastError });
         break;
+      }
+      
+      // Check retry condition for non-final attempts
+      const shouldRetry = config.retryCondition(lastError);
+      
+      if (!shouldRetry) {
+        // If retry condition fails, throw the original error immediately
+        throw lastError;
       }
       
       const delay = calculateDelay(attempt, config);
@@ -100,11 +89,6 @@ export async function withRetry<T>(
     }
   }
   
-  // If we didn't retry due to retry condition, throw the original error
-  if (attempts.length === 1 && config.retryCondition && !config.retryCondition(lastError!)) {
-    throw lastError!;
-  }
-  
   throw new RetryError(
     `Operation failed after ${config.maxAttempts} attempts`,
     attempts,
@@ -112,7 +96,7 @@ export async function withRetry<T>(
   );
 }
 
-function calculateDelay(attempt: number, options: RetryOptions): number {
+function calculateDelay(attempt: number, options: Required<RetryOptions>): number {
   let delay = options.baseDelay * Math.pow(options.backoffMultiplier, attempt - 1);
   delay = Math.min(delay, options.maxDelay);
   
