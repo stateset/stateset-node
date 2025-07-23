@@ -1,24 +1,55 @@
-import { HttpClient } from './http-client';
-import {
-  BaseEntity,
-  ListParams,
-  ListResponse,
+import { EnhancedHttpClient } from './http-client';
+import { logger } from '../utils/logger';
+import { 
+  BaseEntity, 
+  ListResponse, 
+  PaginationParams, 
+  SearchParams,
   CreateParams,
   UpdateParams,
   GetParams,
+  ListParams,
   DeleteParams,
-  SearchParams,
-  RequestOptions,
+  RequestOptions 
 } from '../types';
-import { logger } from '../utils/logger';
+
+export interface BulkOperationResult<T> {
+  success: T[];
+  errors: Array<{ index: number; error: string; item?: any }>;
+  totalProcessed: number;
+  successCount: number;
+  errorCount: number;
+}
+
+export interface ExportOptions extends ListParams {
+  format?: 'json' | 'csv';
+  includeDeleted?: boolean;
+  chunkSize?: number;
+}
+
+export interface ResourceSchema {
+  name: string;
+  fields: Array<{
+    name: string;
+    type: string;
+    required: boolean;
+    description?: string;
+  }>;
+  operations: string[];
+  endpoints: Record<string, string>;
+}
 
 export abstract class BaseResource<T extends BaseEntity> {
   protected resourceName: string;
-  protected httpClient: HttpClient;
+  protected resourcePath: string;
 
-  constructor(httpClient: HttpClient, resourceName: string) {
-    this.httpClient = httpClient;
+  constructor(
+    protected httpClient: EnhancedHttpClient,
+    resourceName: string,
+    resourcePath?: string
+  ) {
     this.resourceName = resourceName;
+    this.resourcePath = resourcePath || `/${resourceName.toLowerCase()}`;
   }
 
   /**
@@ -27,77 +58,75 @@ export abstract class BaseResource<T extends BaseEntity> {
   async get(params: GetParams): Promise<T> {
     const { id, options = {} } = params;
     
-    logger.debug('Getting resource', {
-      operation: 'get',
-      resource: this.resourceName,
+    logger.debug(`Getting ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.get`,
       metadata: { id },
     });
 
-    const response = await this.httpClient.get<any>(
-      `${this.resourceName}/${id}`,
-      options
-    );
+    try {
+      const response = await this.httpClient.get<T>(`${this.resourcePath}/${id}`, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} retrieved successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.get`,
+        metadata: { id, statusCode: response.status },
+      });
 
-    return response[this.resourceName.slice(0, -1)] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to get ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.get`,
+        metadata: { id },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
-   * List resources with optional filtering and pagination
+   * List resources with pagination and filtering
    */
   async list(params: ListParams = {}): Promise<ListResponse<T>> {
-    const { filters, sort, limit, offset, cursor, options = {} } = params;
+    const { filters, sort, limit = 25, offset = 0, cursor, options = {} } = params;
     
-    logger.debug('Listing resources', {
-      operation: 'list',
-      resource: this.resourceName,
-      metadata: { filters, sort, limit, offset, cursor },
+    logger.debug(`Listing ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.list`,
+      metadata: { limit, offset, cursor, filters, sort },
     });
 
-    const queryParams: Record<string, unknown> = {};
-    
-    if (filters) {
-      Object.assign(queryParams, filters);
-    }
-    
-    if (sort) queryParams.sort = sort;
-    if (limit) queryParams.limit = limit;
-    if (offset) queryParams.offset = offset;
-    if (cursor) queryParams.cursor = cursor;
-
-    const requestOptions: RequestOptions = {
-      ...options,
-      params: queryParams,
-    };
-
-    const response = await this.httpClient.get<any>(this.resourceName, requestOptions);
-
-    // Handle different response formats
-    if (response[this.resourceName]) {
-      return {
-        data: response[this.resourceName],
-        has_more: response.has_more || false,
-        total_count: response.total_count,
-        next_cursor: response.next_cursor,
+    try {
+      const queryParams: Record<string, unknown> = {
+        limit,
+        offset,
+        ...(cursor && { cursor }),
+        ...(sort && { sort }),
+        ...filters,
       };
-    }
 
-    if (Array.isArray(response.data)) {
-      return {
-        data: response.data,
-        has_more: response.has_more || false,
-        total_count: response.total_count,
-        next_cursor: response.next_cursor,
-      };
-    }
+      const response = await this.httpClient.get<ListResponse<T>>(this.resourcePath, {
+        params: queryParams,
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} list retrieved successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.list`,
+        metadata: { 
+          count: response.data.data.length,
+          hasMore: response.data.has_more,
+          statusCode: response.status 
+        },
+      });
 
-    if (Array.isArray(response)) {
-      return {
-        data: response,
-        has_more: false,
-      };
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to list ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.list`,
+        metadata: { limit, offset, cursor },
+      }, error as Error);
+      throw error;
     }
-
-    throw new Error(`Unexpected response format for ${this.resourceName} list`);
   }
 
   /**
@@ -106,19 +135,33 @@ export abstract class BaseResource<T extends BaseEntity> {
   async create(params: CreateParams<Partial<T>>): Promise<T> {
     const { data, options = {} } = params;
     
-    logger.debug('Creating resource', {
-      operation: 'create',
-      resource: this.resourceName,
-      metadata: { data },
+    logger.debug(`Creating ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.create`,
+      metadata: { data: this.sanitizeLogData(data) },
     });
 
-    const response = await this.httpClient.post<any>(
-      this.resourceName,
-      data,
-      options
-    );
+    try {
+      const response = await this.httpClient.post<T>(this.resourcePath, data, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} created successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.create`,
+        metadata: { 
+          id: response.data.id,
+          statusCode: response.status 
+        },
+      });
 
-    return response[this.resourceName.slice(0, -1)] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to create ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.create`,
+        metadata: { data: this.sanitizeLogData(data) },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
@@ -127,19 +170,33 @@ export abstract class BaseResource<T extends BaseEntity> {
   async update(params: UpdateParams<Partial<T>>): Promise<T> {
     const { id, data, options = {} } = params;
     
-    logger.debug('Updating resource', {
-      operation: 'update',
-      resource: this.resourceName,
-      metadata: { id, data },
+    logger.debug(`Updating ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.update`,
+      metadata: { id, data: this.sanitizeLogData(data) },
     });
 
-    const response = await this.httpClient.put<any>(
-      `${this.resourceName}/${id}`,
-      data,
-      options
-    );
+    try {
+      const response = await this.httpClient.put<T>(`${this.resourcePath}/${id}`, data, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} updated successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.update`,
+        metadata: { 
+          id,
+          statusCode: response.status 
+        },
+      });
 
-    return response[this.resourceName.slice(0, -1)] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to update ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.update`,
+        metadata: { id },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
@@ -148,121 +205,154 @@ export abstract class BaseResource<T extends BaseEntity> {
   async patch(params: UpdateParams<Partial<T>>): Promise<T> {
     const { id, data, options = {} } = params;
     
-    logger.debug('Patching resource', {
-      operation: 'patch',
-      resource: this.resourceName,
-      metadata: { id, data },
+    logger.debug(`Patching ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.patch`,
+      metadata: { id, data: this.sanitizeLogData(data) },
     });
 
-    const response = await this.httpClient.patch<any>(
-      `${this.resourceName}/${id}`,
-      data,
-      options
-    );
+    try {
+      const response = await this.httpClient.patch<T>(`${this.resourcePath}/${id}`, data, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} patched successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.patch`,
+        metadata: { 
+          id,
+          statusCode: response.status 
+        },
+      });
 
-    return response[this.resourceName.slice(0, -1)] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to patch ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.patch`,
+        metadata: { id },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
    * Delete a resource
    */
-  async delete(params: DeleteParams): Promise<{ success: boolean; id: string }> {
+  async delete(params: DeleteParams): Promise<void> {
     const { id, options = {} } = params;
     
-    logger.debug('Deleting resource', {
-      operation: 'delete',
-      resource: this.resourceName,
+    logger.debug(`Deleting ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.delete`,
       metadata: { id },
     });
 
-    await this.httpClient.delete(`${this.resourceName}/${id}`, options);
-
-    return { success: true, id };
+    try {
+      const response = await this.httpClient.delete(`${this.resourcePath}/${id}`, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} deleted successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.delete`,
+        metadata: { 
+          id,
+          statusCode: response.status 
+        },
+      });
+    } catch (error) {
+      logger.error(`Failed to delete ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.delete`,
+        metadata: { id },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
    * Search resources
    */
   async search(params: SearchParams): Promise<ListResponse<T>> {
-    const { query, filters, limit, offset, cursor, options = {} } = params;
+    const { query, filters, limit = 25, offset = 0, cursor, options = {} } = params;
     
-    logger.debug('Searching resources', {
-      operation: 'search',
-      resource: this.resourceName,
+    logger.debug(`Searching ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.search`,
       metadata: { query, filters, limit, offset, cursor },
     });
 
-    const queryParams: Record<string, unknown> = { q: query };
-    
-    if (filters) {
-      Object.assign(queryParams, filters);
-    }
-    
-    if (limit) queryParams.limit = limit;
-    if (offset) queryParams.offset = offset;
-    if (cursor) queryParams.cursor = cursor;
-
-    const requestOptions: RequestOptions = {
-      ...options,
-      params: queryParams,
-    };
-
-    const response = await this.httpClient.get<any>(
-      `${this.resourceName}/search`,
-      requestOptions
-    );
-
-    // Handle different response formats
-    if (response[this.resourceName]) {
-      return {
-        data: response[this.resourceName],
-        has_more: response.has_more || false,
-        total_count: response.total_count,
-        next_cursor: response.next_cursor,
+    try {
+      const queryParams: Record<string, unknown> = {
+        q: query,
+        limit,
+        offset,
+        ...(cursor && { cursor }),
+        ...filters,
       };
-    }
 
-    if (Array.isArray(response.data)) {
-      return {
-        data: response.data,
-        has_more: response.has_more || false,
-        total_count: response.total_count,
-        next_cursor: response.next_cursor,
-      };
-    }
+      const response = await this.httpClient.get<ListResponse<T>>(`${this.resourcePath}/search`, {
+        params: queryParams,
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} search completed successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.search`,
+        metadata: { 
+          query,
+          count: response.data.data.length,
+          hasMore: response.data.has_more,
+          statusCode: response.status 
+        },
+      });
 
-    return {
-      data: Array.isArray(response) ? response : [],
-      has_more: false,
-    };
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to search ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.search`,
+        metadata: { query },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
-   * Get resource count
+   * Count resources matching filters
    */
-  async count(filters?: Record<string, unknown>): Promise<number> {
-    logger.debug('Counting resources', {
-      operation: 'count',
-      resource: this.resourceName,
+  async count(filters: Record<string, unknown> = {}, options: RequestOptions = {}): Promise<number> {
+    logger.debug(`Counting ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.count`,
       metadata: { filters },
     });
 
-    const queryParams = filters ? { ...filters } : {};
-    
-    const response = await this.httpClient.get<{ count: number }>(
-      `${this.resourceName}/count`,
-      { params: queryParams }
-    );
+    try {
+      const response = await this.httpClient.get<{ count: number }>(`${this.resourcePath}/count`, {
+        params: filters,
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} count retrieved successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.count`,
+        metadata: { 
+          count: response.data.count,
+          statusCode: response.status 
+        },
+      });
 
-    return response.count;
+      return response.data.count;
+    } catch (error) {
+      logger.error(`Failed to count ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.count`,
+        metadata: { filters },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
    * Check if a resource exists
    */
-  async exists(id: string): Promise<boolean> {
+  async exists(id: string, options: RequestOptions = {}): Promise<boolean> {
     try {
-      await this.get({ id });
+      await this.get({ id, options });
       return true;
     } catch (error: any) {
       if (error.statusCode === 404) {
@@ -273,85 +363,221 @@ export abstract class BaseResource<T extends BaseEntity> {
   }
 
   /**
-   * Bulk operations
+   * Bulk create multiple resources
    */
-  async bulkCreate(items: Partial<T>[], options: RequestOptions = {}): Promise<T[]> {
-    logger.debug('Bulk creating resources', {
-      operation: 'bulk_create',
-      resource: this.resourceName,
+  async bulkCreate(items: Partial<T>[], options: RequestOptions = {}): Promise<BulkOperationResult<T>> {
+    logger.debug(`Bulk creating ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.bulk_create`,
       metadata: { count: items.length },
     });
 
-    const response = await this.httpClient.post<any>(
-      `${this.resourceName}/bulk`,
-      { items },
-      options
-    );
+    try {
+      const response = await this.httpClient.post<BulkOperationResult<T>>(`${this.resourcePath}/bulk`, {
+        operation: 'create',
+        items,
+      }, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} bulk create completed`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_create`,
+        metadata: { 
+          successCount: response.data.successCount,
+          errorCount: response.data.errorCount,
+          statusCode: response.status 
+        },
+      });
 
-    return response[this.resourceName] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to bulk create ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_create`,
+        metadata: { count: items.length },
+      }, error as Error);
+      throw error;
+    }
   }
 
-  async bulkUpdate(updates: Array<{ id: string; data: Partial<T> }>, options: RequestOptions = {}): Promise<T[]> {
-    logger.debug('Bulk updating resources', {
-      operation: 'bulk_update',
-      resource: this.resourceName,
-      metadata: { count: updates.length },
+  /**
+   * Bulk update multiple resources
+   */
+  async bulkUpdate(items: Array<{ id: string; data: Partial<T> }>, options: RequestOptions = {}): Promise<BulkOperationResult<T>> {
+    logger.debug(`Bulk updating ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.bulk_update`,
+      metadata: { count: items.length },
     });
 
-    const response = await this.httpClient.put<any>(
-      `${this.resourceName}/bulk`,
-      { updates },
-      options
-    );
+    try {
+      const response = await this.httpClient.post<BulkOperationResult<T>>(`${this.resourcePath}/bulk`, {
+        operation: 'update',
+        items,
+      }, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} bulk update completed`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_update`,
+        metadata: { 
+          successCount: response.data.successCount,
+          errorCount: response.data.errorCount,
+          statusCode: response.status 
+        },
+      });
 
-    return response[this.resourceName] || response.data || response;
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to bulk update ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_update`,
+        metadata: { count: items.length },
+      }, error as Error);
+      throw error;
+    }
   }
 
-  async bulkDelete(ids: string[], options: RequestOptions = {}): Promise<{ success: boolean; deleted: string[] }> {
-    logger.debug('Bulk deleting resources', {
-      operation: 'bulk_delete',
-      resource: this.resourceName,
+  /**
+   * Bulk delete multiple resources
+   */
+  async bulkDelete(ids: string[], options: RequestOptions = {}): Promise<BulkOperationResult<{ id: string }>> {
+    logger.debug(`Bulk deleting ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.bulk_delete`,
       metadata: { count: ids.length },
     });
 
-    await this.httpClient.request('DELETE', `${this.resourceName}/bulk`, { ids }, options);
+    try {
+      const response = await this.httpClient.post<BulkOperationResult<{ id: string }>>(`${this.resourcePath}/bulk`, {
+        operation: 'delete',
+        ids,
+      }, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} bulk delete completed`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_delete`,
+        metadata: { 
+          successCount: response.data.successCount,
+          errorCount: response.data.errorCount,
+          statusCode: response.status 
+        },
+      });
 
-    return { success: true, deleted: ids };
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to bulk delete ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.bulk_delete`,
+        metadata: { count: ids.length },
+      }, error as Error);
+      throw error;
+    }
   }
 
   /**
    * Export resources
    */
-  async export(
-    format: 'csv' | 'json' | 'xlsx' = 'json',
-    filters?: Record<string, unknown>,
-    options: RequestOptions = {}
-  ): Promise<{ download_url: string; expires_at: string }> {
-    logger.debug('Exporting resources', {
-      operation: 'export',
-      resource: this.resourceName,
-      metadata: { format, filters },
+  async export(options: ExportOptions = {}): Promise<{ url?: string; data?: T[] }> {
+    const { format = 'json', includeDeleted = false, chunkSize = 1000, ...listParams } = options;
+    
+    logger.debug(`Exporting ${this.resourceName}`, {
+      operation: `${this.resourceName.toLowerCase()}.export`,
+      metadata: { format, includeDeleted, chunkSize },
     });
 
-    const queryParams: Record<string, unknown> = { format };
-    if (filters) {
-      Object.assign(queryParams, filters);
+    try {
+      const response = await this.httpClient.post<{ url?: string; data?: T[] }>(`${this.resourcePath}/export`, {
+        format,
+        includeDeleted,
+        chunkSize,
+        ...listParams,
+      }, {
+        timeout: options.options?.timeout || 300000, // 5 minutes for exports
+        headers: options.options?.headers,
+      });
+      
+      logger.info(`${this.resourceName} export completed`, {
+        operation: `${this.resourceName.toLowerCase()}.export`,
+        metadata: { 
+          format,
+          hasUrl: !!response.data.url,
+          hasData: !!response.data.data,
+          statusCode: response.status 
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to export ${this.resourceName}`, {
+        operation: `${this.resourceName.toLowerCase()}.export`,
+        metadata: { format },
+      }, error as Error);
+      throw error;
     }
-
-    const response = await this.httpClient.post<{ download_url: string; expires_at: string }>(
-      `${this.resourceName}/export`,
-      {},
-      { ...options, params: queryParams }
-    );
-
-    return response;
   }
 
   /**
-   * Get resource schema/metadata
+   * Get resource schema information
    */
-  async getSchema(): Promise<any> {
-    const response = await this.httpClient.get(`${this.resourceName}/schema`);
-    return response;
+  async getSchema(options: RequestOptions = {}): Promise<ResourceSchema> {
+    logger.debug(`Getting ${this.resourceName} schema`, {
+      operation: `${this.resourceName.toLowerCase()}.get_schema`,
+    });
+
+    try {
+      const response = await this.httpClient.get<ResourceSchema>(`${this.resourcePath}/schema`, {
+        timeout: options.timeout,
+        headers: options.headers,
+      });
+      
+      logger.info(`${this.resourceName} schema retrieved successfully`, {
+        operation: `${this.resourceName.toLowerCase()}.get_schema`,
+        metadata: { 
+          fieldCount: response.data.fields.length,
+          operationCount: response.data.operations.length,
+          statusCode: response.status 
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      logger.error(`Failed to get ${this.resourceName} schema`, {
+        operation: `${this.resourceName.toLowerCase()}.get_schema`,
+      }, error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sanitize data for logging (remove sensitive fields)
+   */
+  protected sanitizeLogData(data: any): any {
+    if (!data || typeof data !== 'object') {
+      return data;
+    }
+
+    const sensitiveFields = ['password', 'token', 'secret', 'key', 'apiKey', 'authorization'];
+    const sanitized = { ...data };
+    
+    for (const field of sensitiveFields) {
+      if (sanitized[field]) {
+        sanitized[field] = '[REDACTED]';
+      }
+    }
+    
+    return sanitized;
+  }
+
+  /**
+   * Get the resource name
+   */
+  getResourceName(): string {
+    return this.resourceName;
+  }
+
+  /**
+   * Get the resource path
+   */
+  getResourcePath(): string {
+    return this.resourcePath;
   }
 }

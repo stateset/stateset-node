@@ -1,9 +1,9 @@
 export interface RetryOptions {
     maxAttempts: number;
-    baseDelay: number;
-    maxDelay: number;
-    backoffMultiplier: number;
-    jitter: boolean;
+    baseDelay?: number;
+    maxDelay?: number;
+    backoffMultiplier?: number;
+    jitter?: boolean;
     retryCondition?: (error: Error) => boolean;
 }
 export interface RetryAttempt {

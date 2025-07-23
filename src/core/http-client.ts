@@ -1,327 +1,367 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosProxyConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import * as https from 'https';
 import { v4 as uuidv4 } from 'uuid';
-import { StatesetConfig, RequestOptions } from '../types';
 import { logger } from '../utils/logger';
-import { withRetry, CircuitBreaker } from '../utils/retry';
-import {
-  StatesetError,
-  StatesetAPIError,
-  StatesetAuthenticationError,
-  StatesetConnectionError,
-  StatesetInvalidRequestError,
-  StatesetNotFoundError,
-  StatesetRateLimitError,
-} from '../StatesetError';
+import { withRetry, CircuitBreaker, RetryOptions } from '../utils/retry';
+import { StatesetError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetInvalidRequestError, StatesetNotFoundError } from '../StatesetError';
 
-export interface HttpRequestConfig extends AxiosRequestConfig {
-  requestId?: string;
-  retries?: number;
-  circuitBreaker?: boolean;
-  metadata?: any;
+export interface HttpClientOptions {
+  baseURL: string;
+  apiKey: string;
+  timeout?: number;
+  retry?: Partial<RetryOptions>;
+  userAgent?: string;
+  additionalHeaders?: Record<string, string>;
+  maxSockets?: number;
+  keepAlive?: boolean;
+  proxy?: {
+    protocol: string;
+    host: string;
+    port: number;
+    auth?: {
+      username: string;
+      password: string;
+    };
+  };
 }
 
-export class HttpClient {
-  private client: AxiosInstance;
-  private circuitBreaker: CircuitBreaker;
-  private defaultRetries: number;
+export interface RequestMetadata {
+  requestId: string;
+  startTime: number;
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+}
 
-  constructor(private config: StatesetConfig) {
-    this.defaultRetries = config.retry ?? 0;
+export interface ResponseMetadata extends RequestMetadata {
+  endTime: number;
+  statusCode: number;
+  responseTime: number;
+  responseSize: number;
+}
+
+export type RequestInterceptor = (config: InternalAxiosRequestConfig & { metadata?: RequestMetadata }) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
+export type ResponseInterceptor = (response: AxiosResponse & { metadata?: ResponseMetadata }) => AxiosResponse | Promise<AxiosResponse>;
+export type ErrorInterceptor = (error: AxiosError & { metadata?: RequestMetadata }) => Promise<AxiosError>;
+
+export class EnhancedHttpClient {
+  private axiosInstance: AxiosInstance;
+  private circuitBreaker: CircuitBreaker;
+  private retryOptions: Partial<RetryOptions>;
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
+  private errorInterceptors: ErrorInterceptor[] = [];
+
+  constructor(options: HttpClientOptions) {
+    this.retryOptions = options.retry || {};
     this.circuitBreaker = new CircuitBreaker();
-    
-    this.client = axios.create({
-      baseURL: config.baseUrl,
-      timeout: config.timeout ?? 60000,
-      headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-        'User-Agent': config.userAgent ?? this.buildUserAgent(),
-        ...config.additionalHeaders,
-      },
+
+    // Create HTTPS agent with connection pooling
+    const httpsAgent = new https.Agent({
+      keepAlive: options.keepAlive ?? true,
+      maxSockets: options.maxSockets ?? 10,
+      maxFreeSockets: 5,
+      timeout: options.timeout ?? 60000,
     });
 
-    this.setupProxy();
+    this.axiosInstance = axios.create({
+      baseURL: options.baseURL,
+      timeout: options.timeout ?? 60000,
+      httpsAgent,
+      headers: {
+        'Authorization': `Bearer ${options.apiKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': options.userAgent || 'stateset-node-client/1.0.0',
+        ...options.additionalHeaders,
+      },
+      proxy: options.proxy ? {
+        protocol: options.proxy.protocol,
+        host: options.proxy.host,
+        port: options.proxy.port,
+        auth: options.proxy.auth,
+      } : false,
+    });
+
     this.setupInterceptors();
-  }
-
-  private buildUserAgent(): string {
-    const packageVersion = process.env.npm_package_version ?? '1.0.0';
-    let ua = `stateset-node/${packageVersion}`;
-    
-    if (this.config.appInfo) {
-      ua += ` ${this.config.appInfo.name}`;
-      if (this.config.appInfo.version) {
-        ua += `/${this.config.appInfo.version}`;
-      }
-      if (this.config.appInfo.url) {
-        ua += ` (${this.config.appInfo.url})`;
-      }
-    }
-    
-    return ua;
-  }
-
-  private setupProxy(): void {
-    if (this.config.proxy) {
-      const parsed = new URL(this.config.proxy);
-      const proxy: AxiosProxyConfig = {
-        protocol: parsed.protocol.replace(':', ''),
-        host: parsed.hostname,
-        port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80),
-      };
-
-      if (parsed.username || parsed.password) {
-        proxy.auth = {
-          username: decodeURIComponent(parsed.username),
-          password: decodeURIComponent(parsed.password),
-        };
-      }
-
-      this.client.defaults.proxy = proxy;
-    }
   }
 
   private setupInterceptors(): void {
     // Request interceptor
-    this.client.interceptors.request.use(
-      (config: any) => {
+    this.axiosInstance.interceptors.request.use(
+      (config: InternalAxiosRequestConfig) => {
         const requestId = uuidv4();
-        config.metadata = { requestId, startTime: Date.now() };
-        
-        logger.debug('HTTP request started', {
+        const startTime = Date.now();
+        const metadata: RequestMetadata = {
+          requestId,
+          startTime,
+          method: config.method?.toUpperCase() || 'GET',
+          url: config.url || '',
+          headers: config.headers as Record<string, string>,
+        };
+
+        // Add request ID to headers for tracing
+        if (config.headers) {
+          config.headers['X-Request-ID'] = requestId;
+        }
+
+        // Attach metadata to config
+        (config as any).metadata = metadata;
+
+        logger.debug('HTTP request initiated', {
           requestId,
           operation: 'http_request',
           metadata: {
-            method: config.method?.toUpperCase(),
-            url: config.url,
-            baseURL: config.baseURL,
+            method: metadata.method,
+            url: metadata.url,
+            headers: this.sanitizeHeaders(metadata.headers),
           },
         });
 
-        return config;
+        // Apply custom request interceptors
+        return this.applyRequestInterceptors(config);
       },
       (error) => {
-        logger.error('Request interceptor error', undefined, error);
+        logger.error('Request interceptor error', {
+          operation: 'http_request',
+          metadata: { error: error.message },
+        }, error);
         return Promise.reject(error);
       }
     );
 
     // Response interceptor
-    this.client.interceptors.response.use(
-      (response: any) => {
-        const { requestId, startTime } = response.config?.metadata || {};
-        const duration = Date.now() - (startTime || Date.now());
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
+        const metadata = (response.config as any).metadata as RequestMetadata;
+        const endTime = Date.now();
+        const responseMetadata: ResponseMetadata = {
+          ...metadata,
+          endTime,
+          statusCode: response.status,
+          responseTime: endTime - metadata.startTime,
+          responseSize: JSON.stringify(response.data).length,
+        };
 
-        logger.debug('HTTP request completed', {
-          requestId,
+        // Attach metadata to response
+        (response as any).metadata = responseMetadata;
+
+        logger.info('HTTP response received', {
+          requestId: metadata.requestId,
           operation: 'http_response',
           metadata: {
-            status: response.status,
-            duration,
-            size: JSON.stringify(response.data).length,
+            statusCode: responseMetadata.statusCode,
+            responseTime: responseMetadata.responseTime,
+            responseSize: responseMetadata.responseSize,
           },
         });
 
-        return response;
+        // Apply custom response interceptors
+        return this.applyResponseInterceptors(response);
       },
-      (error: any) => {
-        const { requestId, startTime } = error.config?.metadata || {};
-        const duration = Date.now() - (startTime || Date.now());
+      async (error) => {
+        const metadata = (error.config as any)?.metadata as RequestMetadata;
+        
+        if (metadata) {
+          const endTime = Date.now();
+          logger.error('HTTP request failed', {
+            requestId: metadata.requestId,
+            operation: 'http_error',
+            metadata: {
+              method: metadata.method,
+              url: metadata.url,
+              responseTime: endTime - metadata.startTime,
+              statusCode: error.response?.status,
+              errorMessage: error.message,
+            },
+          }, error);
+        }
 
-        logger.error('HTTP request failed', {
-          requestId,
-          operation: 'http_error',
-          metadata: {
-            status: error.response?.status,
-            duration,
-            url: error.config?.url,
-            method: error.config?.method?.toUpperCase(),
-          },
-        }, error);
-
-        return Promise.reject(this.transformError(error, requestId));
+        // Apply custom error interceptors
+        await this.applyErrorInterceptors(error);
+        
+        // Transform axios errors to Stateset errors
+        throw this.transformError(error);
       }
     );
   }
 
-  private transformError(error: any, requestId?: string): StatesetError {
-    const baseErrorData = {
+  private async applyRequestInterceptors(config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> {
+    let result = config;
+    for (const interceptor of this.requestInterceptors) {
+      result = await interceptor(result);
+    }
+    return result;
+  }
+
+  private async applyResponseInterceptors(response: AxiosResponse): Promise<AxiosResponse> {
+    let result = response;
+    for (const interceptor of this.responseInterceptors) {
+      result = await interceptor(result);
+    }
+    return result;
+  }
+
+  private async applyErrorInterceptors(error: AxiosError): Promise<void> {
+    for (const interceptor of this.errorInterceptors) {
+      await interceptor(error);
+    }
+  }
+
+  private transformError(error: AxiosError): StatesetError {
+    const metadata = (error.config as any)?.metadata as RequestMetadata;
+    const raw = {
       type: 'api_error',
       message: error.message,
+      code: error.code,
+      detail: (error.response?.data as any)?.detail || error.stack,
       path: error.config?.url,
       statusCode: error.response?.status,
       timestamp: new Date().toISOString(),
-      request_id: requestId,
+      request_id: metadata?.requestId,
     };
 
     if (error.response) {
-      const { status, data } = error.response;
-      const errorData = {
-        ...baseErrorData,
-        message: data?.message || error.message,
-        code: data?.code,
-        detail: data?.detail,
-        statusCode: status,
-      };
-
-      switch (status) {
-        case 400:
-          return new StatesetInvalidRequestError(errorData);
-        case 401:
-        case 403:
-          return new StatesetAuthenticationError(errorData);
-        case 404:
-          return new StatesetNotFoundError(errorData);
-        case 429:
-          return new StatesetRateLimitError(errorData.message);
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          return new StatesetAPIError(errorData);
-        default:
-          return new StatesetError(errorData);
+      const status = error.response.status;
+      if (status === 400) {
+        return new StatesetInvalidRequestError(raw);
+      }
+      if (status === 401 || status === 403) {
+        return new StatesetAuthenticationError(raw);
+      }
+      if (status === 404) {
+        return new StatesetNotFoundError(raw);
+      }
+      if (status >= 500) {
+        return new StatesetAPIError(raw);
       }
     }
 
+    // Network errors
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       return new StatesetConnectionError({
-        ...baseErrorData,
+        ...raw,
         type: 'connection_error',
         message: 'Request timeout',
-        detail: error.message,
-      });
-    }
-
-    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      return new StatesetConnectionError({
-        ...baseErrorData,
-        type: 'connection_error',
-        message: 'Connection failed',
-        detail: error.message,
       });
     }
 
     return new StatesetConnectionError({
-      ...baseErrorData,
+      ...raw,
       type: 'connection_error',
-      message: 'Network error',
-      detail: error.message,
     });
   }
 
-  async request<T = any>(
-    method: string,
-    path: string,
-    data?: any,
-    options: RequestOptions = {}
-  ): Promise<T> {
-    const requestConfig: HttpRequestConfig = {
-      method: method.toLowerCase() as any,
-      url: path,
-      data,
-      timeout: options.timeout || this.client.defaults.timeout,
-      headers: options.headers,
-      params: options.params,
-      retries: options.retries ?? this.defaultRetries,
-    };
-
-    const operation = async () => {
-      if (requestConfig.circuitBreaker !== false) {
-        return this.circuitBreaker.execute(async () => {
-          const response: AxiosResponse<T> = await this.client.request(requestConfig);
-          return response.data;
-        });
-      } else {
-        const response: AxiosResponse<T> = await this.client.request(requestConfig);
-        return response.data;
-      }
-    };
-
-    if ((requestConfig.retries ?? 0) > 0) {
-      return withRetry(operation, {
-        maxAttempts: (requestConfig.retries ?? 0) + 1,
-        baseDelay: this.config.retryDelayMs ?? 1000,
-      });
+  private sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+    const sanitized = { ...headers };
+    // Remove sensitive headers from logs
+    if (sanitized.Authorization) {
+      sanitized.Authorization = '[REDACTED]';
     }
+    return sanitized;
+  }
 
+  // Public methods for interceptors
+  addRequestInterceptor(interceptor: RequestInterceptor): void {
+    this.requestInterceptors.push(interceptor);
+  }
+
+  addResponseInterceptor(interceptor: ResponseInterceptor): void {
+    this.responseInterceptors.push(interceptor);
+  }
+
+  addErrorInterceptor(interceptor: ErrorInterceptor): void {
+    this.errorInterceptors.push(interceptor);
+  }
+
+  // HTTP methods with retry logic and circuit breaker
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request({ ...config, method: 'GET', url });
+  }
+
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request({ ...config, method: 'POST', url, data });
+  }
+
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request({ ...config, method: 'PUT', url, data });
+  }
+
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request({ ...config, method: 'PATCH', url, data });
+  }
+
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.request({ ...config, method: 'DELETE', url });
+  }
+
+  async request<T = any>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request<T>(config));
+    
+    if (this.retryOptions.maxAttempts && this.retryOptions.maxAttempts > 1) {
+      return withRetry(operation, this.retryOptions);
+    }
+    
     return operation();
   }
 
-  async get<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
-    return this.request<T>('GET', path, undefined, options);
-  }
-
-  async post<T = any>(path: string, data?: any, options: RequestOptions = {}): Promise<T> {
-    return this.request<T>('POST', path, data, options);
-  }
-
-  async put<T = any>(path: string, data?: any, options: RequestOptions = {}): Promise<T> {
-    return this.request<T>('PUT', path, data, options);
-  }
-
-  async patch<T = any>(path: string, data?: any, options: RequestOptions = {}): Promise<T> {
-    return this.request<T>('PATCH', path, data, options);
-  }
-
-  async delete<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, options);
-  }
-
-  // Configuration updates
-  setApiKey(apiKey: string): void {
-    this.config.apiKey = apiKey;
-    this.client.defaults.headers['Authorization'] = `Bearer ${apiKey}`;
-  }
-
-  setBaseUrl(baseUrl: string): void {
-    this.config.baseUrl = baseUrl;
-    this.client.defaults.baseURL = baseUrl;
-  }
-
-  setTimeout(timeout: number): void {
-    this.config.timeout = timeout;
-    this.client.defaults.timeout = timeout;
-  }
-
-  setHeaders(headers: Record<string, string>): void {
-    this.config.additionalHeaders = { ...this.config.additionalHeaders, ...headers };
-    Object.assign(this.client.defaults.headers, headers);
-  }
-
-  setRetryOptions(retry: number, retryDelayMs: number): void {
-    this.config.retry = retry;
-    this.config.retryDelayMs = retryDelayMs;
-    this.defaultRetries = retry;
-  }
-
-  setProxy(proxy: string): void {
-    this.config.proxy = proxy;
-    this.setupProxy();
-  }
-
-  setAppInfo(appInfo: { name: string; version?: string; url?: string }): void {
-    this.config.appInfo = appInfo;
-    this.client.defaults.headers['User-Agent'] = this.buildUserAgent();
-  }
-
-  // Health check
-  async healthCheck(): Promise<{ status: 'ok' | 'error'; timestamp: string }> {
+  // Health check endpoint
+  async healthCheck(): Promise<{ status: string; timestamp: string; details: any }> {
     try {
-      await this.get('/health');
-      return { status: 'ok', timestamp: new Date().toISOString() };
+      const response = await this.get('/health');
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        details: {
+          circuitBreakerState: this.circuitBreaker.getState(),
+          response: response.data,
+        },
+      };
     } catch (error) {
-      return { status: 'error', timestamp: new Date().toISOString() };
+      return {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        details: {
+          circuitBreakerState: this.circuitBreaker.getState(),
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      };
     }
   }
 
-  // Get circuit breaker state
+  // Configuration updates
+  updateApiKey(apiKey: string): void {
+    this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  updateBaseURL(baseURL: string): void {
+    this.axiosInstance.defaults.baseURL = baseURL;
+  }
+
+  updateTimeout(timeout: number): void {
+    this.axiosInstance.defaults.timeout = timeout;
+  }
+
+  updateHeaders(headers: Record<string, string>): void {
+    Object.assign(this.axiosInstance.defaults.headers.common, headers);
+  }
+
   getCircuitBreakerState(): string {
     return this.circuitBreaker.getState();
   }
 
-  // Reset circuit breaker
   resetCircuitBreaker(): void {
+    this.circuitBreaker.reset();
+  }
+
+  // Cleanup method
+  destroy(): void {
+    // Clear interceptors
+    this.requestInterceptors.length = 0;
+    this.responseInterceptors.length = 0;
+    this.errorInterceptors.length = 0;
+    
+    // Reset circuit breaker
     this.circuitBreaker.reset();
   }
 }
