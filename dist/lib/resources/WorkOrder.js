@@ -14,7 +14,7 @@ var WorkorderStatus;
     WorkorderStatus["COMPLETED"] = "COMPLETED";
     WorkorderStatus["CANCELLED"] = "CANCELLED";
     WorkorderStatus["FAILED"] = "FAILED";
-})(WorkorderStatus = exports.WorkorderStatus || (exports.WorkorderStatus = {}));
+})(WorkorderStatus || (exports.WorkorderStatus = WorkorderStatus = {}));
 var WorkorderType;
 (function (WorkorderType) {
     WorkorderType["MAINTENANCE"] = "MAINTENANCE";
@@ -25,7 +25,7 @@ var WorkorderType;
     WorkorderType["CLEANING"] = "CLEANING";
     WorkorderType["CALIBRATION"] = "CALIBRATION";
     WorkorderType["QUALITY_CHECK"] = "QUALITY_CHECK";
-})(WorkorderType = exports.WorkorderType || (exports.WorkorderType = {}));
+})(WorkorderType || (exports.WorkorderType = WorkorderType = {}));
 var WorkorderPriority;
 (function (WorkorderPriority) {
     WorkorderPriority["CRITICAL"] = "CRITICAL";
@@ -33,7 +33,7 @@ var WorkorderPriority;
     WorkorderPriority["MEDIUM"] = "MEDIUM";
     WorkorderPriority["LOW"] = "LOW";
     WorkorderPriority["ROUTINE"] = "ROUTINE";
-})(WorkorderPriority = exports.WorkorderPriority || (exports.WorkorderPriority = {}));
+})(WorkorderPriority || (exports.WorkorderPriority = WorkorderPriority = {}));
 var MaintenanceType;
 (function (MaintenanceType) {
     MaintenanceType["PREVENTIVE"] = "PREVENTIVE";
@@ -41,9 +41,10 @@ var MaintenanceType;
     MaintenanceType["PREDICTIVE"] = "PREDICTIVE";
     MaintenanceType["CONDITION_BASED"] = "CONDITION_BASED";
     MaintenanceType["EMERGENCY"] = "EMERGENCY";
-})(MaintenanceType = exports.MaintenanceType || (exports.MaintenanceType = {}));
+})(MaintenanceType || (exports.MaintenanceType = MaintenanceType = {}));
 // Error Classes
 class WorkorderError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -58,6 +59,7 @@ class WorkorderNotFoundError extends WorkorderError {
 }
 exports.WorkorderNotFoundError = WorkorderNotFoundError;
 class WorkorderValidationError extends WorkorderError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -65,6 +67,7 @@ class WorkorderValidationError extends WorkorderError {
 }
 exports.WorkorderValidationError = WorkorderValidationError;
 class ResourceConflictError extends WorkorderError {
+    resourceId;
     constructor(message, resourceId) {
         super(message, { resourceId });
         this.resourceId = resourceId;
@@ -73,22 +76,22 @@ class ResourceConflictError extends WorkorderError {
 exports.ResourceConflictError = ResourceConflictError;
 // Main Workorders Class
 class Workorders {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateWorkorderData(data) {
-        var _a;
         if (!data.description)
             throw new WorkorderValidationError('Description is required');
         if (!data.asset_id)
             throw new WorkorderValidationError('Asset ID is required');
         if (!data.location.facility_id)
             throw new WorkorderValidationError('Facility ID is required');
-        if (!((_a = data.tasks) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.tasks?.length)
             throw new WorkorderValidationError('At least one task is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.status)
+        if (!data?.id || !data.status)
             throw new WorkorderError('Invalid response format');
         const baseResponse = {
             id: data.id,
@@ -114,7 +117,6 @@ class Workorders {
         }
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
@@ -122,8 +124,8 @@ class Workorders {
             ...(params.asset_id && { asset_id: params.asset_id }),
             ...(params.facility_id && { facility_id: params.facility_id }),
             ...(params.assigned_to && { assigned_to: params.assigned_to }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.org_id && { org_id: params.org_id }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
@@ -272,10 +274,9 @@ class Workorders {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.start) && { start_date: params.date_range.start.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.end) && { end_date: params.date_range.end.toISOString() }),
+            ...(params.date_range?.start && { start_date: params.date_range.start.toISOString() }),
+            ...(params.date_range?.end && { end_date: params.date_range.end.toISOString() }),
             ...(params.type && { type: params.type }),
             ...(params.facility_id && { facility_id: params.facility_id }),
             ...(params.org_id && { org_id: params.org_id }),
@@ -299,3 +300,4 @@ class Workorders {
 }
 exports.Workorders = Workorders;
 exports.default = Workorders;
+//# sourceMappingURL=WorkOrder.js.map

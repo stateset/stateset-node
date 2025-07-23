@@ -9,7 +9,7 @@ var ASNStatus;
     ASNStatus["IN_TRANSIT"] = "IN_TRANSIT";
     ASNStatus["DELIVERED"] = "DELIVERED";
     ASNStatus["CANCELLED"] = "CANCELLED";
-})(ASNStatus = exports.ASNStatus || (exports.ASNStatus = {}));
+})(ASNStatus || (exports.ASNStatus = ASNStatus = {}));
 // Error Classes
 class ASNError extends Error {
     constructor(message, name) {
@@ -32,6 +32,7 @@ class ASNStateError extends ASNError {
 exports.ASNStateError = ASNStateError;
 // Main ASN Class
 class ASN {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -55,7 +56,7 @@ class ASN {
             throw new Error(response.error);
         }
         const asnData = response.update_asns_by_pk || response;
-        if (!(asnData === null || asnData === void 0 ? void 0 : asnData.id) || !(asnData === null || asnData === void 0 ? void 0 : asnData.status)) {
+        if (!asnData?.id || !asnData?.status) {
             throw new Error('Unexpected response format');
         }
         return asnData;
@@ -115,3 +116,4 @@ class ASN {
 }
 exports.ASN = ASN;
 exports.default = ASN;
+//# sourceMappingURL=AdvancedShippingNotice.js.map

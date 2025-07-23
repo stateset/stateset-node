@@ -14,3 +14,4 @@ export default class SquareIntegration extends BaseIntegration {
     createPaymentCapture(paymentId: string, data: any): Promise<any>;
     getPaymentAuthorization(paymentId: string): Promise<any>;
 }
+//# sourceMappingURL=SquareIntegration.d.ts.map

@@ -6,13 +6,13 @@ var WeightUnit;
 (function (WeightUnit) {
     WeightUnit["LB"] = "LB";
     WeightUnit["KG"] = "KG";
-})(WeightUnit = exports.WeightUnit || (exports.WeightUnit = {}));
+})(WeightUnit || (exports.WeightUnit = WeightUnit = {}));
 var LineItemStatus;
 (function (LineItemStatus) {
     LineItemStatus["PENDING"] = "PENDING";
     LineItemStatus["IN_TRANSIT"] = "IN_TRANSIT";
     LineItemStatus["DELIVERED"] = "DELIVERED";
-})(LineItemStatus = exports.LineItemStatus || (exports.LineItemStatus = {}));
+})(LineItemStatus || (exports.LineItemStatus = LineItemStatus = {}));
 // Error Classes
 class ASNLineError extends Error {
     constructor(message, name) {
@@ -35,6 +35,7 @@ class ASNLineValidationError extends ASNLineError {
 exports.ASNLineValidationError = ASNLineValidationError;
 // Main ASNLines Class
 class ASNLines {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -113,3 +114,4 @@ class ASNLines {
 }
 exports.ASNLines = ASNLines;
 exports.default = ASNLines;
+//# sourceMappingURL=AdvancedShippingNoticeLine.js.map

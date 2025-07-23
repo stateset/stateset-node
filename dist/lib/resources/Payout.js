@@ -2,6 +2,7 @@
 // lib/resources/Payout.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Payouts {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -25,3 +26,4 @@ class Payouts {
     }
 }
 exports.default = Payouts;
+//# sourceMappingURL=Payout.js.map

@@ -28,3 +28,4 @@ function statesetMethod(spec) {
     };
 }
 exports.default = statesetMethod;
+//# sourceMappingURL=StatesetMethod.js.map

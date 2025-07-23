@@ -19,3 +19,4 @@ class TwilioIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = TwilioIntegration;
+//# sourceMappingURL=TwilioIntegration.js.map

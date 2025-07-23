@@ -8,3 +8,4 @@ export default class FedExIntegration extends BaseIntegration {
     cancelShipment(shipmentId: string): Promise<any>;
     getTrackingInfo(shipmentId: string): Promise<any>;
 }
+//# sourceMappingURL=FedExIntegration.d.ts.map

@@ -78,3 +78,4 @@ export default class Opportunities {
     private handleError;
 }
 export {};
+//# sourceMappingURL=Opportunity.d.ts.map

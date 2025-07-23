@@ -113,3 +113,4 @@ declare class PurchaseOrders {
     removeItem(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderResponse>;
 }
 export default PurchaseOrders;
+//# sourceMappingURL=PurchaseOrder.d.ts.map

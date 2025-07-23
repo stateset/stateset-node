@@ -34,3 +34,4 @@ class XeroIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = XeroIntegration;
+//# sourceMappingURL=XeroIntegration.js.map

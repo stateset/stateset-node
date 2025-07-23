@@ -4,3 +4,4 @@ export default class ZendeskIntegration extends BaseIntegration {
     getTickets(): Promise<any>;
     createTicket(data: any): Promise<any>;
 }
+//# sourceMappingURL=ZendeskIntegration.d.ts.map

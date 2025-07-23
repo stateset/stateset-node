@@ -28,3 +28,4 @@ class FedExIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = FedExIntegration;
+//# sourceMappingURL=FedExIntegration.js.map

@@ -11,9 +11,10 @@ var LedgerEventType;
     LedgerEventType["ADJUSTMENT"] = "ADJUSTMENT";
     LedgerEventType["SALE"] = "SALE";
     LedgerEventType["PURCHASE"] = "PURCHASE";
-})(LedgerEventType = exports.LedgerEventType || (exports.LedgerEventType = {}));
+})(LedgerEventType || (exports.LedgerEventType = LedgerEventType = {}));
 // Error Classes
 class LedgerError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -28,6 +29,7 @@ class LedgerNotFoundError extends LedgerError {
 }
 exports.LedgerNotFoundError = LedgerNotFoundError;
 class LedgerValidationError extends LedgerError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -35,6 +37,7 @@ class LedgerValidationError extends LedgerError {
 }
 exports.LedgerValidationError = LedgerValidationError;
 class Ledger {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -45,7 +48,7 @@ class Ledger {
             throw new LedgerValidationError('Event date is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new LedgerError('Invalid response format');
         return {
             id: data.id,
@@ -92,8 +95,8 @@ class Ledger {
                 ledger_entries: response.ledger_entries.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.ledger_entries.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -166,3 +169,4 @@ class Ledger {
     }
 }
 exports.default = Ledger;
+//# sourceMappingURL=Ledger.js.map

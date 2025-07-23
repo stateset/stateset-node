@@ -8,7 +8,7 @@ var ScheduleType;
     ScheduleType["ONE_TIME"] = "one_time";
     ScheduleType["ADAPTIVE"] = "adaptive";
     ScheduleType["CONDITIONAL"] = "conditional";
-})(ScheduleType = exports.ScheduleType || (exports.ScheduleType = {}));
+})(ScheduleType || (exports.ScheduleType = ScheduleType = {}));
 var ScheduleStatus;
 (function (ScheduleStatus) {
     ScheduleStatus["ACTIVE"] = "active";
@@ -16,14 +16,14 @@ var ScheduleStatus;
     ScheduleStatus["COMPLETED"] = "completed";
     ScheduleStatus["FAILED"] = "failed";
     ScheduleStatus["PENDING"] = "pending";
-})(ScheduleStatus = exports.ScheduleStatus || (exports.ScheduleStatus = {}));
+})(ScheduleStatus || (exports.ScheduleStatus = ScheduleStatus = {}));
 var TaskPriority;
 (function (TaskPriority) {
     TaskPriority["CRITICAL"] = "critical";
     TaskPriority["HIGH"] = "high";
     TaskPriority["MEDIUM"] = "medium";
     TaskPriority["LOW"] = "low";
-})(TaskPriority = exports.TaskPriority || (exports.TaskPriority = {}));
+})(TaskPriority || (exports.TaskPriority = TaskPriority = {}));
 var RecurrencePattern;
 (function (RecurrencePattern) {
     RecurrencePattern["HOURLY"] = "hourly";
@@ -31,13 +31,13 @@ var RecurrencePattern;
     RecurrencePattern["WEEKLY"] = "weekly";
     RecurrencePattern["MONTHLY"] = "monthly";
     RecurrencePattern["CUSTOM"] = "custom";
-})(RecurrencePattern = exports.RecurrencePattern || (exports.RecurrencePattern = {}));
+})(RecurrencePattern || (exports.RecurrencePattern = RecurrencePattern = {}));
 var ExecutionStrategy;
 (function (ExecutionStrategy) {
     ExecutionStrategy["SEQUENTIAL"] = "sequential";
     ExecutionStrategy["PARALLEL"] = "parallel";
     ExecutionStrategy["ROUND_ROBIN"] = "round_robin";
-})(ExecutionStrategy = exports.ExecutionStrategy || (exports.ExecutionStrategy = {}));
+})(ExecutionStrategy || (exports.ExecutionStrategy = ExecutionStrategy = {}));
 // Custom Error Classes
 class ScheduleNotFoundError extends Error {
     constructor(scheduleId) {
@@ -54,6 +54,7 @@ class ScheduleValidationError extends Error {
 }
 exports.ScheduleValidationError = ScheduleValidationError;
 class ScheduleExecutionError extends Error {
+    scheduleId;
     constructor(message, scheduleId) {
         super(message);
         this.scheduleId = scheduleId;
@@ -63,6 +64,7 @@ class ScheduleExecutionError extends Error {
 exports.ScheduleExecutionError = ScheduleExecutionError;
 // Main Schedule Class
 class Schedule {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -73,15 +75,15 @@ class Schedule {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.schedule_type)
+        if (params?.schedule_type)
             queryParams.append('schedule_type', params.schedule_type);
-        if (params === null || params === void 0 ? void 0 : params.priority)
+        if (params?.priority)
             queryParams.append('priority', params.priority);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `schedules?${queryParams.toString()}`);
         return response.schedules;
@@ -198,13 +200,13 @@ class Schedule {
      */
     async getExecutionHistory(scheduleId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.limit)
+        if (params?.limit)
             queryParams.append('limit', params.limit.toString());
         const response = await this.stateset.request('GET', `schedules/${scheduleId}/execution-history?${queryParams.toString()}`);
         return response.executions;
@@ -257,3 +259,4 @@ class Schedule {
     }
 }
 exports.default = Schedule;
+//# sourceMappingURL=Schedule.js.map

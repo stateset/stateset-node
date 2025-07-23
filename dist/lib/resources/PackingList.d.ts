@@ -178,3 +178,4 @@ declare class PackingList {
     updateQualityCheck(packingListId: string, qualityCheckData: PackingListData['quality_check']): Promise<PackingListResponse>;
 }
 export default PackingList;
+//# sourceMappingURL=PackingList.d.ts.map

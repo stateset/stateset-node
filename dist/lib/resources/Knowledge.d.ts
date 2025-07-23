@@ -59,3 +59,4 @@ declare class Knowledge {
     delete(knowledgeId: string): Promise<void>;
 }
 export default Knowledge;
+//# sourceMappingURL=Knowledge.d.ts.map

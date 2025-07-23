@@ -16,3 +16,4 @@ class ZendeskIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = ZendeskIntegration;
+//# sourceMappingURL=ZendeskIntegration.js.map

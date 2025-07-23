@@ -62,3 +62,4 @@ declare class Responses {
     delete(responseId: string): Promise<void>;
 }
 export default Responses;
+//# sourceMappingURL=Response.d.ts.map

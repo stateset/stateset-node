@@ -9,9 +9,10 @@ var QualityControlStatus;
     QualityControlStatus["PASSED"] = "PASSED";
     QualityControlStatus["FAILED"] = "FAILED";
     QualityControlStatus["ON_HOLD"] = "ON_HOLD";
-})(QualityControlStatus = exports.QualityControlStatus || (exports.QualityControlStatus = {}));
+})(QualityControlStatus || (exports.QualityControlStatus = QualityControlStatus = {}));
 // Error Classes
 class QualityControlError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -26,6 +27,7 @@ class QualityControlNotFoundError extends QualityControlError {
 }
 exports.QualityControlNotFoundError = QualityControlNotFoundError;
 class QualityControlValidationError extends QualityControlError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -33,20 +35,20 @@ class QualityControlValidationError extends QualityControlError {
 }
 exports.QualityControlValidationError = QualityControlValidationError;
 class QualityControl {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
     validateQualityControlData(data) {
-        var _a;
         if (!data.inspector_id)
             throw new QualityControlValidationError('Inspector ID is required');
         if (!data.inspection_date)
             throw new QualityControlValidationError('Inspection date is required');
-        if (!((_a = data.standards) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.standards?.length)
             throw new QualityControlValidationError('At least one quality standard is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new QualityControlError('Invalid response format');
         return {
             id: data.id,
@@ -93,8 +95,8 @@ class QualityControl {
                 quality_controls: response.quality_controls.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.quality_controls.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -156,3 +158,4 @@ class QualityControl {
     }
 }
 exports.default = QualityControl;
+//# sourceMappingURL=QualityControl.js.map

@@ -87,3 +87,4 @@ export declare class ASNLines {
     }>>;
 }
 export default ASNLines;
+//# sourceMappingURL=AdvancedShippingNoticeLine.d.ts.map

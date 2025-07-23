@@ -15,3 +15,4 @@ export declare class Stateset {
     request(method: string, path: string, data: any, options?: AxiosRequestConfig): Promise<AxiosResponse>;
 }
 export default Stateset;
+//# sourceMappingURL=Stateset.d.ts.map

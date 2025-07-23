@@ -33,3 +33,4 @@ declare class Log {
     delete(id: string): Promise<any>;
 }
 export default Log;
+//# sourceMappingURL=Log.d.ts.map

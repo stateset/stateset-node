@@ -2,6 +2,7 @@
 // lib/resources/Contract.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Contracts {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -22,3 +23,4 @@ class Contracts {
     }
 }
 exports.default = Contracts;
+//# sourceMappingURL=Contract.js.map

@@ -245,3 +245,4 @@ declare class Schedule {
     private validateScheduleData;
 }
 export default Schedule;
+//# sourceMappingURL=Schedule.d.ts.map

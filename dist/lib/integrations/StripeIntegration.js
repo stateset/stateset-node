@@ -16,3 +16,4 @@ class StripeIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = StripeIntegration;
+//# sourceMappingURL=StripeIntegration.js.map

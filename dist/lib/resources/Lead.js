@@ -2,6 +2,7 @@
 // lib/resources/Lead.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Leads {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -22,3 +23,4 @@ class Leads {
     }
 }
 exports.default = Leads;
+//# sourceMappingURL=Lead.js.map

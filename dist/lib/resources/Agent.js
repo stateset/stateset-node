@@ -17,6 +17,7 @@ class InvalidAgentStatusError extends Error {
 }
 exports.InvalidAgentStatusError = InvalidAgentStatusError;
 class AgentOperationError extends Error {
+    code;
     constructor(message, code) {
         super(message);
         this.code = code;
@@ -26,6 +27,7 @@ class AgentOperationError extends Error {
 exports.AgentOperationError = AgentOperationError;
 // Main Agents Class
 class Agents {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -74,11 +76,11 @@ class Agents {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.role)
+        if (params?.role)
             queryParams.append('role', params.role);
-        if (params === null || params === void 0 ? void 0 : params.capability)
+        if (params?.capability)
             queryParams.append('capability', params.capability);
         const response = await this.stateset.request('GET', `agents?${queryParams.toString()}`);
         return response.agents.map((agent) => this.handleCommandResponse({ update_agents_by_pk: agent }));
@@ -197,3 +199,4 @@ class Agents {
     }
 }
 exports.default = Agents;
+//# sourceMappingURL=Agent.js.map

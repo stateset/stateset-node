@@ -7,6 +7,8 @@ interface StatesetErrorRaw {
   detail?: string;
   path?: string;
   statusCode?: number;
+  timestamp?: string;
+  request_id?: string;
 }
 
 interface ErrorInterface extends Error {
@@ -15,6 +17,8 @@ interface ErrorInterface extends Error {
   detail?: string;
   path?: string;
   statusCode?: number;
+  timestamp?: string;
+  request_id?: string;
   populate(raw: StatesetErrorRaw): void;
 }
 
@@ -24,6 +28,8 @@ class StatesetBaseError extends Error implements ErrorInterface {
   detail?: string;
   path?: string;
   statusCode?: number;
+  timestamp?: string;
+  request_id?: string;
 
   constructor(type: string, message: string, raw?: StatesetErrorRaw) {
     super(message);
@@ -43,6 +49,8 @@ class StatesetBaseError extends Error implements ErrorInterface {
     this.detail = raw.detail;
     this.path = raw.path;
     this.statusCode = raw.statusCode;
+    this.timestamp = raw.timestamp;
+    this.request_id = raw.request_id;
   }
 
   static extend(subClass: Partial<typeof StatesetBaseError>): typeof StatesetBaseError {
@@ -67,6 +75,10 @@ class StatesetError extends StatesetBaseError {
         return new StatesetConnectionError(raw);
       case 'not_found_error':
         return new StatesetNotFoundError(raw);
+      case 'rate_limit_error':
+        return new StatesetRateLimitError(raw.message);
+      case 'permission_error':
+        return new StatesetPermissionError(raw.message);
       default:
         return new StatesetError({ type: 'generic_error', message: 'Unknown Error' });
     }

@@ -103,3 +103,4 @@ export default class CasesTickets {
     private handleError;
 }
 export {};
+//# sourceMappingURL=CaseTicket.d.ts.map

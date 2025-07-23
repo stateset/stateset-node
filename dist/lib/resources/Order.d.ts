@@ -263,3 +263,4 @@ export declare class Orders {
     }>;
 }
 export default Orders;
+//# sourceMappingURL=Order.d.ts.map

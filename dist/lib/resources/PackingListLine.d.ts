@@ -85,3 +85,4 @@ declare class PackingListLines {
     updateLocation(lineItemId: string, locationData: PackingListLineItem['location']): Promise<PackingListLineItem>;
 }
 export default PackingListLines;
+//# sourceMappingURL=PackingListLine.d.ts.map

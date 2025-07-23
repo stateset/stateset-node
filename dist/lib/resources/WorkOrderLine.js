@@ -10,7 +10,7 @@ var WorkOrderLineStatus;
     WorkOrderLineStatus["CANCELLED"] = "CANCELLED";
     WorkOrderLineStatus["ON_HOLD"] = "ON_HOLD";
     WorkOrderLineStatus["FAILED"] = "FAILED";
-})(WorkOrderLineStatus = exports.WorkOrderLineStatus || (exports.WorkOrderLineStatus = {}));
+})(WorkOrderLineStatus || (exports.WorkOrderLineStatus = WorkOrderLineStatus = {}));
 var WorkOrderLineType;
 (function (WorkOrderLineType) {
     WorkOrderLineType["PART"] = "PART";
@@ -18,9 +18,10 @@ var WorkOrderLineType;
     WorkOrderLineType["MATERIAL"] = "MATERIAL";
     WorkOrderLineType["SERVICE"] = "SERVICE";
     WorkOrderLineType["TOOL"] = "TOOL";
-})(WorkOrderLineType = exports.WorkOrderLineType || (exports.WorkOrderLineType = {}));
+})(WorkOrderLineType || (exports.WorkOrderLineType = WorkOrderLineType = {}));
 // Error Classes
 class WorkOrderLineError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -35,6 +36,7 @@ class WorkOrderLineNotFoundError extends WorkOrderLineError {
 }
 exports.WorkOrderLineNotFoundError = WorkOrderLineNotFoundError;
 class WorkOrderLineValidationError extends WorkOrderLineError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -43,18 +45,18 @@ class WorkOrderLineValidationError extends WorkOrderLineError {
 exports.WorkOrderLineValidationError = WorkOrderLineValidationError;
 // Main WorkOrderLines Class
 class WorkOrderLines {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateWorkOrderLineData(data) {
-        var _a, _b;
         if (!data.work_order_id) {
             throw new WorkOrderLineValidationError('Work order ID is required');
         }
-        if (!((_a = data.item) === null || _a === void 0 ? void 0 : _a.item_id)) {
+        if (!data.item?.item_id) {
             throw new WorkOrderLineValidationError('Item ID is required');
         }
-        if (!((_b = data.item) === null || _b === void 0 ? void 0 : _b.quantity) || data.item.quantity <= 0) {
+        if (!data.item?.quantity || data.item.quantity <= 0) {
             throw new WorkOrderLineValidationError('Valid quantity is required');
         }
         if (data.cost_details.estimated_cost < 0) {
@@ -62,7 +64,7 @@ class WorkOrderLines {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.work_order_id) {
+        if (!data?.id || !data.work_order_id) {
             throw new WorkOrderLineError('Invalid response format');
         }
         return {
@@ -87,7 +89,6 @@ class WorkOrderLines {
         };
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.work_order_id && { work_order_id: params.work_order_id }),
             ...(params.status && { status: params.status }),
@@ -95,8 +96,8 @@ class WorkOrderLines {
             ...(params.task_id && { task_id: params.task_id }),
             ...(params.resource_id && { resource_id: params.resource_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -175,12 +176,11 @@ class WorkOrderLines {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.work_order_id && { work_order_id: params.work_order_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         try {
             const response = await this.client.request('GET', `work_order_line_items/metrics?${query}`);
@@ -200,3 +200,4 @@ class WorkOrderLines {
 }
 exports.WorkOrderLines = WorkOrderLines;
 exports.default = WorkOrderLines;
+//# sourceMappingURL=WorkOrderLine.js.map

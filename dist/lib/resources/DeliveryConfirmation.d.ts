@@ -71,3 +71,4 @@ export default class DeliveryConfirmations {
     private handleError;
 }
 export {};
+//# sourceMappingURL=DeliveryConfirmation.d.ts.map

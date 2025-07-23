@@ -119,3 +119,4 @@ export declare class Customers {
     private handleError;
 }
 export default Customers;
+//# sourceMappingURL=Customer.d.ts.map

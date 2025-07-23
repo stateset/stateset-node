@@ -2,6 +2,7 @@
 // lib/resources/Location.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Locations {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -65,3 +66,4 @@ class Locations {
     }
 }
 exports.default = Locations;
+//# sourceMappingURL=Location.js.map

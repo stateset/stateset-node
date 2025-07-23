@@ -12,7 +12,7 @@ var PickStatus;
     PickStatus["QUALITY_CHECK"] = "QUALITY_CHECK";
     PickStatus["COMPLETED"] = "COMPLETED";
     PickStatus["CANCELLED"] = "CANCELLED";
-})(PickStatus = exports.PickStatus || (exports.PickStatus = {}));
+})(PickStatus || (exports.PickStatus = PickStatus = {}));
 var PickType;
 (function (PickType) {
     PickType["SINGLE_ORDER"] = "SINGLE_ORDER";
@@ -20,14 +20,14 @@ var PickType;
     PickType["ZONE"] = "ZONE";
     PickType["WAVE"] = "WAVE";
     PickType["CLUSTER"] = "CLUSTER";
-})(PickType = exports.PickType || (exports.PickType = {}));
+})(PickType || (exports.PickType = PickType = {}));
 var PickPriority;
 (function (PickPriority) {
     PickPriority["URGENT"] = "URGENT";
     PickPriority["HIGH"] = "HIGH";
     PickPriority["NORMAL"] = "NORMAL";
     PickPriority["LOW"] = "LOW";
-})(PickPriority = exports.PickPriority || (exports.PickPriority = {}));
+})(PickPriority || (exports.PickPriority = PickPriority = {}));
 var PickMethod;
 (function (PickMethod) {
     PickMethod["DISCRETE"] = "DISCRETE";
@@ -35,9 +35,10 @@ var PickMethod;
     PickMethod["ZONE"] = "ZONE";
     PickMethod["WAVE"] = "WAVE";
     PickMethod["CLUSTER"] = "CLUSTER";
-})(PickMethod = exports.PickMethod || (exports.PickMethod = {}));
+})(PickMethod || (exports.PickMethod = PickMethod = {}));
 // Error Classes
 class PickError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -52,6 +53,7 @@ class PickNotFoundError extends PickError {
 }
 exports.PickNotFoundError = PickNotFoundError;
 class PickValidationError extends PickError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -59,6 +61,7 @@ class PickValidationError extends PickError {
 }
 exports.PickValidationError = PickValidationError;
 class PickOperationError extends PickError {
+    operation;
     constructor(message, operation) {
         super(message);
         this.operation = operation;
@@ -67,19 +70,19 @@ class PickOperationError extends PickError {
 exports.PickOperationError = PickOperationError;
 // Main Picks Class
 class Picks {
+    client;
     constructor(client) {
         this.client = client;
     }
     validatePickData(data) {
-        var _a, _b, _c;
         if (!data.warehouse_id)
             throw new PickValidationError('Warehouse ID is required');
-        if (!((_a = data.items) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.items?.length)
             throw new PickValidationError('At least one pick item is required');
-        if (data.type === PickType.BATCH && !((_b = data.grouping) === null || _b === void 0 ? void 0 : _b.batch_id)) {
+        if (data.type === PickType.BATCH && !data.grouping?.batch_id) {
             throw new PickValidationError('Batch ID required for batch picks');
         }
-        if (data.type === PickType.WAVE && !((_c = data.grouping) === null || _c === void 0 ? void 0 : _c.wave_id)) {
+        if (data.type === PickType.WAVE && !data.grouping?.wave_id) {
             throw new PickValidationError('Wave ID required for wave picks');
         }
         data.items.forEach((item, index) => {
@@ -92,7 +95,6 @@ class Picks {
         });
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
@@ -102,8 +104,8 @@ class Picks {
             ...(params.batch_id && { batch_id: params.batch_id }),
             ...(params.wave_id && { wave_id: params.wave_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -180,3 +182,4 @@ class Picks {
 }
 exports.Picks = Picks;
 exports.default = Picks;
+//# sourceMappingURL=Pick.js.map

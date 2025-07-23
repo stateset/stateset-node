@@ -10,3 +10,4 @@ export default class XeroIntegration extends BaseIntegration {
     getPayments(): Promise<any>;
     createPayment(data: any): Promise<any>;
 }
+//# sourceMappingURL=XeroIntegration.d.ts.map

@@ -198,3 +198,4 @@ declare class Stateset {
     };
 }
 export default Stateset;
+//# sourceMappingURL=stateset.d.ts.map

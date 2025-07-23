@@ -46,3 +46,4 @@ export default class Locations {
      */
     assignProduct(id: string, productId: string, data: any): Promise<any>;
 }
+//# sourceMappingURL=Location.d.ts.map

@@ -141,3 +141,4 @@ export declare class BillOfMaterials {
     }>;
 }
 export default BillOfMaterials;
+//# sourceMappingURL=BillOfMaterial.d.ts.map

@@ -2,6 +2,7 @@
 // lib/resources/Promotion.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Promotions {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -28,3 +29,4 @@ class Promotions {
     }
 }
 exports.default = Promotions;
+//# sourceMappingURL=Promotion.js.map

@@ -42,3 +42,4 @@ const makeAutoPaginationMethods = (stateset, methodArgs, spec, requestPromise) =
     };
 };
 exports.makeAutoPaginationMethods = makeAutoPaginationMethods;
+//# sourceMappingURL=autoPagination.js.map

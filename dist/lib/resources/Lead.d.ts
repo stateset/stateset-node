@@ -7,3 +7,4 @@ export default class Leads {
     list(params?: any): Promise<any>;
     delete(id: string): Promise<any>;
 }
+//# sourceMappingURL=Lead.d.ts.map

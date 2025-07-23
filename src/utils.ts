@@ -172,6 +172,7 @@ const utils: Utils = {
             }
             utils.emitWarning(`'${key}' is deprecated; use '${newParam}' instead.`);
             params[newParam] = params[key];
+            return false;
           });
           if (nonDeprecated.length) {
             utils.emitWarning(

@@ -16,3 +16,4 @@ declare class StatesetResource {
     private getData;
 }
 export default StatesetResource;
+//# sourceMappingURL=StatesetResource.d.ts.map

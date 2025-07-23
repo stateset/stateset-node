@@ -12,16 +12,17 @@ var OrderLineStatus;
     OrderLineStatus["CANCELLED"] = "CANCELLED";
     OrderLineStatus["BACKORDERED"] = "BACKORDERED";
     OrderLineStatus["RETURNED"] = "RETURNED";
-})(OrderLineStatus = exports.OrderLineStatus || (exports.OrderLineStatus = {}));
+})(OrderLineStatus || (exports.OrderLineStatus = OrderLineStatus = {}));
 var OrderLineType;
 (function (OrderLineType) {
     OrderLineType["PRODUCT"] = "PRODUCT";
     OrderLineType["SERVICE"] = "SERVICE";
     OrderLineType["DIGITAL"] = "DIGITAL";
     OrderLineType["BUNDLE"] = "BUNDLE";
-})(OrderLineType = exports.OrderLineType || (exports.OrderLineType = {}));
+})(OrderLineType || (exports.OrderLineType = OrderLineType = {}));
 // Error Classes
 class OrderLineError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -36,6 +37,7 @@ class OrderLineNotFoundError extends OrderLineError {
 }
 exports.OrderLineNotFoundError = OrderLineNotFoundError;
 class OrderLineValidationError extends OrderLineError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -44,18 +46,18 @@ class OrderLineValidationError extends OrderLineError {
 exports.OrderLineValidationError = OrderLineValidationError;
 // Main OrderLines Class
 class OrderLines {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateOrderLineData(data) {
-        var _a, _b;
         if (!data.order_id) {
             throw new OrderLineValidationError('Order ID is required');
         }
-        if (!((_a = data.item) === null || _a === void 0 ? void 0 : _a.product_id)) {
+        if (!data.item?.product_id) {
             throw new OrderLineValidationError('Product ID is required');
         }
-        if (!((_b = data.item) === null || _b === void 0 ? void 0 : _b.quantity) || data.item.quantity <= 0) {
+        if (!data.item?.quantity || data.item.quantity <= 0) {
             throw new OrderLineValidationError('Valid quantity is required');
         }
         if (data.pricing.subtotal < 0 || data.pricing.total < 0) {
@@ -63,7 +65,7 @@ class OrderLines {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.order_id) {
+        if (!data?.id || !data.order_id) {
             throw new OrderLineError('Invalid response format');
         }
         return {
@@ -85,14 +87,13 @@ class OrderLines {
         };
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.order_id && { order_id: params.order_id }),
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -162,12 +163,11 @@ class OrderLines {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.order_id && { order_id: params.order_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         try {
             const response = await this.client.request('GET', `order_line_items/metrics?${query}`);
@@ -187,3 +187,4 @@ class OrderLines {
 }
 exports.OrderLines = OrderLines;
 exports.default = OrderLines;
+//# sourceMappingURL=OrderLine.js.map

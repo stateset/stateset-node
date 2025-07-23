@@ -8,3 +8,4 @@ export default class Payouts {
     delete(id: string): Promise<any>;
     fetchFromPlatform(platform: string, startDate: string, endDate: string): Promise<any>;
 }
+//# sourceMappingURL=Payout.d.ts.map

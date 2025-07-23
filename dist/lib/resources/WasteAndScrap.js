@@ -2,6 +2,7 @@
 // lib/resources/WasteAndScrap.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class WasteAndScrap {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -111,3 +112,4 @@ class WasteAndScrap {
     }
 }
 exports.default = WasteAndScrap;
+//# sourceMappingURL=WasteAndScrap.js.map

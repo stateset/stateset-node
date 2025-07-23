@@ -9,23 +9,24 @@ var CaseTicketStatus;
     CaseTicketStatus["RESOLVED"] = "RESOLVED";
     CaseTicketStatus["CLOSED"] = "CLOSED";
     CaseTicketStatus["ON_HOLD"] = "ON_HOLD";
-})(CaseTicketStatus = exports.CaseTicketStatus || (exports.CaseTicketStatus = {}));
+})(CaseTicketStatus || (exports.CaseTicketStatus = CaseTicketStatus = {}));
 var CaseTicketPriority;
 (function (CaseTicketPriority) {
     CaseTicketPriority["LOW"] = "LOW";
     CaseTicketPriority["MEDIUM"] = "MEDIUM";
     CaseTicketPriority["HIGH"] = "HIGH";
     CaseTicketPriority["URGENT"] = "URGENT";
-})(CaseTicketPriority = exports.CaseTicketPriority || (exports.CaseTicketPriority = {}));
+})(CaseTicketPriority || (exports.CaseTicketPriority = CaseTicketPriority = {}));
 var EscalationLevel;
 (function (EscalationLevel) {
     EscalationLevel["LOW"] = "LOW";
     EscalationLevel["MEDIUM"] = "MEDIUM";
     EscalationLevel["HIGH"] = "HIGH";
     EscalationLevel["CRITICAL"] = "CRITICAL";
-})(EscalationLevel = exports.EscalationLevel || (exports.EscalationLevel = {}));
+})(EscalationLevel || (exports.EscalationLevel = EscalationLevel = {}));
 // Error Classes
 class CaseTicketError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -40,6 +41,7 @@ class CaseTicketNotFoundError extends CaseTicketError {
 }
 exports.CaseTicketNotFoundError = CaseTicketNotFoundError;
 class CaseTicketValidationError extends CaseTicketError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -47,6 +49,7 @@ class CaseTicketValidationError extends CaseTicketError {
 }
 exports.CaseTicketValidationError = CaseTicketValidationError;
 class CasesTickets {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -59,7 +62,7 @@ class CasesTickets {
             throw new CaseTicketValidationError('Description is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new CaseTicketError('Invalid response format');
         return {
             id: data.id,
@@ -110,8 +113,8 @@ class CasesTickets {
                 cases_tickets: response.cases_tickets.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.cases_tickets.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -254,3 +257,4 @@ class CasesTickets {
     }
 }
 exports.default = CasesTickets;
+//# sourceMappingURL=CaseTicket.js.map

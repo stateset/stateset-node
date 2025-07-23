@@ -34,3 +34,4 @@ class ShipfusionIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = ShipfusionIntegration;
+//# sourceMappingURL=ShipfusionIntegration.js.map

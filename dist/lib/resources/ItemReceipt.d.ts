@@ -46,3 +46,4 @@ declare class ItemReceipts {
     cancel(id: string): Promise<CancelledItemReceiptResponse>;
 }
 export default ItemReceipts;
+//# sourceMappingURL=ItemReceipt.d.ts.map

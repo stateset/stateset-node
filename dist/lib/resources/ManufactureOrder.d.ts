@@ -240,3 +240,4 @@ export declare class ManufacturerOrders {
     }>;
 }
 export default ManufacturerOrders;
+//# sourceMappingURL=ManufactureOrder.d.ts.map

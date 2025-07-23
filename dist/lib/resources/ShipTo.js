@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ShipTo {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -21,3 +22,4 @@ class ShipTo {
     }
 }
 exports.default = ShipTo;
+//# sourceMappingURL=ShipTo.js.map

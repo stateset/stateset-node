@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // src/lib/integrations/BaseIntegration.ts
 const axios_1 = __importDefault(require("axios"));
 class BaseIntegration {
+    apiKey;
+    baseUrl;
     constructor(apiKey, baseUrl) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
@@ -31,3 +33,4 @@ class BaseIntegration {
     }
 }
 exports.default = BaseIntegration;
+//# sourceMappingURL=BaseIntegration.js.map

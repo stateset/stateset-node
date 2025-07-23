@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import * as https from 'https';
 export declare class HttpClient {
@@ -11,3 +10,4 @@ export declare class HttpClient {
     delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
 }
 export default HttpClient;
+//# sourceMappingURL=HttpClient.d.ts.map

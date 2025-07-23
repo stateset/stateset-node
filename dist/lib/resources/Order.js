@@ -18,7 +18,7 @@ var OrderStatus;
     OrderStatus["CANCELLED"] = "CANCELLED";
     OrderStatus["RETURNED"] = "RETURNED";
     OrderStatus["REFUNDED"] = "REFUNDED";
-})(OrderStatus = exports.OrderStatus || (exports.OrderStatus = {}));
+})(OrderStatus || (exports.OrderStatus = OrderStatus = {}));
 var PaymentStatus;
 (function (PaymentStatus) {
     PaymentStatus["PENDING"] = "pending";
@@ -27,14 +27,14 @@ var PaymentStatus;
     PaymentStatus["PARTIALLY_REFUNDED"] = "partially_refunded";
     PaymentStatus["REFUNDED"] = "refunded";
     PaymentStatus["FAILED"] = "failed";
-})(PaymentStatus = exports.PaymentStatus || (exports.PaymentStatus = {}));
+})(PaymentStatus || (exports.PaymentStatus = PaymentStatus = {}));
 var FulfillmentPriority;
 (function (FulfillmentPriority) {
     FulfillmentPriority["URGENT"] = "urgent";
     FulfillmentPriority["HIGH"] = "high";
     FulfillmentPriority["NORMAL"] = "normal";
     FulfillmentPriority["LOW"] = "low";
-})(FulfillmentPriority = exports.FulfillmentPriority || (exports.FulfillmentPriority = {}));
+})(FulfillmentPriority || (exports.FulfillmentPriority = FulfillmentPriority = {}));
 // Custom Error Classes
 class OrderError extends Error {
     constructor(message, name) {
@@ -70,6 +70,7 @@ const validateOrderTotals = (orderData) => {
 };
 // Main Orders Class
 class Orders {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -191,3 +192,4 @@ class Orders {
 }
 exports.Orders = Orders;
 exports.default = Orders;
+//# sourceMappingURL=Order.js.map

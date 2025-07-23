@@ -48,3 +48,4 @@ declare class CashSales {
     cancel(id: string): Promise<CancelledCashSaleResponse>;
 }
 export default CashSales;
+//# sourceMappingURL=CashSale.d.ts.map

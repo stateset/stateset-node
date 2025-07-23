@@ -10,16 +10,17 @@ var WarrantyLineStatus;
     WarrantyLineStatus["IN_PROGRESS"] = "IN_PROGRESS";
     WarrantyLineStatus["COMPLETED"] = "COMPLETED";
     WarrantyLineStatus["CANCELLED"] = "CANCELLED";
-})(WarrantyLineStatus = exports.WarrantyLineStatus || (exports.WarrantyLineStatus = {}));
+})(WarrantyLineStatus || (exports.WarrantyLineStatus = WarrantyLineStatus = {}));
 var WarrantyLineType;
 (function (WarrantyLineType) {
     WarrantyLineType["REPAIR"] = "REPAIR";
     WarrantyLineType["REPLACEMENT"] = "REPLACEMENT";
     WarrantyLineType["REFUND"] = "REFUND";
     WarrantyLineType["SERVICE"] = "SERVICE";
-})(WarrantyLineType = exports.WarrantyLineType || (exports.WarrantyLineType = {}));
+})(WarrantyLineType || (exports.WarrantyLineType = WarrantyLineType = {}));
 // Error Classes
 class WarrantyLineError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -34,6 +35,7 @@ class WarrantyLineNotFoundError extends WarrantyLineError {
 }
 exports.WarrantyLineNotFoundError = WarrantyLineNotFoundError;
 class WarrantyLineValidationError extends WarrantyLineError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -42,18 +44,18 @@ class WarrantyLineValidationError extends WarrantyLineError {
 exports.WarrantyLineValidationError = WarrantyLineValidationError;
 // Main WarrantyLines Class
 class WarrantyLines {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateWarrantyLineData(data) {
-        var _a, _b;
         if (!data.warranty_id) {
             throw new WarrantyLineValidationError('Warranty ID is required');
         }
-        if (!((_a = data.item) === null || _a === void 0 ? void 0 : _a.product_id)) {
+        if (!data.item?.product_id) {
             throw new WarrantyLineValidationError('Product ID is required');
         }
-        if (!((_b = data.item) === null || _b === void 0 ? void 0 : _b.quantity) || data.item.quantity <= 0) {
+        if (!data.item?.quantity || data.item.quantity <= 0) {
             throw new WarrantyLineValidationError('Valid quantity is required');
         }
         if (!data.claim_description) {
@@ -61,7 +63,7 @@ class WarrantyLines {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.warranty_id) {
+        if (!data?.id || !data.warranty_id) {
             throw new WarrantyLineError('Invalid response format');
         }
         return {
@@ -83,14 +85,13 @@ class WarrantyLines {
         };
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.warranty_id && { warranty_id: params.warranty_id }),
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -151,12 +152,11 @@ class WarrantyLines {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.warranty_id && { warranty_id: params.warranty_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         try {
             const response = await this.client.request('GET', `warranty_line_items/metrics?${query}`);
@@ -176,3 +176,4 @@ class WarrantyLines {
 }
 exports.WarrantyLines = WarrantyLines;
 exports.default = WarrantyLines;
+//# sourceMappingURL=WarrantyLine.js.map

@@ -127,3 +127,4 @@ export declare class OrderLines {
     private handleError;
 }
 export default OrderLines;
+//# sourceMappingURL=OrderLine.d.ts.map

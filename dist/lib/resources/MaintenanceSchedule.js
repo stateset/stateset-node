@@ -9,15 +9,16 @@ var MaintenanceScheduleStatus;
     MaintenanceScheduleStatus["COMPLETED"] = "COMPLETED";
     MaintenanceScheduleStatus["CANCELLED"] = "CANCELLED";
     MaintenanceScheduleStatus["OVERDUE"] = "OVERDUE";
-})(MaintenanceScheduleStatus = exports.MaintenanceScheduleStatus || (exports.MaintenanceScheduleStatus = {}));
+})(MaintenanceScheduleStatus || (exports.MaintenanceScheduleStatus = MaintenanceScheduleStatus = {}));
 var MaintenanceType;
 (function (MaintenanceType) {
     MaintenanceType["PREVENTIVE"] = "PREVENTIVE";
     MaintenanceType["CORRECTIVE"] = "CORRECTIVE";
     MaintenanceType["PREDICTIVE"] = "PREDICTIVE";
-})(MaintenanceType = exports.MaintenanceType || (exports.MaintenanceType = {}));
+})(MaintenanceType || (exports.MaintenanceType = MaintenanceType = {}));
 // Error Classes
 class MaintenanceScheduleError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -32,6 +33,7 @@ class MaintenanceScheduleNotFoundError extends MaintenanceScheduleError {
 }
 exports.MaintenanceScheduleNotFoundError = MaintenanceScheduleNotFoundError;
 class MaintenanceScheduleValidationError extends MaintenanceScheduleError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -39,6 +41,7 @@ class MaintenanceScheduleValidationError extends MaintenanceScheduleError {
 }
 exports.MaintenanceScheduleValidationError = MaintenanceScheduleValidationError;
 class MaintenanceSchedules {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -55,7 +58,7 @@ class MaintenanceSchedules {
             throw new MaintenanceScheduleValidationError('Cost estimate cannot be negative');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new MaintenanceScheduleError('Invalid response format');
         return {
             id: data.id,
@@ -109,8 +112,8 @@ class MaintenanceSchedules {
                 maintenance_schedules: response.maintenance_schedules.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.maintenance_schedules.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -172,3 +175,4 @@ class MaintenanceSchedules {
     }
 }
 exports.default = MaintenanceSchedules;
+//# sourceMappingURL=MaintenanceSchedule.js.map

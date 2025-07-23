@@ -2,6 +2,7 @@
 // lib/resources/Invoice.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Invoices {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -133,3 +134,4 @@ class Invoices {
     }
 }
 exports.default = Invoices;
+//# sourceMappingURL=Invoice.js.map

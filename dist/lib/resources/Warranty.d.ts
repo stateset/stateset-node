@@ -148,3 +148,4 @@ export declare class Warranty {
     private handleError;
 }
 export default Warranty;
+//# sourceMappingURL=Warranty.d.ts.map

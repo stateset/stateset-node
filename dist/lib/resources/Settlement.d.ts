@@ -9,3 +9,4 @@ export default class Settlements {
     consolidate(startDate: string, endDate: string): Promise<any>;
     reconcile(startDate: string, endDate: string): Promise<any>;
 }
+//# sourceMappingURL=Settlement.d.ts.map

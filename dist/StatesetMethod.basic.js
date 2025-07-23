@@ -35,3 +35,4 @@ const commonMethods = {
     }),
 };
 exports.default = commonMethods;
+//# sourceMappingURL=StatesetMethod.basic.js.map

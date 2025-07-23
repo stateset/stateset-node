@@ -35,7 +35,7 @@ var ActivityType;
     ActivityType["NOTIFICATION"] = "notification";
     ActivityType["LOGGING"] = "logging";
     ActivityType["ERROR_HANDLING"] = "error_handling";
-})(ActivityType = exports.ActivityType || (exports.ActivityType = {}));
+})(ActivityType || (exports.ActivityType = ActivityType = {}));
 var ActivityStatus;
 (function (ActivityStatus) {
     ActivityStatus["PENDING"] = "pending";
@@ -46,14 +46,14 @@ var ActivityStatus;
     ActivityStatus["CANCELLED"] = "cancelled";
     ActivityStatus["SKIPPED"] = "skipped";
     ActivityStatus["WAITING"] = "waiting";
-})(ActivityStatus = exports.ActivityStatus || (exports.ActivityStatus = {}));
+})(ActivityStatus || (exports.ActivityStatus = ActivityStatus = {}));
 var ActivityPriority;
 (function (ActivityPriority) {
     ActivityPriority["CRITICAL"] = "critical";
     ActivityPriority["HIGH"] = "high";
     ActivityPriority["NORMAL"] = "normal";
     ActivityPriority["LOW"] = "low";
-})(ActivityPriority = exports.ActivityPriority || (exports.ActivityPriority = {}));
+})(ActivityPriority || (exports.ActivityPriority = ActivityPriority = {}));
 // Custom Error Classes
 class ActivityNotFoundError extends Error {
     constructor(activityId) {
@@ -70,6 +70,7 @@ class ActivityValidationError extends Error {
 }
 exports.ActivityValidationError = ActivityValidationError;
 class ActivityExecutionError extends Error {
+    activityId;
     constructor(message, activityId) {
         super(message);
         this.activityId = activityId;
@@ -79,6 +80,7 @@ class ActivityExecutionError extends Error {
 exports.ActivityExecutionError = ActivityExecutionError;
 // Main Activities Class
 class Activities {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -89,17 +91,17 @@ class Activities {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.workflow_id)
+        if (params?.workflow_id)
             queryParams.append('workflow_id', params.workflow_id);
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.tags)
+        if (params?.tags)
             queryParams.append('tags', JSON.stringify(params.tags));
         const response = await this.stateset.request('GET', `activities?${queryParams.toString()}`);
         return response.activities;
@@ -281,3 +283,4 @@ class Activities {
     }
 }
 exports.default = Activities;
+//# sourceMappingURL=Activities.js.map

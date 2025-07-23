@@ -58,3 +58,4 @@ declare class SalesOrders {
     cancel(id: string): Promise<CancelledSalesOrderResponse>;
 }
 export default SalesOrders;
+//# sourceMappingURL=SalesOrder.d.ts.map

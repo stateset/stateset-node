@@ -6,16 +6,17 @@ var CreditDebitType;
 (function (CreditDebitType) {
     CreditDebitType["CREDIT"] = "CREDIT";
     CreditDebitType["DEBIT"] = "DEBIT";
-})(CreditDebitType = exports.CreditDebitType || (exports.CreditDebitType = {}));
+})(CreditDebitType || (exports.CreditDebitType = CreditDebitType = {}));
 var CreditDebitStatus;
 (function (CreditDebitStatus) {
     CreditDebitStatus["PENDING"] = "PENDING";
     CreditDebitStatus["APPLIED"] = "APPLIED";
     CreditDebitStatus["EXPIRED"] = "EXPIRED";
     CreditDebitStatus["CANCELLED"] = "CANCELLED";
-})(CreditDebitStatus = exports.CreditDebitStatus || (exports.CreditDebitStatus = {}));
+})(CreditDebitStatus || (exports.CreditDebitStatus = CreditDebitStatus = {}));
 // Error Classes
 class CreditsDebitsError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -30,6 +31,7 @@ class CreditsDebitsNotFoundError extends CreditsDebitsError {
 }
 exports.CreditsDebitsNotFoundError = CreditsDebitsNotFoundError;
 class CreditsDebitsValidationError extends CreditsDebitsError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -37,6 +39,7 @@ class CreditsDebitsValidationError extends CreditsDebitsError {
 }
 exports.CreditsDebitsValidationError = CreditsDebitsValidationError;
 class CreditsDebits {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -49,7 +52,7 @@ class CreditsDebits {
             throw new CreditsDebitsValidationError('Issued date is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new CreditsDebitsError('Invalid response format');
         return {
             id: data.id,
@@ -99,8 +102,8 @@ class CreditsDebits {
                 credits_debits: response.credits_debits.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.credits_debits.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -162,3 +165,4 @@ class CreditsDebits {
     }
 }
 exports.default = CreditsDebits;
+//# sourceMappingURL=CreditsDebits.js.map

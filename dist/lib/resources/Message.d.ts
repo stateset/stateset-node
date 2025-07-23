@@ -223,3 +223,4 @@ declare class Messages {
     private validateMessageData;
 }
 export default Messages;
+//# sourceMappingURL=Message.d.ts.map

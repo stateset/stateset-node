@@ -9,7 +9,7 @@ var KnowledgeType;
     KnowledgeType["ARTICLE"] = "article";
     KnowledgeType["CODE_SNIPPET"] = "code_snippet";
     KnowledgeType["LINK"] = "link";
-})(KnowledgeType = exports.KnowledgeType || (exports.KnowledgeType = {}));
+})(KnowledgeType || (exports.KnowledgeType = KnowledgeType = {}));
 // Custom error classes
 class KnowledgeNotFoundError extends Error {
     constructor(knowledgeId) {
@@ -27,6 +27,7 @@ class KnowledgeValidationError extends Error {
 exports.KnowledgeValidationError = KnowledgeValidationError;
 // Main Knowledge class
 class Knowledge {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -35,15 +36,15 @@ class Knowledge {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.user_id)
+        if (params?.user_id)
             queryParams.append('user_id', params.user_id);
-        if (params === null || params === void 0 ? void 0 : params.tag)
+        if (params?.tag)
             queryParams.append('tag', params.tag);
         const response = await this.stateset.request('GET', `knowledge?${queryParams.toString()}`);
         return response.knowledge;
@@ -104,3 +105,4 @@ class Knowledge {
     }
 }
 exports.default = Knowledge;
+//# sourceMappingURL=Knowledge.js.map

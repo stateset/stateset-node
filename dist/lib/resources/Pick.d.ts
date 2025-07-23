@@ -261,3 +261,4 @@ export declare class Picks {
     private handleError;
 }
 export default Picks;
+//# sourceMappingURL=Pick.d.ts.map

@@ -111,3 +111,4 @@ export declare class WarrantyLines {
     private handleError;
 }
 export default WarrantyLines;
+//# sourceMappingURL=WarrantyLine.d.ts.map

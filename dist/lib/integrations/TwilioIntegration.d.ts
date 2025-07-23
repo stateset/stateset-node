@@ -5,3 +5,4 @@ export default class TwilioIntegration extends BaseIntegration {
     getUsers(): Promise<any>;
     getUser(userId: string): Promise<any>;
 }
+//# sourceMappingURL=TwilioIntegration.d.ts.map

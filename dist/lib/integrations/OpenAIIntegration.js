@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 class OpenAIIntegration {
+    client;
     constructor(apiKey, baseUrl = 'https://api.openai.com/v1') {
         this.client = axios_1.default.create({
             baseURL: baseUrl,
@@ -25,3 +26,4 @@ class OpenAIIntegration {
     }
 }
 exports.default = OpenAIIntegration;
+//# sourceMappingURL=OpenAIIntegration.js.map
