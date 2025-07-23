@@ -2,6 +2,7 @@
 // lib/resources/Compliance.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Compliance {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -22,3 +23,4 @@ class Compliance {
     }
 }
 exports.default = Compliance;
+//# sourceMappingURL=Compliance.js.map

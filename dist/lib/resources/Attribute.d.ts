@@ -128,3 +128,4 @@ declare class Attributes {
     }>>;
 }
 export default Attributes;
+//# sourceMappingURL=Attribute.d.ts.map

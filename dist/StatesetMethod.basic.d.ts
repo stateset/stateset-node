@@ -9,3 +9,4 @@ interface CommonMethods {
 }
 declare const commonMethods: CommonMethods;
 export default commonMethods;
+//# sourceMappingURL=StatesetMethod.basic.d.ts.map

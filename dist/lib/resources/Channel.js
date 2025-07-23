@@ -13,7 +13,7 @@ var ChannelType;
     ChannelType["MESSENGER"] = "messenger";
     ChannelType["API"] = "api";
     ChannelType["WEBHOOK"] = "webhook";
-})(ChannelType = exports.ChannelType || (exports.ChannelType = {}));
+})(ChannelType || (exports.ChannelType = ChannelType = {}));
 var ChannelStatus;
 (function (ChannelStatus) {
     ChannelStatus["ACTIVE"] = "active";
@@ -21,7 +21,7 @@ var ChannelStatus;
     ChannelStatus["MAINTENANCE"] = "maintenance";
     ChannelStatus["ERROR"] = "error";
     ChannelStatus["RATE_LIMITED"] = "rate_limited";
-})(ChannelStatus = exports.ChannelStatus || (exports.ChannelStatus = {}));
+})(ChannelStatus || (exports.ChannelStatus = ChannelStatus = {}));
 var AIModel;
 (function (AIModel) {
     AIModel["GPT_4"] = "gpt-4";
@@ -29,27 +29,27 @@ var AIModel;
     AIModel["CLAUDE_2"] = "claude-2";
     AIModel["CLAUDE_INSTANT"] = "claude-instant";
     AIModel["CUSTOM"] = "custom";
-})(AIModel = exports.AIModel || (exports.AIModel = {}));
+})(AIModel || (exports.AIModel = AIModel = {}));
 var VoiceModel;
 (function (VoiceModel) {
     VoiceModel["ELEVEN_LABS"] = "eleven_labs";
     VoiceModel["AMAZON_POLLY"] = "amazon_polly";
     VoiceModel["GOOGLE_CLOUD"] = "google_cloud";
     VoiceModel["AZURE_COGNITIVE"] = "azure_cognitive";
-})(VoiceModel = exports.VoiceModel || (exports.VoiceModel = {}));
+})(VoiceModel || (exports.VoiceModel = VoiceModel = {}));
 var ChannelPriority;
 (function (ChannelPriority) {
     ChannelPriority["HIGH"] = "high";
     ChannelPriority["MEDIUM"] = "medium";
     ChannelPriority["LOW"] = "low";
-})(ChannelPriority = exports.ChannelPriority || (exports.ChannelPriority = {}));
+})(ChannelPriority || (exports.ChannelPriority = ChannelPriority = {}));
 var ChannelRating;
 (function (ChannelRating) {
     ChannelRating["EXCELLENT"] = "excellent";
     ChannelRating["GOOD"] = "good";
     ChannelRating["FAIR"] = "fair";
     ChannelRating["POOR"] = "poor";
-})(ChannelRating = exports.ChannelRating || (exports.ChannelRating = {}));
+})(ChannelRating || (exports.ChannelRating = ChannelRating = {}));
 // Custom Error Classes
 class ChannelNotFoundError extends Error {
     constructor(channelId) {
@@ -66,6 +66,7 @@ class ChannelValidationError extends Error {
 }
 exports.ChannelValidationError = ChannelValidationError;
 class ChannelOperationError extends Error {
+    code;
     constructor(message, code) {
         super(message);
         this.code = code;
@@ -75,6 +76,7 @@ class ChannelOperationError extends Error {
 exports.ChannelOperationError = ChannelOperationError;
 // Main Channels Class
 class Channels {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -85,15 +87,15 @@ class Channels {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.tags)
+        if (params?.tags)
             queryParams.append('tags', JSON.stringify(params.tags));
         const response = await this.stateset.request('GET', `channels?${queryParams.toString()}`);
         return response.channels;
@@ -185,9 +187,9 @@ class Channels {
      */
     async getMetrics(channelId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
         const response = await this.stateset.request('GET', `channels/${channelId}/metrics?${queryParams.toString()}`);
         return response.metrics;
@@ -227,7 +229,6 @@ class Channels {
      * @param data - ChannelData object
      */
     validateChannelData(data) {
-        var _a;
         if (!data.name) {
             throw new ChannelValidationError('Channel name is required');
         }
@@ -240,9 +241,10 @@ class Channels {
         if (data.type === ChannelType.VOICE && !data.voice_config) {
             throw new ChannelValidationError('Voice configuration is required for voice channels');
         }
-        if (!((_a = data.response_config) === null || _a === void 0 ? void 0 : _a.system_prompt)) {
+        if (!data.response_config?.system_prompt) {
             throw new ChannelValidationError('Response system prompt is required');
         }
     }
 }
 exports.default = Channels;
+//# sourceMappingURL=Channel.js.map

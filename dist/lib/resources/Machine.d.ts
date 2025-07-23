@@ -233,3 +233,4 @@ export declare class Machines {
     }): Promise<MachineResponse>;
 }
 export default Machines;
+//# sourceMappingURL=Machine.d.ts.map

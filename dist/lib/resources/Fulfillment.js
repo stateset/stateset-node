@@ -2,6 +2,7 @@
 // lib/resources/Fulfillment.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Fulfillment {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -127,3 +128,4 @@ class Fulfillment {
     }
 }
 exports.default = Fulfillment;
+//# sourceMappingURL=Fulfillment.js.map

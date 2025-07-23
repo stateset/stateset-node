@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class StatesetResource {
+    stateset;
+    path;
+    operations;
     constructor(options) {
         this.stateset = options.stateset;
         this.path = options.path;
@@ -62,3 +65,4 @@ class StatesetResource {
     }
 }
 exports.default = StatesetResource;
+//# sourceMappingURL=StatesetResource.js.map

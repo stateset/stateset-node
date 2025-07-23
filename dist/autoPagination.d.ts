@@ -7,3 +7,4 @@ interface AutoPaginationMethods {
 }
 export declare const makeAutoPaginationMethods: (stateset: any, methodArgs: any[], spec: any, requestPromise: AxiosPromise) => AutoPaginationMethods;
 export {};
+//# sourceMappingURL=autoPagination.d.ts.map

@@ -9,7 +9,7 @@ var AttributeType;
     AttributeType["SKILL"] = "skill";
     AttributeType["KNOWLEDGE"] = "knowledge";
     AttributeType["STYLE"] = "style";
-})(AttributeType = exports.AttributeType || (exports.AttributeType = {}));
+})(AttributeType || (exports.AttributeType = AttributeType = {}));
 var AttributeCategory;
 (function (AttributeCategory) {
     AttributeCategory["COMMUNICATION"] = "communication";
@@ -17,13 +17,13 @@ var AttributeCategory;
     AttributeCategory["EXPERTISE"] = "expertise";
     AttributeCategory["LANGUAGE"] = "language";
     AttributeCategory["PERFORMANCE"] = "performance";
-})(AttributeCategory = exports.AttributeCategory || (exports.AttributeCategory = {}));
+})(AttributeCategory || (exports.AttributeCategory = AttributeCategory = {}));
 var AttributeImpact;
 (function (AttributeImpact) {
     AttributeImpact["HIGH"] = "high";
     AttributeImpact["MEDIUM"] = "medium";
     AttributeImpact["LOW"] = "low";
-})(AttributeImpact = exports.AttributeImpact || (exports.AttributeImpact = {}));
+})(AttributeImpact || (exports.AttributeImpact = AttributeImpact = {}));
 // Custom error classes
 class AttributeNotFoundError extends Error {
     constructor(attributeId) {
@@ -40,6 +40,7 @@ class AttributeValidationError extends Error {
 }
 exports.AttributeValidationError = AttributeValidationError;
 class AttributeOperationError extends Error {
+    code;
     constructor(message, code) {
         super(message);
         this.code = code;
@@ -49,6 +50,7 @@ class AttributeOperationError extends Error {
 exports.AttributeOperationError = AttributeOperationError;
 // Main Attributes class
 class Attributes {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -70,15 +72,15 @@ class Attributes {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.attribute_type)
+        if (params?.attribute_type)
             queryParams.append('attribute_type', params.attribute_type);
-        if (params === null || params === void 0 ? void 0 : params.category)
+        if (params?.category)
             queryParams.append('category', params.category);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if ((params === null || params === void 0 ? void 0 : params.activated) !== undefined)
+        if (params?.activated !== undefined)
             queryParams.append('activated', params.activated.toString());
         const response = await this.stateset.request('GET', `attributes?${queryParams.toString()}`);
         return response.attributes;
@@ -116,13 +118,12 @@ class Attributes {
      * Update an existing attribute
      */
     async update(attributeId, params) {
-        var _a, _b;
         try {
             // Get current attribute to validate against existing constraints
             const currentAttribute = await this.get(attributeId);
             // Determine final min/max values for validation
-            const minValue = (_a = params.min_value) !== null && _a !== void 0 ? _a : currentAttribute.min_value;
-            const maxValue = (_b = params.max_value) !== null && _b !== void 0 ? _b : currentAttribute.max_value;
+            const minValue = params.min_value ?? currentAttribute.min_value;
+            const maxValue = params.max_value ?? currentAttribute.max_value;
             // Validate new value against constraints
             this.validateAttributeValue(params.value, minValue, maxValue);
             const response = await this.stateset.request('PUT', `attributes/${attributeId}`, params);
@@ -175,14 +176,15 @@ class Attributes {
      */
     async getHistory(attributeId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.limit)
+        if (params?.limit)
             queryParams.append('limit', params.limit.toString());
         const response = await this.stateset.request('GET', `attributes/${attributeId}/history?${queryParams.toString()}`);
         return response.history;
     }
 }
 exports.default = Attributes;
+//# sourceMappingURL=Attribute.js.map

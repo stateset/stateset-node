@@ -134,3 +134,4 @@ export declare class ShipmentLine {
     private handleError;
 }
 export default ShipmentLine;
+//# sourceMappingURL=ShipmentLine.d.ts.map

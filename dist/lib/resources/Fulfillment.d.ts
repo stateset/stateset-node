@@ -121,3 +121,4 @@ export default class Fulfillment {
     markAsDelivered(id: string): Promise<DeliveredFulfillmentResponse>;
 }
 export {};
+//# sourceMappingURL=Fulfillment.d.ts.map

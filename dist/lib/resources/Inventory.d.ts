@@ -182,3 +182,4 @@ export declare class Inventory {
     }>): Promise<InventoryResponse[]>;
 }
 export default Inventory;
+//# sourceMappingURL=Inventory.d.ts.map

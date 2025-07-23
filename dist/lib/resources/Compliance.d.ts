@@ -7,3 +7,4 @@ export default class Compliance {
     list(params?: any): Promise<any>;
     delete(id: string): Promise<any>;
 }
+//# sourceMappingURL=Compliance.d.ts.map

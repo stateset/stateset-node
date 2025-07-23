@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class CycleCounts {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -121,3 +122,4 @@ class CycleCounts {
     }
 }
 exports.default = CycleCounts;
+//# sourceMappingURL=CycleCount.js.map

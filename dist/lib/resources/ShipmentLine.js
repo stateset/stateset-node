@@ -11,16 +11,17 @@ var ShipmentLineStatus;
     ShipmentLineStatus["DELIVERED"] = "DELIVERED";
     ShipmentLineStatus["CANCELLED"] = "CANCELLED";
     ShipmentLineStatus["RETURNED"] = "RETURNED";
-})(ShipmentLineStatus = exports.ShipmentLineStatus || (exports.ShipmentLineStatus = {}));
+})(ShipmentLineStatus || (exports.ShipmentLineStatus = ShipmentLineStatus = {}));
 var ShipmentLineType;
 (function (ShipmentLineType) {
     ShipmentLineType["PRODUCT"] = "PRODUCT";
     ShipmentLineType["SERVICE"] = "SERVICE";
     ShipmentLineType["DOCUMENT"] = "DOCUMENT";
     ShipmentLineType["SAMPLE"] = "SAMPLE";
-})(ShipmentLineType = exports.ShipmentLineType || (exports.ShipmentLineType = {}));
+})(ShipmentLineType || (exports.ShipmentLineType = ShipmentLineType = {}));
 // Error Classes
 class ShipmentLineError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -35,6 +36,7 @@ class ShipmentLineNotFoundError extends ShipmentLineError {
 }
 exports.ShipmentLineNotFoundError = ShipmentLineNotFoundError;
 class ShipmentLineValidationError extends ShipmentLineError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -43,18 +45,18 @@ class ShipmentLineValidationError extends ShipmentLineError {
 exports.ShipmentLineValidationError = ShipmentLineValidationError;
 // Main ShipmentLine Class
 class ShipmentLine {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateShipmentLineData(data) {
-        var _a, _b;
         if (!data.shipment_id) {
             throw new ShipmentLineValidationError('Shipment ID is required');
         }
-        if (!((_a = data.item) === null || _a === void 0 ? void 0 : _a.item_id)) {
+        if (!data.item?.item_id) {
             throw new ShipmentLineValidationError('Item ID is required');
         }
-        if (!((_b = data.item) === null || _b === void 0 ? void 0 : _b.quantity) || data.item.quantity <= 0) {
+        if (!data.item?.quantity || data.item.quantity <= 0) {
             throw new ShipmentLineValidationError('Valid quantity is required');
         }
         if (data.item.weight.value < 0) {
@@ -62,7 +64,7 @@ class ShipmentLine {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.shipment_id) {
+        if (!data?.id || !data.shipment_id) {
             throw new ShipmentLineError('Invalid response format');
         }
         return {
@@ -87,7 +89,6 @@ class ShipmentLine {
         };
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.shipment_id && { shipment_id: params.shipment_id }),
             ...(params.status && { status: params.status }),
@@ -95,8 +96,8 @@ class ShipmentLine {
             ...(params.order_line_id && { order_line_id: params.order_line_id }),
             ...(params.package_id && { package_id: params.package_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -166,12 +167,11 @@ class ShipmentLine {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.shipment_id && { shipment_id: params.shipment_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         try {
             const response = await this.client.request('GET', `shipment_line_items/metrics?${query}`);
@@ -191,3 +191,4 @@ class ShipmentLine {
 }
 exports.ShipmentLine = ShipmentLine;
 exports.default = ShipmentLine;
+//# sourceMappingURL=ShipmentLine.js.map

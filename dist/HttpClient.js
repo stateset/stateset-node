@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpClient = void 0;
 const axios_1 = __importDefault(require("axios"));
 class HttpClient {
+    axiosInstance;
     constructor(agent) {
         this.axiosInstance = axios_1.default.create({
             httpsAgent: agent,
-            timeout: 80000,
+            timeout: 80000, // Default timeout, can be overridden in requests
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -39,3 +40,4 @@ class HttpClient {
 }
 exports.HttpClient = HttpClient;
 exports.default = HttpClient;
+//# sourceMappingURL=HttpClient.js.map

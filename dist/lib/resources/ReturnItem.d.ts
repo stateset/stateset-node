@@ -1,1 +1,1 @@
-declare var method: any;
+declare let method: any;

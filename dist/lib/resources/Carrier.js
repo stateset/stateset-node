@@ -7,15 +7,16 @@ var CarrierStatus;
     CarrierStatus["ACTIVE"] = "ACTIVE";
     CarrierStatus["INACTIVE"] = "INACTIVE";
     CarrierStatus["SUSPENDED"] = "SUSPENDED";
-})(CarrierStatus = exports.CarrierStatus || (exports.CarrierStatus = {}));
+})(CarrierStatus || (exports.CarrierStatus = CarrierStatus = {}));
 var CarrierType;
 (function (CarrierType) {
     CarrierType["FREIGHT"] = "FREIGHT";
     CarrierType["PARCEL"] = "PARCEL";
     CarrierType["COURIER"] = "COURIER";
-})(CarrierType = exports.CarrierType || (exports.CarrierType = {}));
+})(CarrierType || (exports.CarrierType = CarrierType = {}));
 // Error Classes
 class CarrierError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -30,6 +31,7 @@ class CarrierNotFoundError extends CarrierError {
 }
 exports.CarrierNotFoundError = CarrierNotFoundError;
 class CarrierValidationError extends CarrierError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -37,21 +39,21 @@ class CarrierValidationError extends CarrierError {
 }
 exports.CarrierValidationError = CarrierValidationError;
 class Carriers {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
     validateCarrierData(data) {
-        var _a;
         if (!data.name)
             throw new CarrierValidationError('Carrier name is required');
         if (!data.carrier_code)
             throw new CarrierValidationError('Carrier code is required');
-        if ((_a = data.rates) === null || _a === void 0 ? void 0 : _a.some(rate => rate.base_rate < 0)) {
+        if (data.rates?.some(rate => rate.base_rate < 0)) {
             throw new CarrierValidationError('Base rate cannot be negative');
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new CarrierError('Invalid response format');
         return {
             id: data.id,
@@ -92,8 +94,8 @@ class Carriers {
                 carriers: response.carriers.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.carriers.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -155,3 +157,4 @@ class Carriers {
     }
 }
 exports.default = Carriers;
+//# sourceMappingURL=Carrier.js.map

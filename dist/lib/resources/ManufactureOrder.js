@@ -13,21 +13,21 @@ var ManufacturerOrderStatus;
     ManufacturerOrderStatus["COMPLETED"] = "COMPLETED";
     ManufacturerOrderStatus["CANCELLED"] = "CANCELLED";
     ManufacturerOrderStatus["ON_HOLD"] = "ON_HOLD";
-})(ManufacturerOrderStatus = exports.ManufacturerOrderStatus || (exports.ManufacturerOrderStatus = {}));
+})(ManufacturerOrderStatus || (exports.ManufacturerOrderStatus = ManufacturerOrderStatus = {}));
 var ProductionPriority;
 (function (ProductionPriority) {
     ProductionPriority["URGENT"] = "urgent";
     ProductionPriority["HIGH"] = "high";
     ProductionPriority["NORMAL"] = "normal";
     ProductionPriority["LOW"] = "low";
-})(ProductionPriority = exports.ProductionPriority || (exports.ProductionPriority = {}));
+})(ProductionPriority || (exports.ProductionPriority = ProductionPriority = {}));
 var QualityCheckStatus;
 (function (QualityCheckStatus) {
     QualityCheckStatus["PENDING"] = "pending";
     QualityCheckStatus["PASSED"] = "passed";
     QualityCheckStatus["FAILED"] = "failed";
     QualityCheckStatus["CONDITIONAL"] = "conditional";
-})(QualityCheckStatus = exports.QualityCheckStatus || (exports.QualityCheckStatus = {}));
+})(QualityCheckStatus || (exports.QualityCheckStatus = QualityCheckStatus = {}));
 // Custom Error Classes
 class ManufacturerOrderError extends Error {
     constructor(message, name) {
@@ -64,6 +64,7 @@ const validateMaterials = (materials) => {
 };
 // Main ManufacturerOrders Class
 class ManufacturerOrders {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -169,3 +170,4 @@ class ManufacturerOrders {
 }
 exports.ManufacturerOrders = ManufacturerOrders;
 exports.default = ManufacturerOrders;
+//# sourceMappingURL=ManufactureOrder.js.map

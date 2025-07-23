@@ -46,3 +46,4 @@ class SquareIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = SquareIntegration;
+//# sourceMappingURL=SquareIntegration.js.map

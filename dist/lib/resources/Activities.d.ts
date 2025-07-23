@@ -272,3 +272,4 @@ declare class Activities {
     private validateActivityData;
 }
 export default Activities;
+//# sourceMappingURL=Activities.d.ts.map

@@ -8,16 +8,17 @@ var SupplierStatus;
     SupplierStatus["INACTIVE"] = "INACTIVE";
     SupplierStatus["PENDING"] = "PENDING";
     SupplierStatus["SUSPENDED"] = "SUSPENDED";
-})(SupplierStatus = exports.SupplierStatus || (exports.SupplierStatus = {}));
+})(SupplierStatus || (exports.SupplierStatus = SupplierStatus = {}));
 var SupplierType;
 (function (SupplierType) {
     SupplierType["MANUFACTURER"] = "MANUFACTURER";
     SupplierType["DISTRIBUTOR"] = "DISTRIBUTOR";
     SupplierType["WHOLESALER"] = "WHOLESALER";
     SupplierType["SERVICE_PROVIDER"] = "SERVICE_PROVIDER";
-})(SupplierType = exports.SupplierType || (exports.SupplierType = {}));
+})(SupplierType || (exports.SupplierType = SupplierType = {}));
 // Error Classes
 class SupplierError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -32,6 +33,7 @@ class SupplierNotFoundError extends SupplierError {
 }
 exports.SupplierNotFoundError = SupplierNotFoundError;
 class SupplierValidationError extends SupplierError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -39,24 +41,24 @@ class SupplierValidationError extends SupplierError {
 }
 exports.SupplierValidationError = SupplierValidationError;
 class Suppliers {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateSupplierData(data) {
-        var _a, _b;
         if (!data.name)
             throw new SupplierValidationError('Supplier name is required');
         if (!data.supplier_code)
             throw new SupplierValidationError('Supplier code is required');
         if (!data.email)
             throw new SupplierValidationError('Email is required');
-        if (!((_a = data.addresses) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.addresses?.length)
             throw new SupplierValidationError('At least one address is required');
-        if (!((_b = data.payment_terms) === null || _b === void 0 ? void 0 : _b.terms))
+        if (!data.payment_terms?.terms)
             throw new SupplierValidationError('Payment terms are required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new SupplierError('Invalid response format');
         return {
             id: data.id,
@@ -110,14 +112,13 @@ class Suppliers {
         }
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
             ...(params.category && { category: params.category }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
             ...(params.search && { search: params.search }),
@@ -189,11 +190,10 @@ class Suppliers {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.type && { type: params.type }),
         });
         try {
@@ -213,3 +213,4 @@ class Suppliers {
     }
 }
 exports.default = Suppliers;
+//# sourceMappingURL=Supplier.js.map

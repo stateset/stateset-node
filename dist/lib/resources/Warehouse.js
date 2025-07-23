@@ -10,7 +10,7 @@ var WarehouseStatus;
     WarehouseStatus["CLOSED"] = "CLOSED";
     WarehouseStatus["OVER_CAPACITY"] = "OVER_CAPACITY";
     WarehouseStatus["RESTRICTED"] = "RESTRICTED";
-})(WarehouseStatus = exports.WarehouseStatus || (exports.WarehouseStatus = {}));
+})(WarehouseStatus || (exports.WarehouseStatus = WarehouseStatus = {}));
 var ZoneType;
 (function (ZoneType) {
     ZoneType["RECEIVING"] = "receiving";
@@ -22,7 +22,7 @@ var ZoneType;
     ZoneType["HAZMAT"] = "hazmat";
     ZoneType["TEMPERATURE_CONTROLLED"] = "temperature_controlled";
     ZoneType["QUARANTINE"] = "quarantine";
-})(ZoneType = exports.ZoneType || (exports.ZoneType = {}));
+})(ZoneType || (exports.ZoneType = ZoneType = {}));
 var StorageType;
 (function (StorageType) {
     StorageType["PALLET_RACK"] = "pallet_rack";
@@ -31,7 +31,7 @@ var StorageType;
     StorageType["BIN_SHELVING"] = "bin_shelving";
     StorageType["DRIVE_IN_RACK"] = "drive_in_rack";
     StorageType["AUTOMATED_STORAGE"] = "automated_storage";
-})(StorageType = exports.StorageType || (exports.StorageType = {}));
+})(StorageType || (exports.StorageType = StorageType = {}));
 // Custom Error Classes
 class WarehouseNotFoundError extends Error {
     constructor(warehouseId) {
@@ -56,6 +56,7 @@ class InventoryOperationError extends Error {
 exports.InventoryOperationError = InventoryOperationError;
 // Main Warehouses Class
 class Warehouses {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -66,15 +67,15 @@ class Warehouses {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.country)
+        if (params?.country)
             queryParams.append('country', params.country);
-        if (params === null || params === void 0 ? void 0 : params.state)
+        if (params?.state)
             queryParams.append('state', params.state);
-        if (params === null || params === void 0 ? void 0 : params.specialization)
+        if (params?.specialization)
             queryParams.append('specialization', params.specialization);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `warehouses?${queryParams.toString()}`);
         return response.warehouses;
@@ -155,11 +156,11 @@ class Warehouses {
      */
     async getInventory(warehouseId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.zone_id)
+        if (params?.zone_id)
             queryParams.append('zone_id', params.zone_id);
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if ((params === null || params === void 0 ? void 0 : params.below_reorder_point) !== undefined) {
+        if (params?.below_reorder_point !== undefined) {
             queryParams.append('below_reorder_point', params.below_reorder_point.toString());
         }
         const response = await this.stateset.request('GET', `warehouses/${warehouseId}/inventory?${queryParams.toString()}`);
@@ -205,9 +206,9 @@ class Warehouses {
      */
     async getMetrics(warehouseId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
         const response = await this.stateset.request('GET', `warehouses/${warehouseId}/metrics?${queryParams.toString()}`);
         return response.metrics;
@@ -238,3 +239,4 @@ class Warehouses {
     }
 }
 exports.default = Warehouses;
+//# sourceMappingURL=Warehouse.js.map

@@ -238,3 +238,4 @@ declare class Channels {
     private validateChannelData;
 }
 export default Channels;
+//# sourceMappingURL=Channel.d.ts.map

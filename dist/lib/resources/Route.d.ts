@@ -90,3 +90,4 @@ export default class Routes {
     private handleError;
 }
 export {};
+//# sourceMappingURL=Route.d.ts.map

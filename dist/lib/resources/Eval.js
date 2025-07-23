@@ -8,7 +8,7 @@ var EvalType;
     EvalType["RESPONSE"] = "response";
     EvalType["RULE"] = "rule";
     EvalType["ATTRIBUTE"] = "attribute";
-})(EvalType = exports.EvalType || (exports.EvalType = {}));
+})(EvalType || (exports.EvalType = EvalType = {}));
 class EvalNotFoundError extends Error {
     constructor(evalId) {
         super(`Eval with ID ${evalId} not found`);
@@ -24,6 +24,7 @@ class EvalValidationError extends Error {
 }
 exports.EvalValidationError = EvalValidationError;
 class Evals {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -32,13 +33,13 @@ class Evals {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.eval_type)
+        if (params?.eval_type)
             queryParams.append('eval_type', params.eval_type);
-        if (params === null || params === void 0 ? void 0 : params.subject_id)
+        if (params?.subject_id)
             queryParams.append('subject_id', params.subject_id);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `evals?${queryParams.toString()}`);
         return response.evals;
@@ -87,3 +88,4 @@ class Evals {
     }
 }
 exports.default = Evals;
+//# sourceMappingURL=Eval.js.map

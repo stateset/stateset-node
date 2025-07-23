@@ -98,3 +98,4 @@ export default class WasteAndScrap {
     getDisposalHistory(id: string): Promise<DisposalData[]>;
 }
 export {};
+//# sourceMappingURL=WasteAndScrap.d.ts.map

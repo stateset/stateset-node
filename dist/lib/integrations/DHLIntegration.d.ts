@@ -8,3 +8,4 @@ export default class DHLIntegration extends BaseIntegration {
     cancelShipment(shipmentId: string): Promise<any>;
     getTrackingInfo(shipmentId: string): Promise<any>;
 }
+//# sourceMappingURL=DHLIntegration.d.ts.map

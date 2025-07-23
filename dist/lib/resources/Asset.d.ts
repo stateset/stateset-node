@@ -98,3 +98,4 @@ export default class Assets {
     setRetired(id: string): Promise<RetiredAssetResponse>;
 }
 export {};
+//# sourceMappingURL=Asset.d.ts.map

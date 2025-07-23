@@ -2,6 +2,7 @@
 // lib/resources/Asset.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Assets {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -130,3 +131,4 @@ class Assets {
     }
 }
 exports.default = Assets;
+//# sourceMappingURL=Asset.js.map

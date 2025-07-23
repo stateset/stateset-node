@@ -309,3 +309,4 @@ export declare class Workorders {
     private handleError;
 }
 export default Workorders;
+//# sourceMappingURL=WorkOrder.d.ts.map

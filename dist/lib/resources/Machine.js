@@ -10,7 +10,7 @@ var MachineStatus;
     MachineStatus["MALFUNCTION"] = "MALFUNCTION";
     MachineStatus["STANDBY"] = "STANDBY";
     MachineStatus["SETUP"] = "SETUP";
-})(MachineStatus = exports.MachineStatus || (exports.MachineStatus = {}));
+})(MachineStatus || (exports.MachineStatus = MachineStatus = {}));
 var MaintenanceType;
 (function (MaintenanceType) {
     MaintenanceType["PREVENTIVE"] = "preventive";
@@ -18,14 +18,14 @@ var MaintenanceType;
     MaintenanceType["PREDICTIVE"] = "predictive";
     MaintenanceType["CONDITION_BASED"] = "condition_based";
     MaintenanceType["EMERGENCY"] = "emergency";
-})(MaintenanceType = exports.MaintenanceType || (exports.MaintenanceType = {}));
+})(MaintenanceType || (exports.MaintenanceType = MaintenanceType = {}));
 var MalfunctionSeverity;
 (function (MalfunctionSeverity) {
     MalfunctionSeverity["CRITICAL"] = "critical";
     MalfunctionSeverity["HIGH"] = "high";
     MalfunctionSeverity["MEDIUM"] = "medium";
     MalfunctionSeverity["LOW"] = "low";
-})(MalfunctionSeverity = exports.MalfunctionSeverity || (exports.MalfunctionSeverity = {}));
+})(MalfunctionSeverity || (exports.MalfunctionSeverity = MalfunctionSeverity = {}));
 // Error Classes
 class MachineError extends Error {
     constructor(message, name) {
@@ -54,6 +54,7 @@ class MachineValidationError extends MachineError {
 exports.MachineValidationError = MachineValidationError;
 // Main Machines Class
 class Machines {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -168,3 +169,4 @@ class Machines {
 }
 exports.Machines = Machines;
 exports.default = Machines;
+//# sourceMappingURL=Machine.js.map

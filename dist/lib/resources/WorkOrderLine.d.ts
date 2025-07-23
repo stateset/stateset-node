@@ -135,3 +135,4 @@ export declare class WorkOrderLines {
     private handleError;
 }
 export default WorkOrderLines;
+//# sourceMappingURL=WorkOrderLine.d.ts.map

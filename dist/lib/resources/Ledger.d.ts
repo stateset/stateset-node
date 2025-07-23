@@ -80,3 +80,4 @@ export default class Ledger {
     private handleError;
 }
 export {};
+//# sourceMappingURL=Ledger.d.ts.map

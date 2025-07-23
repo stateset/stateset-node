@@ -46,3 +46,4 @@ class PayPalIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = PayPalIntegration;
+//# sourceMappingURL=PayPalIntegration.js.map

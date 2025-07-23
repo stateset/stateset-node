@@ -9,7 +9,7 @@ var WorkflowType;
     WorkflowType["EVENT_DRIVEN"] = "event_driven";
     WorkflowType["CONDITIONAL"] = "conditional";
     WorkflowType["STATE_MACHINE"] = "state_machine";
-})(WorkflowType = exports.WorkflowType || (exports.WorkflowType = {}));
+})(WorkflowType || (exports.WorkflowType = WorkflowType = {}));
 var WorkflowStatus;
 (function (WorkflowStatus) {
     WorkflowStatus["DRAFT"] = "draft";
@@ -17,7 +17,7 @@ var WorkflowStatus;
     WorkflowStatus["PAUSED"] = "paused";
     WorkflowStatus["ARCHIVED"] = "archived";
     WorkflowStatus["ERROR"] = "error";
-})(WorkflowStatus = exports.WorkflowStatus || (exports.WorkflowStatus = {}));
+})(WorkflowStatus || (exports.WorkflowStatus = WorkflowStatus = {}));
 var TaskType;
 (function (TaskType) {
     TaskType["AI_PROCESSING"] = "ai_processing";
@@ -27,7 +27,7 @@ var TaskType;
     TaskType["DECISION"] = "decision";
     TaskType["HUMAN_REVIEW"] = "human_review";
     TaskType["WAIT"] = "wait";
-})(TaskType = exports.TaskType || (exports.TaskType = {}));
+})(TaskType || (exports.TaskType = TaskType = {}));
 var TriggerType;
 (function (TriggerType) {
     TriggerType["SCHEDULE"] = "schedule";
@@ -35,7 +35,7 @@ var TriggerType;
     TriggerType["API"] = "api";
     TriggerType["CONDITION"] = "condition";
     TriggerType["MANUAL"] = "manual";
-})(TriggerType = exports.TriggerType || (exports.TriggerType = {}));
+})(TriggerType || (exports.TriggerType = TriggerType = {}));
 // Custom Error Classes
 class WorkflowNotFoundError extends Error {
     constructor(workflowId) {
@@ -52,6 +52,7 @@ class WorkflowValidationError extends Error {
 }
 exports.WorkflowValidationError = WorkflowValidationError;
 class WorkflowExecutionError extends Error {
+    executionId;
     constructor(message, executionId) {
         super(message);
         this.executionId = executionId;
@@ -61,6 +62,7 @@ class WorkflowExecutionError extends Error {
 exports.WorkflowExecutionError = WorkflowExecutionError;
 // Main Workflows Class
 class Workflows {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -71,15 +73,15 @@ class Workflows {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.tags)
+        if (params?.tags)
             queryParams.append('tags', JSON.stringify(params.tags));
         const response = await this.stateset.request('GET', `workflows?${queryParams.toString()}`);
         return response.workflows;
@@ -185,13 +187,13 @@ class Workflows {
      */
     async getExecutionHistory(workflowId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.limit)
+        if (params?.limit)
             queryParams.append('limit', params.limit.toString());
         const response = await this.stateset.request('GET', `workflows/${workflowId}/executions?${queryParams.toString()}`);
         return response.executions;
@@ -226,8 +228,7 @@ class Workflows {
         // Validate state transitions
         const stateNames = new Set(data.states.map(state => state.name));
         data.states.forEach(state => {
-            var _a;
-            (_a = state.transitions) === null || _a === void 0 ? void 0 : _a.forEach(transition => {
+            state.transitions?.forEach(transition => {
                 if (!stateNames.has(transition.from) || !stateNames.has(transition.to)) {
                     throw new WorkflowValidationError(`Invalid state transition: ${transition.from} -> ${transition.to}`);
                 }
@@ -248,3 +249,4 @@ class Workflows {
     }
 }
 exports.default = Workflows;
+//# sourceMappingURL=Workflow.js.map

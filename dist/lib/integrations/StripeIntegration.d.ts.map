@@ -1,0 +1,1 @@
+{"version":3,"file":"StripeIntegration.d.ts","sourceRoot":"","sources":["../../../src/lib/integrations/StripeIntegration.ts"],"names":[],"mappings":"AAAA,OAAO,eAAe,MAAM,mBAAmB,CAAC;AAEhD,MAAM,CAAC,OAAO,OAAO,iBAAkB,SAAQ,eAAe;gBAChD,MAAM,EAAE,MAAM;IAIb,SAAS;IAIT,WAAW,CAAC,IAAI,EAAE,GAAG;CAGnC"}

@@ -8,15 +8,16 @@ var ResourceUtilizationStatus;
     ResourceUtilizationStatus["IN_USE"] = "IN_USE";
     ResourceUtilizationStatus["MAINTENANCE"] = "MAINTENANCE";
     ResourceUtilizationStatus["RESERVED"] = "RESERVED";
-})(ResourceUtilizationStatus = exports.ResourceUtilizationStatus || (exports.ResourceUtilizationStatus = {}));
+})(ResourceUtilizationStatus || (exports.ResourceUtilizationStatus = ResourceUtilizationStatus = {}));
 var ResourceCategory;
 (function (ResourceCategory) {
     ResourceCategory["WAREHOUSE"] = "WAREHOUSE";
     ResourceCategory["MANUFACTURING"] = "MANUFACTURING";
     ResourceCategory["STAFFING"] = "STAFFING";
-})(ResourceCategory = exports.ResourceCategory || (exports.ResourceCategory = {}));
+})(ResourceCategory || (exports.ResourceCategory = ResourceCategory = {}));
 // Error Classes
 class ResourceUtilizationError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -31,6 +32,7 @@ class ResourceUtilizationNotFoundError extends ResourceUtilizationError {
 }
 exports.ResourceUtilizationNotFoundError = ResourceUtilizationNotFoundError;
 class ResourceUtilizationValidationError extends ResourceUtilizationError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -38,6 +40,7 @@ class ResourceUtilizationValidationError extends ResourceUtilizationError {
 }
 exports.ResourceUtilizationValidationError = ResourceUtilizationValidationError;
 class ResourceUtilization {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -54,7 +57,7 @@ class ResourceUtilization {
             throw new ResourceUtilizationValidationError('Efficiency must be between 0 and 100');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new ResourceUtilizationError('Invalid response format');
         return {
             id: data.id,
@@ -105,8 +108,8 @@ class ResourceUtilization {
                 resource_utilizations: response.resource_utilizations.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.resource_utilizations.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -168,3 +171,4 @@ class ResourceUtilization {
     }
 }
 exports.default = ResourceUtilization;
+//# sourceMappingURL=ResourceUtilization.js.map

@@ -9,7 +9,7 @@ var InventoryStatus;
     InventoryStatus["OUT_OF_STOCK"] = "out_of_stock";
     InventoryStatus["RESERVED"] = "reserved";
     InventoryStatus["DAMAGED"] = "damaged";
-})(InventoryStatus = exports.InventoryStatus || (exports.InventoryStatus = {}));
+})(InventoryStatus || (exports.InventoryStatus = InventoryStatus = {}));
 var LocationType;
 (function (LocationType) {
     LocationType["WAREHOUSE"] = "warehouse";
@@ -17,7 +17,7 @@ var LocationType;
     LocationType["TRANSIT"] = "transit";
     LocationType["SUPPLIER"] = "supplier";
     LocationType["CUSTOMER"] = "customer";
-})(LocationType = exports.LocationType || (exports.LocationType = {}));
+})(LocationType || (exports.LocationType = LocationType = {}));
 var AdjustmentType;
 (function (AdjustmentType) {
     AdjustmentType["RECEIPT"] = "receipt";
@@ -27,7 +27,7 @@ var AdjustmentType;
     AdjustmentType["LOSS"] = "loss";
     AdjustmentType["ADJUSTMENT"] = "adjustment";
     AdjustmentType["CYCLE_COUNT"] = "cycle_count";
-})(AdjustmentType = exports.AdjustmentType || (exports.AdjustmentType = {}));
+})(AdjustmentType || (exports.AdjustmentType = AdjustmentType = {}));
 // Error Classes
 class InventoryError extends Error {
     constructor(message, name) {
@@ -56,6 +56,7 @@ class InventoryValidationError extends InventoryError {
 exports.InventoryValidationError = InventoryValidationError;
 // Main Inventory Class
 class Inventory {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -183,3 +184,4 @@ class Inventory {
 }
 exports.Inventory = Inventory;
 exports.default = Inventory;
+//# sourceMappingURL=Inventory.js.map

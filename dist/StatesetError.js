@@ -6,6 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatesetRateLimitError = exports.StatesetPermissionError = exports.StatesetConnectionError = exports.StatesetAuthenticationError = exports.StatesetAPIError = exports.StatesetInvalidRequestError = exports.StatesetNotFoundError = exports.StatesetError = exports.StatesetBaseError = void 0;
 const utils_1 = __importDefault(require("./utils"));
 class StatesetBaseError extends Error {
+    type;
+    code;
+    detail;
+    path;
+    statusCode;
+    timestamp;
+    request_id;
     constructor(type, message, raw) {
         super(message);
         this.type = type;
@@ -22,6 +29,8 @@ class StatesetBaseError extends Error {
         this.detail = raw.detail;
         this.path = raw.path;
         this.statusCode = raw.statusCode;
+        this.timestamp = raw.timestamp;
+        this.request_id = raw.request_id;
     }
     static extend(subClass) {
         return utils_1.default.protoExtend(subClass);
@@ -44,6 +53,10 @@ class StatesetError extends StatesetBaseError {
                 return new StatesetConnectionError(raw);
             case 'not_found_error':
                 return new StatesetNotFoundError(raw);
+            case 'rate_limit_error':
+                return new StatesetRateLimitError(raw.message);
+            case 'permission_error':
+                return new StatesetPermissionError(raw.message);
             default:
                 return new StatesetError({ type: 'generic_error', message: 'Unknown Error' });
         }
@@ -92,3 +105,4 @@ class StatesetRateLimitError extends StatesetError {
     }
 }
 exports.StatesetRateLimitError = StatesetRateLimitError;
+//# sourceMappingURL=StatesetError.js.map

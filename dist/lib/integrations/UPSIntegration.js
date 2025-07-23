@@ -28,3 +28,4 @@ class UPSIntegration extends BaseIntegration_1.default {
     }
 }
 exports.default = UPSIntegration;
+//# sourceMappingURL=UPSIntegration.js.map

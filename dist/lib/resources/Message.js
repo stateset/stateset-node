@@ -12,7 +12,7 @@ var MessageType;
     MessageType["COMMERCE"] = "commerce";
     MessageType["SYSTEM"] = "system";
     MessageType["ERROR"] = "error";
-})(MessageType = exports.MessageType || (exports.MessageType = {}));
+})(MessageType || (exports.MessageType = MessageType = {}));
 var MessageStatus;
 (function (MessageStatus) {
     MessageStatus["QUEUED"] = "queued";
@@ -20,20 +20,20 @@ var MessageStatus;
     MessageStatus["DELIVERED"] = "delivered";
     MessageStatus["READ"] = "read";
     MessageStatus["FAILED"] = "failed";
-})(MessageStatus = exports.MessageStatus || (exports.MessageStatus = {}));
+})(MessageStatus || (exports.MessageStatus = MessageStatus = {}));
 var MessagePriority;
 (function (MessagePriority) {
     MessagePriority["HIGH"] = "high";
     MessagePriority["NORMAL"] = "normal";
     MessagePriority["LOW"] = "low";
-})(MessagePriority = exports.MessagePriority || (exports.MessagePriority = {}));
+})(MessagePriority || (exports.MessagePriority = MessagePriority = {}));
 var VoiceModelProvider;
 (function (VoiceModelProvider) {
     VoiceModelProvider["ELEVEN_LABS"] = "eleven_labs";
     VoiceModelProvider["AMAZON_POLLY"] = "amazon_polly";
     VoiceModelProvider["GOOGLE_CLOUD"] = "google_cloud";
     VoiceModelProvider["MICROSOFT_AZURE"] = "microsoft_azure";
-})(VoiceModelProvider = exports.VoiceModelProvider || (exports.VoiceModelProvider = {}));
+})(VoiceModelProvider || (exports.VoiceModelProvider = VoiceModelProvider = {}));
 // Custom Error Classes
 class MessageNotFoundError extends Error {
     constructor(messageId) {
@@ -50,6 +50,7 @@ class MessageValidationError extends Error {
 }
 exports.MessageValidationError = MessageValidationError;
 class MessageDeliveryError extends Error {
+    messageId;
     constructor(message, messageId) {
         super(message);
         this.messageId = messageId;
@@ -59,6 +60,7 @@ class MessageDeliveryError extends Error {
 exports.MessageDeliveryError = MessageDeliveryError;
 // Main Messages Class
 class Messages {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -69,25 +71,25 @@ class Messages {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.from)
+        if (params?.from)
             queryParams.append('from', params.from);
-        if (params === null || params === void 0 ? void 0 : params.to)
+        if (params?.to)
             queryParams.append('to', params.to);
-        if (params === null || params === void 0 ? void 0 : params.chat_id)
+        if (params?.chat_id)
             queryParams.append('chat_id', params.chat_id);
-        if (params === null || params === void 0 ? void 0 : params.channel_id)
+        if (params?.channel_id)
             queryParams.append('channel_id', params.channel_id.toString());
-        if (params === null || params === void 0 ? void 0 : params.date_from)
+        if (params?.date_from)
             queryParams.append('date_from', params.date_from.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.date_to)
+        if (params?.date_to)
             queryParams.append('date_to', params.date_to.toISOString());
-        if ((params === null || params === void 0 ? void 0 : params.fromAgent) !== undefined)
+        if (params?.fromAgent !== undefined)
             queryParams.append('fromAgent', params.fromAgent.toString());
-        if ((params === null || params === void 0 ? void 0 : params.is_public) !== undefined)
+        if (params?.is_public !== undefined)
             queryParams.append('is_public', params.is_public.toString());
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `messages?${queryParams.toString()}`);
         return response.messages;
@@ -204,17 +206,17 @@ class Messages {
      */
     async search(query, params) {
         const queryParams = new URLSearchParams({ query });
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
-        if (params === null || params === void 0 ? void 0 : params.date_from)
+        if (params?.date_from)
             queryParams.append('date_from', params.date_from.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.date_to)
+        if (params?.date_to)
             queryParams.append('date_to', params.date_to.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.channel_id)
+        if (params?.channel_id)
             queryParams.append('channel_id', params.channel_id.toString());
-        if (params === null || params === void 0 ? void 0 : params.chat_id)
+        if (params?.chat_id)
             queryParams.append('chat_id', params.chat_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `messages/search?${queryParams.toString()}`);
         return response.messages;
@@ -227,9 +229,9 @@ class Messages {
      */
     async getThread(messageId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.limit)
+        if (params?.limit)
             queryParams.append('limit', params.limit.toString());
-        if ((params === null || params === void 0 ? void 0 : params.include_context) !== undefined) {
+        if (params?.include_context !== undefined) {
             queryParams.append('include_context', params.include_context.toString());
         }
         const response = await this.stateset.request('GET', `messages/${messageId}/thread?${queryParams.toString()}`);
@@ -261,3 +263,4 @@ class Messages {
     }
 }
 exports.default = Messages;
+//# sourceMappingURL=Message.js.map

@@ -2,6 +2,7 @@
 // lib/resources/Settlement.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 class Settlements {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -28,3 +29,4 @@ class Settlements {
     }
 }
 exports.default = Settlements;
+//# sourceMappingURL=Settlement.js.map

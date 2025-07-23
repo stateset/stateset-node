@@ -17,7 +17,7 @@ var ShipmentStatus;
     ShipmentStatus["DELIVERED"] = "delivered";
     ShipmentStatus["EXCEPTION"] = "exception";
     ShipmentStatus["CANCELLED"] = "cancelled";
-})(ShipmentStatus = exports.ShipmentStatus || (exports.ShipmentStatus = {}));
+})(ShipmentStatus || (exports.ShipmentStatus = ShipmentStatus = {}));
 var ShippingCarrier;
 (function (ShippingCarrier) {
     ShippingCarrier["FEDEX"] = "FEDEX";
@@ -25,7 +25,7 @@ var ShippingCarrier;
     ShippingCarrier["USPS"] = "USPS";
     ShippingCarrier["DHL"] = "DHL";
     ShippingCarrier["ONTRAC"] = "ONTRAC";
-})(ShippingCarrier = exports.ShippingCarrier || (exports.ShippingCarrier = {}));
+})(ShippingCarrier || (exports.ShippingCarrier = ShippingCarrier = {}));
 var ServiceLevel;
 (function (ServiceLevel) {
     ServiceLevel["GROUND"] = "GROUND";
@@ -33,7 +33,7 @@ var ServiceLevel;
     ServiceLevel["OVERNIGHT"] = "OVERNIGHT";
     ServiceLevel["INTERNATIONAL"] = "INTERNATIONAL";
     ServiceLevel["ECONOMY"] = "ECONOMY";
-})(ServiceLevel = exports.ServiceLevel || (exports.ServiceLevel = {}));
+})(ServiceLevel || (exports.ServiceLevel = ServiceLevel = {}));
 var PackageType;
 (function (PackageType) {
     PackageType["CUSTOM"] = "CUSTOM";
@@ -44,9 +44,10 @@ var PackageType;
     PackageType["BOX_MEDIUM"] = "BOX_MEDIUM";
     PackageType["BOX_LARGE"] = "BOX_LARGE";
     PackageType["PALLET"] = "PALLET";
-})(PackageType = exports.PackageType || (exports.PackageType = {}));
+})(PackageType || (exports.PackageType = PackageType = {}));
 // Error Classes with additional context
 class ShipmentError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -61,6 +62,7 @@ class ShipmentNotFoundError extends ShipmentError {
 }
 exports.ShipmentNotFoundError = ShipmentNotFoundError;
 class ShipmentValidationError extends ShipmentError {
+    validationErrors;
     constructor(message, validationErrors) {
         super(message);
         this.validationErrors = validationErrors;
@@ -68,6 +70,8 @@ class ShipmentValidationError extends ShipmentError {
 }
 exports.ShipmentValidationError = ShipmentValidationError;
 class CarrierApiError extends ShipmentError {
+    carrier;
+    code;
     constructor(message, carrier, code) {
         super(message, { carrier, code });
         this.carrier = carrier;
@@ -77,6 +81,7 @@ class CarrierApiError extends ShipmentError {
 exports.CarrierApiError = CarrierApiError;
 // Main Shipments Class with improved error handling and validation
 class Shipments {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -89,14 +94,13 @@ class Shipments {
             throw new ShipmentValidationError('Shipping address is required');
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.carrier && { carrier: params.carrier }),
             ...(params.order_id && { order_id: params.order_id }),
             ...(params.customer_id && { customer_id: params.customer_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { date_from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { date_to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { date_from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { date_to: params.date_range.to.toISOString() }),
             ...(params.org_id && { org_id: params.org_id }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
@@ -136,6 +140,10 @@ class Shipments {
         const response = await this.client.request('POST', `shipments/${shipmentId}/return-label`, options);
         return response.label;
     }
+    async generateLabel(shipmentId, options = {}) {
+        const response = await this.client.request('POST', `shipments/${shipmentId}/label`, options);
+        return response.label;
+    }
     async getTrackingDetails(shipmentId, options = {}) {
         const query = new URLSearchParams({
             ...(options.include_proof_of_delivery && { include_pod: 'true' }),
@@ -145,10 +153,9 @@ class Shipments {
         return response.tracking;
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.start) && { start_date: params.date_range.start.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.end) && { end_date: params.date_range.end.toISOString() }),
+            ...(params.date_range?.start && { start_date: params.date_range.start.toISOString() }),
+            ...(params.date_range?.end && { end_date: params.date_range.end.toISOString() }),
             ...(params.carrier && { carrier: params.carrier }),
             ...(params.org_id && { org_id: params.org_id }),
             ...(params.group_by && { group_by: params.group_by }),
@@ -168,3 +175,4 @@ class Shipments {
 }
 exports.Shipments = Shipments;
 exports.default = Shipments;
+//# sourceMappingURL=Shipment.js.map

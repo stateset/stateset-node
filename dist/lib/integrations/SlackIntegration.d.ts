@@ -7,3 +7,4 @@ export default class XeroIntegration extends BaseIntegration {
     getUser(userId: string): Promise<any>;
     getUserMessages(userId: string): Promise<any>;
 }
+//# sourceMappingURL=SlackIntegration.d.ts.map

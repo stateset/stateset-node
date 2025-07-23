@@ -10,3 +10,4 @@ export default class ShipfusionIntegration extends BaseIntegration {
     getCarriers(): Promise<any>;
     getRates(data: any): Promise<any>;
 }
+//# sourceMappingURL=ShipfusionIntegration.d.ts.map

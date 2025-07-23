@@ -8,9 +8,10 @@ var RouteStatus;
     RouteStatus["IN_PROGRESS"] = "IN_PROGRESS";
     RouteStatus["COMPLETED"] = "COMPLETED";
     RouteStatus["CANCELLED"] = "CANCELLED";
-})(RouteStatus = exports.RouteStatus || (exports.RouteStatus = {}));
+})(RouteStatus || (exports.RouteStatus = RouteStatus = {}));
 // Error Classes
 class RouteError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -25,6 +26,7 @@ class RouteNotFoundError extends RouteError {
 }
 exports.RouteNotFoundError = RouteNotFoundError;
 class RouteValidationError extends RouteError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -32,18 +34,18 @@ class RouteValidationError extends RouteError {
 }
 exports.RouteValidationError = RouteValidationError;
 class Routes {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
     validateRouteData(data) {
-        var _a;
         if (!data.carrier_id)
             throw new RouteValidationError('Carrier ID is required');
         if (!data.start_location.address.line1)
             throw new RouteValidationError('Start location address is required');
         if (!data.end_location.address.line1)
             throw new RouteValidationError('End location address is required');
-        if (!((_a = data.shipment_ids) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.shipment_ids?.length)
             throw new RouteValidationError('At least one shipment ID is required');
         if (data.estimated_distance < 0)
             throw new RouteValidationError('Estimated distance cannot be negative');
@@ -53,7 +55,7 @@ class Routes {
             throw new RouteValidationError('Cost estimate cannot be negative');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new RouteError('Invalid response format');
         return {
             id: data.id,
@@ -104,8 +106,8 @@ class Routes {
                 routes: response.routes.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.routes.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -167,3 +169,4 @@ class Routes {
     }
 }
 exports.default = Routes;
+//# sourceMappingURL=Route.js.map

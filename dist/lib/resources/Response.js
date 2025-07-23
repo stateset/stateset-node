@@ -8,13 +8,13 @@ var ResponseType;
     ResponseType["ACTION"] = "action";
     ResponseType["ERROR"] = "error";
     ResponseType["SYSTEM"] = "system";
-})(ResponseType = exports.ResponseType || (exports.ResponseType = {}));
+})(ResponseType || (exports.ResponseType = ResponseType = {}));
 var ResponseStatus;
 (function (ResponseStatus) {
     ResponseStatus["PENDING"] = "pending";
     ResponseStatus["SENT"] = "sent";
     ResponseStatus["FAILED"] = "failed";
-})(ResponseStatus = exports.ResponseStatus || (exports.ResponseStatus = {}));
+})(ResponseStatus || (exports.ResponseStatus = ResponseStatus = {}));
 // Custom error classes
 class ResponseNotFoundError extends Error {
     constructor(responseId) {
@@ -32,6 +32,7 @@ class ResponseValidationError extends Error {
 exports.ResponseValidationError = ResponseValidationError;
 // Main Responses class
 class Responses {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -40,15 +41,15 @@ class Responses {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.user_id)
+        if (params?.user_id)
             queryParams.append('user_id', params.user_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.type)
+        if (params?.type)
             queryParams.append('type', params.type);
         const response = await this.stateset.request('GET', `responses?${queryParams.toString()}`);
         return response.responses;
@@ -112,3 +113,4 @@ class Responses {
     }
 }
 exports.default = Responses;
+//# sourceMappingURL=Response.js.map

@@ -14,3 +14,4 @@ export default class PayPalIntegration extends BaseIntegration {
     createPaymentCapture(paymentId: string, data: any): Promise<any>;
     getPaymentAuthorization(paymentId: string): Promise<any>;
 }
+//# sourceMappingURL=PayPalIntegration.d.ts.map

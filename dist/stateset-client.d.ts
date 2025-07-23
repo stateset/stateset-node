@@ -15,6 +15,9 @@ import Messages from './lib/resources/Message';
 import Agents from './lib/resources/Agent';
 import Rules from './lib/resources/Rule';
 import Attributes from './lib/resources/Attribute';
+import Responses from './lib/resources/Response';
+import Knowledge from './lib/resources/Knowledge';
+import Evals from './lib/resources/Eval';
 import Workflows from './lib/resources/Workflow';
 import Users from './lib/resources/User';
 import ReturnLines from './lib/resources/ReturnLine';
@@ -61,6 +64,13 @@ import CasesTickets from './lib/resources/CaseTicket';
 import Carriers from './lib/resources/Carrier';
 import Routes from './lib/resources/Route';
 import DeliveryConfirmations from './lib/resources/DeliveryConfirmation';
+import Activities from './lib/resources/Activities';
+import Fulfillment from './lib/resources/Fulfillment';
+import ProductionJob from './lib/resources/ProductionJob';
+import SalesOrders from './lib/resources/SalesOrder';
+import FulfillmentOrders from './lib/resources/FulfillmentOrder';
+import ItemReceipts from './lib/resources/ItemReceipt';
+import CashSales from './lib/resources/CashSale';
 interface StatesetOptions {
     apiKey?: string;
     baseUrl?: string;
@@ -80,6 +90,24 @@ interface StatesetOptions {
      * Custom User-Agent header value. Defaults to `stateset-node/<version>`.
      */
     userAgent?: string;
+    /**
+     * Additional headers to include with every request.
+     */
+    additionalHeaders?: Record<string, string>;
+    /**
+     * Proxy server URL (e.g. "http://localhost:3128"). Can also be set with
+     * the STATESET_PROXY environment variable.
+     */
+    proxy?: string;
+    /**
+     * Information about your application to be appended to the User-Agent
+     * header for telemetry and debugging purposes.
+     */
+    appInfo?: {
+        name: string;
+        version?: string;
+        url?: string;
+    };
 }
 export declare class stateset {
     private baseUrl;
@@ -89,6 +117,9 @@ export declare class stateset {
     private retryDelayMs;
     private timeout;
     private userAgent;
+    private appInfo?;
+    private additionalHeaders;
+    private proxy?;
     returns: Returns;
     returnItems: ReturnLines;
     warranties: Warranties;
@@ -117,6 +148,9 @@ export declare class stateset {
     agents: Agents;
     rules: Rules;
     attributes: Attributes;
+    responses: Responses;
+    knowledge: Knowledge;
+    evals: Evals;
     workflows: Workflows;
     schedules: Schedule;
     users: Users;
@@ -151,6 +185,13 @@ export declare class stateset {
     carriers: Carriers;
     routes: Routes;
     deliveryConfirmations: DeliveryConfirmations;
+    activities: Activities;
+    fulfillment: Fulfillment;
+    productionJob: ProductionJob;
+    salesOrders: SalesOrders;
+    fulfillmentOrders: FulfillmentOrders;
+    itemReceipts: ItemReceipts;
+    cashSales: CashSales;
     constructor(options: StatesetOptions);
     /**
      * Update the API key used for requests after initialization.
@@ -167,6 +208,33 @@ export declare class stateset {
      * @param timeout - timeout in milliseconds
      */
     setTimeout(timeout: number): void;
+    /**
+     * Update retry configuration used for requests.
+     * @param retry - number of retries
+     * @param retryDelayMs - delay in ms between retries
+     */
+    setRetryOptions(retry: number, retryDelayMs?: number): void;
+    /**
+     * Update proxy configuration used for requests.
+     * @param proxyUrl - proxy server URL
+     */
+    setProxy(proxyUrl: string): void;
+    private buildUserAgent;
+    /**
+     * Provide information about your application for the User-Agent header.
+     * @param info - object containing name, version and optional url
+     */
+    setAppInfo(info: {
+        name: string;
+        version?: string;
+        url?: string;
+    }): void;
+    /**
+     * Merge additional headers to include with every request.
+     * @param headers - headers object
+     */
+    setHeaders(headers: Record<string, string>): void;
     request(method: string, path: string, data?: any, options?: AxiosRequestConfig): Promise<any>;
 }
 export default stateset;
+//# sourceMappingURL=stateset-client.d.ts.map

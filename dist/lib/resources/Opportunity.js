@@ -11,15 +11,16 @@ var OpportunityStatus;
     OpportunityStatus["WON"] = "WON";
     OpportunityStatus["LOST"] = "LOST";
     OpportunityStatus["ON_HOLD"] = "ON_HOLD";
-})(OpportunityStatus = exports.OpportunityStatus || (exports.OpportunityStatus = {}));
+})(OpportunityStatus || (exports.OpportunityStatus = OpportunityStatus = {}));
 var OpportunityStage;
 (function (OpportunityStage) {
     OpportunityStage["LEAD"] = "LEAD";
     OpportunityStage["OPPORTUNITY"] = "OPPORTUNITY";
     OpportunityStage["CUSTOMER"] = "CUSTOMER";
-})(OpportunityStage = exports.OpportunityStage || (exports.OpportunityStage = {}));
+})(OpportunityStage || (exports.OpportunityStage = OpportunityStage = {}));
 // Error Classes
 class OpportunityError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -34,6 +35,7 @@ class OpportunityNotFoundError extends OpportunityError {
 }
 exports.OpportunityNotFoundError = OpportunityNotFoundError;
 class OpportunityValidationError extends OpportunityError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -41,6 +43,7 @@ class OpportunityValidationError extends OpportunityError {
 }
 exports.OpportunityValidationError = OpportunityValidationError;
 class Opportunities {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -56,7 +59,7 @@ class Opportunities {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new OpportunityError('Invalid response format');
         return {
             id: data.id,
@@ -107,8 +110,8 @@ class Opportunities {
                 opportunities: response.opportunities.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.opportunities.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -170,3 +173,4 @@ class Opportunities {
     }
 }
 exports.default = Opportunities;
+//# sourceMappingURL=Opportunity.js.map

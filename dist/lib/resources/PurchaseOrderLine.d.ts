@@ -65,3 +65,4 @@ declare class PurchaseOrderLines {
     updateQuantityReceived(lineItemId: string, quantityReceived: number): Promise<PurchaseOrderLineItem>;
 }
 export default PurchaseOrderLines;
+//# sourceMappingURL=PurchaseOrderLine.d.ts.map

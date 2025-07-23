@@ -9,3 +9,4 @@ declare class ShipTo {
     delete(id: string): Promise<any>;
 }
 export default ShipTo;
+//# sourceMappingURL=ShipTo.d.ts.map

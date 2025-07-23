@@ -10,5 +10,6 @@ interface MakeRequestOptions {
 }
 declare const makeRequest: (stateset: {
     _request: AxiosInstance;
-}, options: MakeRequestOptions) => import("axios").AxiosPromise<any>;
+}, options: MakeRequestOptions) => Promise<import("axios").AxiosResponse<any, any>>;
 export default makeRequest;
+//# sourceMappingURL=makeRequest.d.ts.map

@@ -9,14 +9,14 @@ var JobStatus;
     JobStatus["COMPLETED"] = "COMPLETED";
     JobStatus["CANCELLED"] = "CANCELLED";
     JobStatus["ON_HOLD"] = "ON_HOLD";
-})(JobStatus = exports.JobStatus || (exports.JobStatus = {}));
+})(JobStatus || (exports.JobStatus = JobStatus = {}));
 var JobPriority;
 (function (JobPriority) {
     JobPriority["LOW"] = "LOW";
     JobPriority["MEDIUM"] = "MEDIUM";
     JobPriority["HIGH"] = "HIGH";
     JobPriority["URGENT"] = "URGENT";
-})(JobPriority = exports.JobPriority || (exports.JobPriority = {}));
+})(JobPriority || (exports.JobPriority = JobPriority = {}));
 // Custom Error Classes
 class JobNotFoundError extends Error {
     constructor(jobId) {
@@ -41,6 +41,7 @@ class JobStateError extends Error {
 exports.JobStateError = JobStateError;
 // Main ProductionJob Class
 class ProductionJob {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -99,17 +100,17 @@ class ProductionJob {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.priority)
+        if (params?.priority)
             queryParams.append('priority', params.priority);
-        if (params === null || params === void 0 ? void 0 : params.bom_id)
+        if (params?.bom_id)
             queryParams.append('bom_id', params.bom_id);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
-        if (params === null || params === void 0 ? void 0 : params.start_after)
+        if (params?.start_after)
             queryParams.append('start_after', params.start_after.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.start_before)
+        if (params?.start_before)
             queryParams.append('start_before', params.start_before.toISOString());
         const response = await this.stateset.request('GET', `productionjob?${queryParams.toString()}`);
         return response.map((job) => this.handleCommandResponse({ update_productionjob_by_pk: job }));
@@ -266,3 +267,4 @@ class ProductionJob {
     }
 }
 exports.default = ProductionJob;
+//# sourceMappingURL=ProductionJob.js.map

@@ -111,3 +111,4 @@ export default class Invoices {
     reminder(id: string): Promise<InvoiceResponse>;
 }
 export {};
+//# sourceMappingURL=Invoice.d.ts.map

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Log {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -45,3 +46,4 @@ class Log {
     }
 }
 exports.default = Log;
+//# sourceMappingURL=Log.js.map

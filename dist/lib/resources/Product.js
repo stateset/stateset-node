@@ -8,16 +8,17 @@ var ProductStatus;
     ProductStatus["INACTIVE"] = "INACTIVE";
     ProductStatus["DRAFT"] = "DRAFT";
     ProductStatus["DISCONTINUED"] = "DISCONTINUED";
-})(ProductStatus = exports.ProductStatus || (exports.ProductStatus = {}));
+})(ProductStatus || (exports.ProductStatus = ProductStatus = {}));
 var ProductType;
 (function (ProductType) {
     ProductType["PHYSICAL"] = "PHYSICAL";
     ProductType["DIGITAL"] = "DIGITAL";
     ProductType["SERVICE"] = "SERVICE";
     ProductType["BUNDLE"] = "BUNDLE";
-})(ProductType = exports.ProductType || (exports.ProductType = {}));
+})(ProductType || (exports.ProductType = ProductType = {}));
 // Error Classes
 class ProductError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -32,6 +33,7 @@ class ProductNotFoundError extends ProductError {
 }
 exports.ProductNotFoundError = ProductNotFoundError;
 class ProductValidationError extends ProductError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -39,6 +41,7 @@ class ProductValidationError extends ProductError {
 }
 exports.ProductValidationError = ProductValidationError;
 class Products {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -53,7 +56,7 @@ class Products {
             throw new ProductValidationError('Cost cannot be negative');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new ProductError('Invalid response format');
         return {
             id: data.id,
@@ -109,15 +112,14 @@ class Products {
         }
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.type && { type: params.type }),
             ...(params.category && { category: params.category }),
             ...(params.tag && { tag: params.tag }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
             ...(params.search && { search: params.search }),
@@ -164,11 +166,10 @@ class Products {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.type && { type: params.type }),
         });
         try {
@@ -197,3 +198,4 @@ class Products {
     }
 }
 exports.default = Products;
+//# sourceMappingURL=Product.js.map

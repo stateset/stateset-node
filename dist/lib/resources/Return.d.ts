@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { stateset } from '../../stateset-client';
 export declare enum ReturnStatus {
     REQUESTED = "REQUESTED",
@@ -429,3 +428,4 @@ declare class Returns {
     private handleStateTransitionError;
 }
 export default Returns;
+//# sourceMappingURL=Return.d.ts.map

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class PackingList {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -178,3 +179,4 @@ class PackingList {
     }
 }
 exports.default = PackingList;
+//# sourceMappingURL=PackingList.js.map

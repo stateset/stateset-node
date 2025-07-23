@@ -134,3 +134,4 @@ declare class Agents {
     getSchedule(agentId: string, startDate: Date, endDate: Date): Promise<any>;
 }
 export default Agents;
+//# sourceMappingURL=Agent.d.ts.map

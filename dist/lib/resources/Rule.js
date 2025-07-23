@@ -13,14 +13,14 @@ var RuleType;
     RuleType["ESCALATION"] = "escalation";
     RuleType["COMPLIANCE"] = "compliance";
     RuleType["SECURITY"] = "security";
-})(RuleType = exports.RuleType || (exports.RuleType = {}));
+})(RuleType || (exports.RuleType = RuleType = {}));
 var RulePriority;
 (function (RulePriority) {
     RulePriority["CRITICAL"] = "critical";
     RulePriority["HIGH"] = "high";
     RulePriority["MEDIUM"] = "medium";
     RulePriority["LOW"] = "low";
-})(RulePriority = exports.RulePriority || (exports.RulePriority = {}));
+})(RulePriority || (exports.RulePriority = RulePriority = {}));
 var TriggerType;
 (function (TriggerType) {
     TriggerType["EVENT"] = "event";
@@ -28,7 +28,7 @@ var TriggerType;
     TriggerType["CONDITION"] = "condition";
     TriggerType["THRESHOLD"] = "threshold";
     TriggerType["PATTERN"] = "pattern";
-})(TriggerType = exports.TriggerType || (exports.TriggerType = {}));
+})(TriggerType || (exports.TriggerType = TriggerType = {}));
 var ActionType;
 (function (ActionType) {
     ActionType["EXECUTE"] = "execute";
@@ -39,7 +39,7 @@ var ActionType;
     ActionType["ESCALATE"] = "escalate";
     ActionType["RESTRICT"] = "restrict";
     ActionType["LOG"] = "log";
-})(ActionType = exports.ActionType || (exports.ActionType = {}));
+})(ActionType || (exports.ActionType = ActionType = {}));
 // Custom Error Classes
 class RuleNotFoundError extends Error {
     constructor(ruleId) {
@@ -56,6 +56,7 @@ class RuleValidationError extends Error {
 }
 exports.RuleValidationError = RuleValidationError;
 class RuleExecutionError extends Error {
+    ruleId;
     constructor(message, ruleId) {
         super(message);
         this.ruleId = ruleId;
@@ -65,6 +66,7 @@ class RuleExecutionError extends Error {
 exports.RuleExecutionError = RuleExecutionError;
 // Main Rules Class
 class Rules {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -75,15 +77,15 @@ class Rules {
      */
     async list(params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.rule_type)
+        if (params?.rule_type)
             queryParams.append('rule_type', params.rule_type);
-        if ((params === null || params === void 0 ? void 0 : params.activated) !== undefined)
+        if (params?.activated !== undefined)
             queryParams.append('activated', params.activated.toString());
-        if (params === null || params === void 0 ? void 0 : params.agent_id)
+        if (params?.agent_id)
             queryParams.append('agent_id', params.agent_id);
-        if (params === null || params === void 0 ? void 0 : params.priority)
+        if (params?.priority)
             queryParams.append('priority', params.priority);
-        if (params === null || params === void 0 ? void 0 : params.org_id)
+        if (params?.org_id)
             queryParams.append('org_id', params.org_id);
         const response = await this.stateset.request('GET', `rules?${queryParams.toString()}`);
         return response.rules;
@@ -198,13 +200,13 @@ class Rules {
      */
     async getExecutionHistory(ruleId, params) {
         const queryParams = new URLSearchParams();
-        if (params === null || params === void 0 ? void 0 : params.start_date)
+        if (params?.start_date)
             queryParams.append('start_date', params.start_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.end_date)
+        if (params?.end_date)
             queryParams.append('end_date', params.end_date.toISOString());
-        if (params === null || params === void 0 ? void 0 : params.status)
+        if (params?.status)
             queryParams.append('status', params.status);
-        if (params === null || params === void 0 ? void 0 : params.limit)
+        if (params?.limit)
             queryParams.append('limit', params.limit.toString());
         const response = await this.stateset.request('GET', `rules/${ruleId}/execution-history?${queryParams.toString()}`);
         return response.history;
@@ -252,3 +254,4 @@ class Rules {
     }
 }
 exports.default = Rules;
+//# sourceMappingURL=Rule.js.map

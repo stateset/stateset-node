@@ -288,3 +288,4 @@ declare class Warehouses {
     private validateWarehouseData;
 }
 export default Warehouses;
+//# sourceMappingURL=Warehouse.d.ts.map

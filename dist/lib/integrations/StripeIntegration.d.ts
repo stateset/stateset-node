@@ -4,3 +4,4 @@ export default class StripeIntegration extends BaseIntegration {
     getOrders(): Promise<any>;
     createOrder(data: any): Promise<any>;
 }
+//# sourceMappingURL=StripeIntegration.d.ts.map

@@ -24,3 +24,4 @@ export default class OpenAIIntegration {
     constructor(apiKey: string, baseUrl?: string);
     createChatCompletion(messages: ChatMessage[], options?: ChatCompletionOptions): Promise<ChatCompletionResponse>;
 }
+//# sourceMappingURL=OpenAIIntegration.d.ts.map

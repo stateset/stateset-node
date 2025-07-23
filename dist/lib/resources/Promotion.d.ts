@@ -9,3 +9,4 @@ export default class Promotions {
     getInventory(id: string): Promise<any>;
     updateInventory(id: string, data: any): Promise<any>;
 }
+//# sourceMappingURL=Promotion.d.ts.map

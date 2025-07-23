@@ -113,3 +113,4 @@ export declare class ASN {
     }>;
 }
 export default ASN;
+//# sourceMappingURL=AdvancedShippingNotice.d.ts.map

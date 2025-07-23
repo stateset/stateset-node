@@ -8,9 +8,10 @@ var DeliveryConfirmationStatus;
     DeliveryConfirmationStatus["CONFIRMED"] = "CONFIRMED";
     DeliveryConfirmationStatus["DISPUTED"] = "DISPUTED";
     DeliveryConfirmationStatus["FAILED"] = "FAILED";
-})(DeliveryConfirmationStatus = exports.DeliveryConfirmationStatus || (exports.DeliveryConfirmationStatus = {}));
+})(DeliveryConfirmationStatus || (exports.DeliveryConfirmationStatus = DeliveryConfirmationStatus = {}));
 // Error Classes
 class DeliveryConfirmationError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -25,6 +26,7 @@ class DeliveryConfirmationNotFoundError extends DeliveryConfirmationError {
 }
 exports.DeliveryConfirmationNotFoundError = DeliveryConfirmationNotFoundError;
 class DeliveryConfirmationValidationError extends DeliveryConfirmationError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -32,6 +34,7 @@ class DeliveryConfirmationValidationError extends DeliveryConfirmationError {
 }
 exports.DeliveryConfirmationValidationError = DeliveryConfirmationValidationError;
 class DeliveryConfirmations {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -42,7 +45,7 @@ class DeliveryConfirmations {
             throw new DeliveryConfirmationValidationError('Delivery date is required');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new DeliveryConfirmationError('Invalid response format');
         return {
             id: data.id,
@@ -85,8 +88,8 @@ class DeliveryConfirmations {
                 delivery_confirmations: response.delivery_confirmations.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.delivery_confirmations.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -148,3 +151,4 @@ class DeliveryConfirmations {
     }
 }
 exports.default = DeliveryConfirmations;
+//# sourceMappingURL=DeliveryConfirmation.js.map

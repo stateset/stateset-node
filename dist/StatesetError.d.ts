@@ -5,6 +5,8 @@ interface StatesetErrorRaw {
     detail?: string;
     path?: string;
     statusCode?: number;
+    timestamp?: string;
+    request_id?: string;
 }
 interface ErrorInterface extends Error {
     type: string;
@@ -12,6 +14,8 @@ interface ErrorInterface extends Error {
     detail?: string;
     path?: string;
     statusCode?: number;
+    timestamp?: string;
+    request_id?: string;
     populate(raw: StatesetErrorRaw): void;
 }
 declare class StatesetBaseError extends Error implements ErrorInterface {
@@ -20,6 +24,8 @@ declare class StatesetBaseError extends Error implements ErrorInterface {
     detail?: string;
     path?: string;
     statusCode?: number;
+    timestamp?: string;
+    request_id?: string;
     constructor(type: string, message: string, raw?: StatesetErrorRaw);
     populate(raw: StatesetErrorRaw): void;
     static extend(subClass: Partial<typeof StatesetBaseError>): typeof StatesetBaseError;
@@ -50,3 +56,4 @@ declare class StatesetRateLimitError extends StatesetError {
     constructor(message: string);
 }
 export { StatesetBaseError, StatesetError, StatesetNotFoundError, StatesetInvalidRequestError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetPermissionError, StatesetRateLimitError };
+//# sourceMappingURL=StatesetError.d.ts.map

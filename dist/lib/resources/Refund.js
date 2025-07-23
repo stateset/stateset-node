@@ -9,16 +9,17 @@ var RefundStatus;
     RefundStatus["PROCESSED"] = "PROCESSED";
     RefundStatus["REJECTED"] = "REJECTED";
     RefundStatus["CANCELLED"] = "CANCELLED";
-})(RefundStatus = exports.RefundStatus || (exports.RefundStatus = {}));
+})(RefundStatus || (exports.RefundStatus = RefundStatus = {}));
 var RefundReason;
 (function (RefundReason) {
     RefundReason["RETURN"] = "RETURN";
     RefundReason["CANCELLATION"] = "CANCELLATION";
     RefundReason["DEFECTIVE"] = "DEFECTIVE";
     RefundReason["OTHER"] = "OTHER";
-})(RefundReason = exports.RefundReason || (exports.RefundReason = {}));
+})(RefundReason || (exports.RefundReason = RefundReason = {}));
 // Error Classes
 class RefundError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -33,6 +34,7 @@ class RefundNotFoundError extends RefundError {
 }
 exports.RefundNotFoundError = RefundNotFoundError;
 class RefundValidationError extends RefundError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -40,6 +42,7 @@ class RefundValidationError extends RefundError {
 }
 exports.RefundValidationError = RefundValidationError;
 class Refunds {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -50,7 +53,7 @@ class Refunds {
             throw new RefundValidationError('Amount must be greater than 0');
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id))
+        if (!data?.id)
             throw new RefundError('Invalid response format');
         return {
             id: data.id,
@@ -98,8 +101,8 @@ class Refunds {
                 refunds: response.refunds.map(this.mapResponse),
                 pagination: {
                     total: response.total || response.refunds.length,
-                    limit: (params === null || params === void 0 ? void 0 : params.limit) || 100,
-                    offset: (params === null || params === void 0 ? void 0 : params.offset) || 0,
+                    limit: params?.limit || 100,
+                    offset: params?.offset || 0,
                 },
             };
         }
@@ -161,3 +164,4 @@ class Refunds {
     }
 }
 exports.default = Refunds;
+//# sourceMappingURL=Refund.js.map

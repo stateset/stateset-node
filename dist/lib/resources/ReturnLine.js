@@ -11,7 +11,7 @@ var ReturnLineStatus;
     ReturnLineStatus["REJECTED"] = "REJECTED";
     ReturnLineStatus["PROCESSED"] = "PROCESSED";
     ReturnLineStatus["CANCELLED"] = "CANCELLED";
-})(ReturnLineStatus = exports.ReturnLineStatus || (exports.ReturnLineStatus = {}));
+})(ReturnLineStatus || (exports.ReturnLineStatus = ReturnLineStatus = {}));
 var ReturnReason;
 (function (ReturnReason) {
     ReturnReason["DEFECTIVE"] = "DEFECTIVE";
@@ -20,9 +20,10 @@ var ReturnReason;
     ReturnReason["CHANGED_MIND"] = "CHANGED_MIND";
     ReturnReason["DAMAGED"] = "DAMAGED";
     ReturnReason["OTHER"] = "OTHER";
-})(ReturnReason = exports.ReturnReason || (exports.ReturnReason = {}));
+})(ReturnReason || (exports.ReturnReason = ReturnReason = {}));
 // Error Classes
 class ReturnLineError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -37,6 +38,7 @@ class ReturnLineNotFoundError extends ReturnLineError {
 }
 exports.ReturnLineNotFoundError = ReturnLineNotFoundError;
 class ReturnLineValidationError extends ReturnLineError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -45,21 +47,21 @@ class ReturnLineValidationError extends ReturnLineError {
 exports.ReturnLineValidationError = ReturnLineValidationError;
 // Main ReturnLines Class
 class ReturnLines {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateReturnLineData(data) {
-        var _a, _b;
         if (!data.return_id) {
             throw new ReturnLineValidationError('Return ID is required');
         }
         if (!data.order_id) {
             throw new ReturnLineValidationError('Order ID is required');
         }
-        if (!((_a = data.item) === null || _a === void 0 ? void 0 : _a.product_id)) {
+        if (!data.item?.product_id) {
             throw new ReturnLineValidationError('Product ID is required');
         }
-        if (!((_b = data.item) === null || _b === void 0 ? void 0 : _b.quantity) || data.item.quantity <= 0) {
+        if (!data.item?.quantity || data.item.quantity <= 0) {
             throw new ReturnLineValidationError('Valid quantity is required');
         }
         if (!data.reason) {
@@ -67,7 +69,7 @@ class ReturnLines {
         }
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.return_id) {
+        if (!data?.id || !data.return_id) {
             throw new ReturnLineError('Invalid response format');
         }
         return {
@@ -92,15 +94,14 @@ class ReturnLines {
         };
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.return_id && { return_id: params.return_id }),
             ...(params.order_id && { order_id: params.order_id }),
             ...(params.status && { status: params.status }),
             ...(params.reason && { reason: params.reason }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -170,12 +171,11 @@ class ReturnLines {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.return_id && { return_id: params.return_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         try {
             const response = await this.client.request('GET', `return_line_items/metrics?${query}`);
@@ -195,3 +195,4 @@ class ReturnLines {
 }
 exports.ReturnLines = ReturnLines;
 exports.default = ReturnLines;
+//# sourceMappingURL=ReturnLine.js.map

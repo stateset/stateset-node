@@ -10,15 +10,16 @@ var WarrantyStatus;
     WarrantyStatus["CANCELLED"] = "CANCELLED";
     WarrantyStatus["CLOSED"] = "CLOSED";
     WarrantyStatus["REOPENED"] = "REOPENED";
-})(WarrantyStatus = exports.WarrantyStatus || (exports.WarrantyStatus = {}));
+})(WarrantyStatus || (exports.WarrantyStatus = WarrantyStatus = {}));
 var WarrantyType;
 (function (WarrantyType) {
     WarrantyType["MANUFACTURER"] = "MANUFACTURER";
     WarrantyType["EXTENDED"] = "EXTENDED";
     WarrantyType["THIRD_PARTY"] = "THIRD_PARTY";
-})(WarrantyType = exports.WarrantyType || (exports.WarrantyType = {}));
+})(WarrantyType || (exports.WarrantyType = WarrantyType = {}));
 // Error Classes
 class WarrantyError extends Error {
+    details;
     constructor(message, details) {
         super(message);
         this.details = details;
@@ -33,6 +34,7 @@ class WarrantyNotFoundError extends WarrantyError {
 }
 exports.WarrantyNotFoundError = WarrantyNotFoundError;
 class WarrantyValidationError extends WarrantyError {
+    errors;
     constructor(message, errors) {
         super(message);
         this.errors = errors;
@@ -40,6 +42,7 @@ class WarrantyValidationError extends WarrantyError {
 }
 exports.WarrantyValidationError = WarrantyValidationError;
 class WarrantyOperationError extends WarrantyError {
+    operation;
     constructor(message, operation) {
         super(message);
         this.operation = operation;
@@ -48,18 +51,18 @@ class WarrantyOperationError extends WarrantyError {
 exports.WarrantyOperationError = WarrantyOperationError;
 // Main Warranty Class
 class Warranty {
+    client;
     constructor(client) {
         this.client = client;
     }
     validateWarrantyData(data) {
-        var _a, _b;
         if (!data.customer_id)
             throw new WarrantyValidationError('Customer ID is required');
         if (!data.order_id)
             throw new WarrantyValidationError('Order ID is required');
-        if (!((_a = data.items) === null || _a === void 0 ? void 0 : _a.length))
+        if (!data.items?.length)
             throw new WarrantyValidationError('At least one item is required');
-        if (!((_b = data.coverage) === null || _b === void 0 ? void 0 : _b.duration_months)) {
+        if (!data.coverage?.duration_months) {
             throw new WarrantyValidationError('Warranty duration is required');
         }
         data.items.forEach((item, index) => {
@@ -69,7 +72,7 @@ class Warranty {
         });
     }
     mapResponse(data) {
-        if (!(data === null || data === void 0 ? void 0 : data.id) || !data.status) {
+        if (!data?.id || !data.status) {
             throw new WarrantyError('Invalid response format');
         }
         const baseResponse = {
@@ -96,14 +99,13 @@ class Warranty {
         }
     }
     async list(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.status && { status: params.status }),
             ...(params.customer_id && { customer_id: params.customer_id }),
             ...(params.order_id && { order_id: params.order_id }),
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.offset && { offset: params.offset.toString() }),
         });
@@ -204,11 +206,10 @@ class Warranty {
         }
     }
     async getMetrics(params = {}) {
-        var _a, _b;
         const query = new URLSearchParams({
             ...(params.org_id && { org_id: params.org_id }),
-            ...(((_a = params.date_range) === null || _a === void 0 ? void 0 : _a.from) && { from: params.date_range.from.toISOString() }),
-            ...(((_b = params.date_range) === null || _b === void 0 ? void 0 : _b.to) && { to: params.date_range.to.toISOString() }),
+            ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
+            ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
         });
         const response = await this.client.request('GET', `warranties/metrics?${query}`);
         return response.metrics;
@@ -223,3 +224,4 @@ class Warranty {
 }
 exports.Warranty = Warranty;
 exports.default = Warranty;
+//# sourceMappingURL=Warranty.js.map

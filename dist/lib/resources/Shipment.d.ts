@@ -168,6 +168,14 @@ export interface Rate {
         insurance_available: boolean;
     };
 }
+export interface ShippingLabel {
+    tracking_number: string;
+    label_url: string;
+    carrier: ShippingCarrier;
+    cost?: number;
+    created_at: string;
+    expires_at?: string;
+}
 export type ShipmentResponse = {
     id: NonEmptyString<string>;
     object: 'shipment';
@@ -270,6 +278,10 @@ export declare class Shipments {
         carrier: ShippingCarrier;
         expires_at: string;
     }>;
+    generateLabel(shipmentId: string, options?: {
+        format?: 'PDF' | 'PNG' | 'ZPL';
+        test_label?: boolean;
+    }): Promise<ShippingLabel>;
     getTrackingDetails(shipmentId: string, options?: {
         include_proof_of_delivery?: boolean;
         include_full_history?: boolean;
@@ -301,3 +313,4 @@ export declare class Shipments {
     private handleApiError;
 }
 export default Shipments;
+//# sourceMappingURL=Shipment.d.ts.map

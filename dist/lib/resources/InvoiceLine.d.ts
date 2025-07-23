@@ -45,3 +45,4 @@ export default class InvoiceLines {
      */
     updatePayouts(id: string, data: any): Promise<any>;
 }
+//# sourceMappingURL=InvoiceLine.d.ts.map

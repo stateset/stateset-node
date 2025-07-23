@@ -135,3 +135,4 @@ export default class Products {
     private handleError;
 }
 export {};
+//# sourceMappingURL=Product.d.ts.map

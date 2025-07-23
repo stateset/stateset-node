@@ -7,3 +7,4 @@ export default class Contracts {
     list(params?: any): Promise<any>;
     delete(id: string): Promise<any>;
 }
+//# sourceMappingURL=Contract.d.ts.map

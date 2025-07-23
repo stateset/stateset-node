@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stateset = void 0;
 const axios_1 = __importDefault(require("axios"));
+const StatesetError_1 = require("./StatesetError");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageVersion = require('../package.json').version;
 const Return_1 = __importDefault(require("./lib/resources/Return"));
@@ -23,6 +24,9 @@ const Message_1 = __importDefault(require("./lib/resources/Message"));
 const Agent_1 = __importDefault(require("./lib/resources/Agent"));
 const Rule_1 = __importDefault(require("./lib/resources/Rule"));
 const Attribute_1 = __importDefault(require("./lib/resources/Attribute"));
+const Response_1 = __importDefault(require("./lib/resources/Response"));
+const Knowledge_1 = __importDefault(require("./lib/resources/Knowledge"));
+const Eval_1 = __importDefault(require("./lib/resources/Eval"));
 const Workflow_1 = __importDefault(require("./lib/resources/Workflow"));
 const User_1 = __importDefault(require("./lib/resources/User"));
 const ReturnLine_1 = __importDefault(require("./lib/resources/ReturnLine"));
@@ -69,9 +73,97 @@ const CaseTicket_1 = __importDefault(require("./lib/resources/CaseTicket"));
 const Carrier_1 = __importDefault(require("./lib/resources/Carrier"));
 const Route_1 = __importDefault(require("./lib/resources/Route"));
 const DeliveryConfirmation_1 = __importDefault(require("./lib/resources/DeliveryConfirmation"));
+const Activities_1 = __importDefault(require("./lib/resources/Activities"));
+const Fulfillment_1 = __importDefault(require("./lib/resources/Fulfillment"));
+const ProductionJob_1 = __importDefault(require("./lib/resources/ProductionJob"));
+const SalesOrder_1 = __importDefault(require("./lib/resources/SalesOrder"));
+const FulfillmentOrder_1 = __importDefault(require("./lib/resources/FulfillmentOrder"));
+const ItemReceipt_1 = __importDefault(require("./lib/resources/ItemReceipt"));
+const CashSale_1 = __importDefault(require("./lib/resources/CashSale"));
 class stateset {
+    baseUrl;
+    apiKey;
+    httpClient;
+    retry;
+    retryDelayMs;
+    timeout;
+    userAgent;
+    appInfo;
+    additionalHeaders;
+    proxy;
+    returns;
+    returnItems;
+    warranties;
+    warrantyItems;
+    products;
+    orders;
+    orderItems;
+    shipments;
+    shipmentItems;
+    shipTo;
+    inventory;
+    customers;
+    workorders;
+    workorderItems;
+    billofmaterials;
+    purchaseorders;
+    purchaseorderItems;
+    manufacturerorders;
+    manufacturerorderItems;
+    packinglists;
+    packinglistItems;
+    asns;
+    asnItems;
+    channels;
+    messages;
+    agents;
+    rules;
+    attributes;
+    responses;
+    knowledge;
+    evals;
+    workflows;
+    schedules;
+    users;
+    settlements;
+    payouts;
+    picks;
+    cycleCounts;
+    machines;
+    wasteAndScrap;
+    warehouses;
+    suppliers;
+    locations;
+    vendors;
+    invoices;
+    invoiceLines;
+    compliance;
+    leads;
+    assets;
+    contracts;
+    promotions;
+    logs;
+    maintenanceSchedules;
+    qualityControl;
+    resourceUtilization;
+    payments;
+    refunds;
+    creditsDebits;
+    ledger;
+    opportunities;
+    contacts;
+    casesTickets;
+    carriers;
+    routes;
+    deliveryConfirmations;
+    activities;
+    fulfillment;
+    productionJob;
+    salesOrders;
+    fulfillmentOrders;
+    itemReceipts;
+    cashSales;
     constructor(options) {
-        var _a, _b, _c;
         this.apiKey = options.apiKey || process.env.STATESET_API_KEY || '';
         this.baseUrl =
             options.baseUrl ||
@@ -80,18 +172,46 @@ class stateset {
         if (!this.apiKey) {
             throw new Error('Stateset API key is required');
         }
-        this.retry = (_a = options.retry) !== null && _a !== void 0 ? _a : 0;
-        this.retryDelayMs = (_b = options.retryDelayMs) !== null && _b !== void 0 ? _b : 1000;
-        this.timeout = (_c = options.timeout) !== null && _c !== void 0 ? _c : 60000;
-        this.userAgent = options.userAgent || `stateset-node/${packageVersion}`;
+        const envRetry = process.env.STATESET_RETRY
+            ? parseInt(process.env.STATESET_RETRY, 10)
+            : undefined;
+        const envRetryDelay = process.env.STATESET_RETRY_DELAY_MS
+            ? parseInt(process.env.STATESET_RETRY_DELAY_MS, 10)
+            : undefined;
+        this.retry = options.retry ?? envRetry ?? 0;
+        this.retryDelayMs = options.retryDelayMs ?? envRetryDelay ?? 1000;
+        this.timeout = options.timeout ?? 60000;
+        this.appInfo = options.appInfo;
+        this.userAgent = options.userAgent || this.buildUserAgent();
+        this.additionalHeaders = options.additionalHeaders || {};
+        const proxyEnv = options.proxy ||
+            process.env.STATESET_PROXY ||
+            process.env.HTTPS_PROXY ||
+            process.env.HTTP_PROXY;
+        if (proxyEnv) {
+            const parsed = new URL(proxyEnv);
+            this.proxy = {
+                protocol: parsed.protocol.replace(':', ''),
+                host: parsed.hostname,
+                port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80)
+            };
+            if (parsed.username || parsed.password) {
+                this.proxy.auth = {
+                    username: decodeURIComponent(parsed.username),
+                    password: decodeURIComponent(parsed.password)
+                };
+            }
+        }
         this.httpClient = axios_1.default.create({
             baseURL: this.baseUrl,
             timeout: this.timeout,
             headers: {
                 Authorization: `Bearer ${this.apiKey}`,
                 'Content-Type': 'application/json',
-                'User-Agent': this.userAgent
-            }
+                'User-Agent': this.userAgent,
+                ...this.additionalHeaders
+            },
+            proxy: this.proxy
         });
         // Simple automatic retry mechanism for transient failures
         this.httpClient.interceptors.response.use((resp) => resp, async (error) => {
@@ -135,6 +255,9 @@ class stateset {
         this.agents = new Agent_1.default(this);
         this.rules = new Rule_1.default(this);
         this.attributes = new Attribute_1.default(this);
+        this.responses = new Response_1.default(this);
+        this.knowledge = new Knowledge_1.default(this);
+        this.evals = new Eval_1.default(this);
         this.workflows = new Workflow_1.default(this);
         this.schedules = new Schedule_1.default(this);
         this.users = new User_1.default(this);
@@ -169,6 +292,13 @@ class stateset {
         this.carriers = new Carrier_1.default(this);
         this.routes = new Route_1.default(this);
         this.deliveryConfirmations = new DeliveryConfirmation_1.default(this);
+        this.activities = new Activities_1.default(this);
+        this.fulfillment = new Fulfillment_1.default(this);
+        this.productionJob = new ProductionJob_1.default(this);
+        this.salesOrders = new SalesOrder_1.default(this);
+        this.fulfillmentOrders = new FulfillmentOrder_1.default(this);
+        this.itemReceipts = new ItemReceipt_1.default(this);
+        this.cashSales = new CashSale_1.default(this);
     }
     /**
      * Update the API key used for requests after initialization.
@@ -194,6 +324,63 @@ class stateset {
         this.timeout = timeout;
         this.httpClient.defaults.timeout = timeout;
     }
+    /**
+     * Update retry configuration used for requests.
+     * @param retry - number of retries
+     * @param retryDelayMs - delay in ms between retries
+     */
+    setRetryOptions(retry, retryDelayMs = this.retryDelayMs) {
+        this.retry = retry;
+        this.retryDelayMs = retryDelayMs;
+    }
+    /**
+     * Update proxy configuration used for requests.
+     * @param proxyUrl - proxy server URL
+     */
+    setProxy(proxyUrl) {
+        const parsed = new URL(proxyUrl);
+        this.proxy = {
+            protocol: parsed.protocol.replace(':', ''),
+            host: parsed.hostname,
+            port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80)
+        };
+        if (parsed.username || parsed.password) {
+            this.proxy.auth = {
+                username: decodeURIComponent(parsed.username),
+                password: decodeURIComponent(parsed.password)
+            };
+        }
+        this.httpClient.defaults.proxy = this.proxy;
+    }
+    buildUserAgent() {
+        let ua = `stateset-node/${packageVersion}`;
+        if (this.appInfo) {
+            ua += ` ${this.appInfo.name}`;
+            if (this.appInfo.version) {
+                ua += `/${this.appInfo.version}`;
+            }
+            if (this.appInfo.url) {
+                ua += ` (${this.appInfo.url})`;
+            }
+        }
+        return ua;
+    }
+    /**
+     * Provide information about your application for the User-Agent header.
+     * @param info - object containing name, version and optional url
+     */
+    setAppInfo(info) {
+        this.appInfo = info;
+        this.httpClient.defaults.headers['User-Agent'] = this.buildUserAgent();
+    }
+    /**
+     * Merge additional headers to include with every request.
+     * @param headers - headers object
+     */
+    setHeaders(headers) {
+        this.additionalHeaders = { ...this.additionalHeaders, ...headers };
+        Object.assign(this.httpClient.defaults.headers, this.additionalHeaders);
+    }
     async request(method, path, data, options = {}) {
         try {
             const response = await this.httpClient.request({
@@ -206,9 +393,39 @@ class stateset {
         }
         catch (error) {
             console.error('Error in Stateset request:', error);
-            throw error;
+            if (error.response) {
+                const status = error.response.status;
+                const raw = {
+                    type: 'api_error',
+                    message: error.response.data?.message || error.message,
+                    code: error.response.data?.code,
+                    detail: error.response.data?.detail,
+                    path: error.config?.url,
+                    statusCode: status
+                };
+                if (status === 400) {
+                    throw new StatesetError_1.StatesetInvalidRequestError(raw);
+                }
+                if (status === 401 || status === 403) {
+                    throw new StatesetError_1.StatesetAuthenticationError(raw);
+                }
+                if (status === 404) {
+                    throw new StatesetError_1.StatesetNotFoundError(raw);
+                }
+                if (status >= 500) {
+                    throw new StatesetError_1.StatesetAPIError(raw);
+                }
+                throw new StatesetError_1.StatesetError(raw);
+            }
+            throw new StatesetError_1.StatesetConnectionError({
+                type: 'connection_error',
+                message: error.message,
+                detail: error.stack,
+                path: error.config?.url
+            });
         }
     }
 }
 exports.stateset = stateset;
 exports.default = stateset;
+//# sourceMappingURL=stateset-client.js.map

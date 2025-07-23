@@ -57,3 +57,4 @@ declare class FulfillmentOrders {
     cancel(id: string): Promise<CancelledFulfillmentOrderResponse>;
 }
 export default FulfillmentOrders;
+//# sourceMappingURL=FulfillmentOrder.d.ts.map

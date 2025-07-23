@@ -155,3 +155,4 @@ export default class Suppliers {
     private handleError;
 }
 export {};
+//# sourceMappingURL=Supplier.d.ts.map

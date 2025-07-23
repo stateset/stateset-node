@@ -21,3 +21,4 @@ type StatesetMethodFunction = (this: StatesetResource, ...args: any[]) => Promis
  */
 declare function statesetMethod(spec: StatesetMethodOptions): StatesetMethodFunction;
 export default statesetMethod;
+//# sourceMappingURL=StatesetMethod.d.ts.map

@@ -16,7 +16,7 @@ var ReturnStatus;
     ReturnStatus["CANCELLED"] = "CANCELLED";
     ReturnStatus["CLOSED"] = "CLOSED";
     ReturnStatus["REOPENED"] = "REOPENED";
-})(ReturnStatus = exports.ReturnStatus || (exports.ReturnStatus = {}));
+})(ReturnStatus || (exports.ReturnStatus = ReturnStatus = {}));
 var ReturnReason;
 (function (ReturnReason) {
     ReturnReason["WRONG_ITEM"] = "wrong_item";
@@ -28,7 +28,7 @@ var ReturnReason;
     ReturnReason["ARRIVED_LATE"] = "arrived_late";
     ReturnReason["CHANGED_MIND"] = "changed_mind";
     ReturnReason["OTHER"] = "other";
-})(ReturnReason = exports.ReturnReason || (exports.ReturnReason = {}));
+})(ReturnReason || (exports.ReturnReason = ReturnReason = {}));
 var ReturnCondition;
 (function (ReturnCondition) {
     ReturnCondition["NEW"] = "new";
@@ -36,27 +36,27 @@ var ReturnCondition;
     ReturnCondition["USED"] = "used";
     ReturnCondition["DAMAGED"] = "damaged";
     ReturnCondition["UNSALVAGEABLE"] = "unsalvageable";
-})(ReturnCondition = exports.ReturnCondition || (exports.ReturnCondition = {}));
+})(ReturnCondition || (exports.ReturnCondition = ReturnCondition = {}));
 var RefundMethod;
 (function (RefundMethod) {
     RefundMethod["ORIGINAL_PAYMENT"] = "original_payment";
     RefundMethod["STORE_CREDIT"] = "store_credit";
     RefundMethod["BANK_TRANSFER"] = "bank_transfer";
     RefundMethod["GIFT_CARD"] = "gift_card";
-})(RefundMethod = exports.RefundMethod || (exports.RefundMethod = {}));
+})(RefundMethod || (exports.RefundMethod = RefundMethod = {}));
 var RecommendedAction;
 (function (RecommendedAction) {
     RecommendedAction["REFURBISH"] = "refurbish";
     RecommendedAction["LIQUIDATE"] = "liquidate";
     RecommendedAction["DISPOSE"] = "dispose";
     RecommendedAction["RESTOCK"] = "restock";
-})(RecommendedAction = exports.RecommendedAction || (exports.RecommendedAction = {}));
+})(RecommendedAction || (exports.RecommendedAction = RecommendedAction = {}));
 var DamageSeverity;
 (function (DamageSeverity) {
     DamageSeverity["MINOR"] = "minor";
     DamageSeverity["MODERATE"] = "moderate";
     DamageSeverity["SEVERE"] = "severe";
-})(DamageSeverity = exports.DamageSeverity || (exports.DamageSeverity = {}));
+})(DamageSeverity || (exports.DamageSeverity = DamageSeverity = {}));
 // Custom Error Classes
 class ReturnNotFoundError extends Error {
     constructor(returnId) {
@@ -83,6 +83,8 @@ class ReturnStateError extends Error {
 }
 exports.ReturnStateError = ReturnStateError;
 class ReturnApiError extends Error {
+    status;
+    code;
     constructor(message, status, code) {
         super(message);
         this.name = 'ReturnApiError';
@@ -100,9 +102,11 @@ const defaultLogger = {
 };
 // Main Returns Class
 class Returns {
+    stateset;
+    logger;
     constructor(stateset, options) {
         this.stateset = stateset;
-        this.logger = (options === null || options === void 0 ? void 0 : options.logger) || defaultLogger;
+        this.logger = options?.logger || defaultLogger;
     }
     /**
      * List returns with optional filtering
@@ -112,25 +116,25 @@ class Returns {
     async list(params) {
         try {
             const queryParams = new URLSearchParams();
-            if (params === null || params === void 0 ? void 0 : params.status)
+            if (params?.status)
                 queryParams.append('status', params.status);
-            if (params === null || params === void 0 ? void 0 : params.customer_id)
+            if (params?.customer_id)
                 queryParams.append('customer_id', params.customer_id);
-            if (params === null || params === void 0 ? void 0 : params.order_id)
+            if (params?.order_id)
                 queryParams.append('order_id', params.order_id);
-            if (params === null || params === void 0 ? void 0 : params.date_from)
+            if (params?.date_from)
                 queryParams.append('date_from', params.date_from.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.date_to)
+            if (params?.date_to)
                 queryParams.append('date_to', params.date_to.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.org_id)
+            if (params?.org_id)
                 queryParams.append('org_id', params.org_id);
-            if (params === null || params === void 0 ? void 0 : params.limit)
+            if (params?.limit)
                 queryParams.append('limit', params.limit.toString());
-            if (params === null || params === void 0 ? void 0 : params.offset)
+            if (params?.offset)
                 queryParams.append('offset', params.offset.toString());
-            if (params === null || params === void 0 ? void 0 : params.sort_by)
+            if (params?.sort_by)
                 queryParams.append('sort_by', params.sort_by);
-            if (params === null || params === void 0 ? void 0 : params.sort_order)
+            if (params?.sort_order)
                 queryParams.append('sort_order', params.sort_order);
             this.logger.debug('Listing returns', { params });
             const response = await this.stateset.request('GET', `returns?${queryParams.toString()}`);
@@ -393,17 +397,17 @@ class Returns {
     async getMetrics(params) {
         try {
             const queryParams = new URLSearchParams();
-            if (params === null || params === void 0 ? void 0 : params.start_date)
+            if (params?.start_date)
                 queryParams.append('start_date', params.start_date.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.end_date)
+            if (params?.end_date)
                 queryParams.append('end_date', params.end_date.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.org_id)
+            if (params?.org_id)
                 queryParams.append('org_id', params.org_id);
-            if (params === null || params === void 0 ? void 0 : params.include_monthly_trends)
+            if (params?.include_monthly_trends)
                 queryParams.append('include_monthly_trends', params.include_monthly_trends.toString());
-            if (params === null || params === void 0 ? void 0 : params.include_top_products)
+            if (params?.include_top_products)
                 queryParams.append('include_top_products', params.include_top_products.toString());
-            if (params === null || params === void 0 ? void 0 : params.product_limit)
+            if (params?.product_limit)
                 queryParams.append('product_limit', params.product_limit.toString());
             this.logger.debug('Getting return metrics', { params });
             const response = await this.stateset.request('GET', `returns/metrics?${queryParams.toString()}`);
@@ -443,17 +447,17 @@ class Returns {
     async exportData(params, format = 'csv') {
         try {
             const queryParams = new URLSearchParams();
-            if (params === null || params === void 0 ? void 0 : params.status)
+            if (params?.status)
                 queryParams.append('status', params.status);
-            if (params === null || params === void 0 ? void 0 : params.customer_id)
+            if (params?.customer_id)
                 queryParams.append('customer_id', params.customer_id);
-            if (params === null || params === void 0 ? void 0 : params.order_id)
+            if (params?.order_id)
                 queryParams.append('order_id', params.order_id);
-            if (params === null || params === void 0 ? void 0 : params.date_from)
+            if (params?.date_from)
                 queryParams.append('date_from', params.date_from.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.date_to)
+            if (params?.date_to)
                 queryParams.append('date_to', params.date_to.toISOString());
-            if (params === null || params === void 0 ? void 0 : params.org_id)
+            if (params?.org_id)
                 queryParams.append('org_id', params.org_id);
             queryParams.append('format', format);
             this.logger.debug('Exporting returns data', { params, format });
@@ -514,13 +518,12 @@ class Returns {
     }
     // Helper method to handle state transition errors
     handleStateTransitionError(error, returnId) {
-        var _a, _b, _c;
         if (error.status === 404) {
             throw new ReturnNotFoundError(returnId);
         }
-        if (error.status === 400 && ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('Invalid state transition'))) {
-            const currentState = (_b = error.data) === null || _b === void 0 ? void 0 : _b.current_state;
-            const requiredState = (_c = error.data) === null || _c === void 0 ? void 0 : _c.required_state;
+        if (error.status === 400 && error.message?.includes('Invalid state transition')) {
+            const currentState = error.data?.current_state;
+            const requiredState = error.data?.required_state;
             if (currentState && requiredState) {
                 throw new ReturnStateError(currentState, requiredState);
             }
@@ -529,3 +532,4 @@ class Returns {
     }
 }
 exports.default = Returns;
+//# sourceMappingURL=Return.js.map

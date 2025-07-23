@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class FulfillmentOrders {
+    stateset;
     constructor(stateset) {
         this.stateset = stateset;
     }
@@ -75,3 +76,4 @@ class FulfillmentOrders {
     }
 }
 exports.default = FulfillmentOrders;
+//# sourceMappingURL=FulfillmentOrder.js.map

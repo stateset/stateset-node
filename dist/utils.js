@@ -112,6 +112,7 @@ const utils = {
                         }
                         utils.emitWarning(`'${key}' is deprecated; use '${newParam}' instead.`);
                         params[newParam] = params[key];
+                        return false;
                     });
                     if (nonDeprecated.length) {
                         utils.emitWarning(`Invalid options found (${extraKeys.join(', ')}); ignoring.`);
@@ -184,8 +185,7 @@ const utils = {
             .join('-');
     },
     checkForStream(obj) {
-        var _a;
-        return ((_a = obj === null || obj === void 0 ? void 0 : obj.file) === null || _a === void 0 ? void 0 : _a.data) instanceof events_1.EventEmitter;
+        return obj?.file?.data instanceof events_1.EventEmitter;
     },
     callbackifyPromiseWithTimeout(promise, callback) {
         if (callback) {
@@ -277,3 +277,4 @@ const utils = {
     },
 };
 exports.default = utils;
+//# sourceMappingURL=utils.js.map

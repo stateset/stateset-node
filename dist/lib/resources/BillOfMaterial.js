@@ -8,14 +8,14 @@ var BOMStatus;
     BOMStatus["ACTIVE"] = "ACTIVE";
     BOMStatus["OBSOLETE"] = "OBSOLETE";
     BOMStatus["REVISION"] = "REVISION";
-})(BOMStatus = exports.BOMStatus || (exports.BOMStatus = {}));
+})(BOMStatus || (exports.BOMStatus = BOMStatus = {}));
 var ComponentType;
 (function (ComponentType) {
     ComponentType["RAW_MATERIAL"] = "raw_material";
     ComponentType["SUB_ASSEMBLY"] = "sub_assembly";
     ComponentType["FINISHED_GOOD"] = "finished_good";
     ComponentType["PACKAGING"] = "packaging";
-})(ComponentType = exports.ComponentType || (exports.ComponentType = {}));
+})(ComponentType || (exports.ComponentType = ComponentType = {}));
 // Error Classes
 class BOMError extends Error {
     constructor(message, name) {
@@ -44,6 +44,7 @@ class BOMStateError extends BOMError {
 exports.BOMStateError = BOMStateError;
 // Main BillOfMaterials Class
 class BillOfMaterials {
+    client;
     constructor(client) {
         this.client = client;
     }
@@ -53,7 +54,7 @@ class BillOfMaterials {
             return response.update_billofmaterials_by_pk || response;
         }
         catch (error) {
-            if (error === null || error === void 0 ? void 0 : error.error) {
+            if (error?.error) {
                 throw new BOMValidationError(error.error);
             }
             if (error.status === 404) {
@@ -151,3 +152,4 @@ class BillOfMaterials {
 }
 exports.BillOfMaterials = BillOfMaterials;
 exports.default = BillOfMaterials;
+//# sourceMappingURL=BillOfMaterial.js.map
