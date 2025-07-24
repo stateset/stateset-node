@@ -1,5 +1,7 @@
 import { EnhancedHttpClient, HttpClientOptions, RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './core/http-client';
 import { logger } from './utils/logger';
+import { performanceMonitor } from './utils/performance';
+import { MemoryCache, resourceCache } from './utils/cache';
 import { StatesetConfig } from './types';
 
 // Import all resource classes
@@ -97,6 +99,21 @@ export interface StatesetClientConfig extends StatesetConfig {
    * Custom error interceptors
    */
   errorInterceptors?: ErrorInterceptor[];
+  /**
+   * Cache configuration
+   */
+  cache?: {
+    enabled?: boolean;
+    ttl?: number;
+    maxSize?: number;
+  };
+  /**
+   * Performance monitoring configuration
+   */
+  performance?: {
+    enabled?: boolean;
+    slowRequestThreshold?: number;
+  };
 }
 
 interface StatesetClientConfigInternal extends StatesetConfig {
@@ -105,6 +122,15 @@ interface StatesetClientConfigInternal extends StatesetConfig {
   requestInterceptors: RequestInterceptor[];
   responseInterceptors: ResponseInterceptor[];
   errorInterceptors: ErrorInterceptor[];
+  cache: {
+    enabled: boolean;
+    ttl: number;
+    maxSize: number;
+  };
+  performance: {
+    enabled: boolean;
+    slowRequestThreshold: number;
+  };
   proxy?: string;
   appInfo?: {
     name: string;
@@ -116,6 +142,7 @@ interface StatesetClientConfigInternal extends StatesetConfig {
 export class StatesetClient {
   private httpClient: EnhancedHttpClient;
   private config: StatesetClientConfigInternal;
+  private cache: MemoryCache;
 
   // Core Commerce Resources
   public returns!: Returns;
@@ -217,6 +244,12 @@ export class StatesetClient {
     // Build complete configuration with defaults
     this.config = this.buildConfig(config);
 
+    // Initialize cache if enabled
+    this.cache = new MemoryCache({
+      ttl: this.config.cache.ttl,
+      maxSize: this.config.cache.maxSize,
+    });
+
     // Initialize HTTP client
     this.httpClient = new EnhancedHttpClient(this.buildHttpClientOptions());
 
@@ -280,6 +313,15 @@ export class StatesetClient {
       requestInterceptors: config.requestInterceptors || [],
       responseInterceptors: config.responseInterceptors || [],
       errorInterceptors: config.errorInterceptors || [],
+      cache: {
+        enabled: config.cache?.enabled ?? true,
+        ttl: config.cache?.ttl ?? 300000, // 5 minutes
+        maxSize: config.cache?.maxSize ?? 1000,
+      },
+      performance: {
+        enabled: config.performance?.enabled ?? true,
+        slowRequestThreshold: config.performance?.slowRequestThreshold ?? 5000, // 5 seconds
+      },
     };
   }
 
@@ -654,23 +696,130 @@ export class StatesetClient {
   }
 
   /**
-   * Legacy request method for backward compatibility
+   * Enhanced request method with caching and performance monitoring
    */
   async request(method: string, path: string, data?: any, options: any = {}): Promise<any> {
-    logger.debug('Legacy request method called', {
-      operation: 'client.legacy_request',
-      metadata: { method, path },
+    const timer = this.config.performance.enabled 
+      ? performanceMonitor.startTimer(`client.request.${method.toUpperCase()}.${path}`)
+      : null;
+
+    try {
+      // Generate cache key for GET requests
+      const cacheKey = method.toUpperCase() === 'GET' 
+        ? `${path}:${JSON.stringify(options.params || {})}`
+        : null;
+
+      // Check cache for GET requests
+      if (this.config.cache.enabled && cacheKey) {
+        const cached = this.cache.get(cacheKey);
+        if (cached) {
+          timer?.end(true);
+          logger.debug('Request served from cache', {
+            operation: 'client.request',
+            metadata: { method, path, cached: true },
+          });
+          return cached;
+        }
+      }
+
+      logger.debug('Making HTTP request', {
+        operation: 'client.request',
+        metadata: { method, path },
+      });
+
+      const config = {
+        method: method.toLowerCase(),
+        url: path,
+        data,
+        ...options,
+      };
+
+      const response = await this.httpClient.request(config);
+      const result = response.data;
+
+      // Cache successful GET responses
+      if (this.config.cache.enabled && cacheKey && method.toUpperCase() === 'GET') {
+        this.cache.set(cacheKey, result);
+      }
+
+      timer?.end(true);
+      
+      return result;
+    } catch (error) {
+      timer?.end(false, (error as Error).message);
+      logger.error('Request failed', {
+        operation: 'client.request',
+        metadata: { method, path },
+      }, error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): any {
+    return this.cache.getStats();
+  }
+
+  /**
+   * Clear the cache
+   */
+  clearCache(): void {
+    this.cache.clear();
+    logger.info('Cache cleared manually', {
+      operation: 'client.clear_cache',
     });
+  }
 
-    const config = {
-      method: method.toLowerCase(),
-      url: path,
-      data,
-      ...options,
-    };
+  /**
+   * Get performance statistics
+   */
+  getPerformanceStats(): any {
+    return performanceMonitor.getStats();
+  }
 
-    const response = await this.httpClient.request(config);
-    return response.data;
+  /**
+   * Enable or disable caching
+   */
+  setCacheEnabled(enabled: boolean): void {
+    this.config.cache.enabled = enabled;
+    logger.info(`Cache ${enabled ? 'enabled' : 'disabled'}`, {
+      operation: 'client.set_cache_enabled',
+      metadata: { enabled },
+    });
+  }
+
+  /**
+   * Enable or disable performance monitoring
+   */
+  setPerformanceMonitoringEnabled(enabled: boolean): void {
+    this.config.performance.enabled = enabled;
+    logger.info(`Performance monitoring ${enabled ? 'enabled' : 'disabled'}`, {
+      operation: 'client.set_performance_monitoring',
+      metadata: { enabled },
+    });
+  }
+
+  /**
+   * Bulk operations helper
+   */
+  async bulk<T>(operations: (() => Promise<T>)[], concurrency: number = 5): Promise<T[]> {
+    const results: T[] = [];
+    const batches: (() => Promise<T>)[][] = [];
+    
+    // Split operations into batches
+    for (let i = 0; i < operations.length; i += concurrency) {
+      batches.push(operations.slice(i, i + concurrency));
+    }
+
+    // Execute batches sequentially
+    for (const batch of batches) {
+      const batchResults = await Promise.all(batch.map(op => op()));
+      results.push(...batchResults);
+    }
+
+    return results;
   }
 
   /**
@@ -678,6 +827,7 @@ export class StatesetClient {
    */
   destroy(): void {
     this.httpClient.destroy();
+    this.cache.destroy();
     
     logger.info('StatesetClient destroyed', {
       operation: 'client.destroy',

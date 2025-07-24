@@ -35,3 +35,11 @@ export {
 
 // Export types
 export * from './types';
+
+// Export utilities
+export { logger, LogLevel } from './utils/logger';
+export { MemoryCache, globalCache, resourceCache } from './utils/cache';
+export { performanceMonitor, PerformanceMonitor } from './utils/performance';
+export { withRetry, CircuitBreaker, RetryError } from './utils/retry';
+export { Validator, SchemaValidator, CommonSchemas } from './utils/validation';
+export { BaseResource, BaseResourceInterface } from './lib/resources/BaseResource';
