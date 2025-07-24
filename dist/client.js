@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatesetClient = void 0;
 const http_client_1 = require("./core/http-client");
 const logger_1 = require("./utils/logger");
+const performance_1 = require("./utils/performance");
+const cache_1 = require("./utils/cache");
 // Import all resource classes
 const Return_1 = __importDefault(require("./lib/resources/Return"));
 const Warranty_1 = __importDefault(require("./lib/resources/Warranty"));
@@ -82,6 +84,7 @@ const CashSale_1 = __importDefault(require("./lib/resources/CashSale"));
 class StatesetClient {
     httpClient;
     config;
+    cache;
     // Core Commerce Resources
     returns;
     returnItems;
@@ -170,6 +173,11 @@ class StatesetClient {
         this.validateConfig(config);
         // Build complete configuration with defaults
         this.config = this.buildConfig(config);
+        // Initialize cache if enabled
+        this.cache = new cache_1.MemoryCache({
+            ttl: this.config.cache.ttl,
+            maxSize: this.config.cache.maxSize,
+        });
         // Initialize HTTP client
         this.httpClient = new http_client_1.EnhancedHttpClient(this.buildHttpClientOptions());
         // Setup custom interceptors
@@ -225,6 +233,15 @@ class StatesetClient {
             requestInterceptors: config.requestInterceptors || [],
             responseInterceptors: config.responseInterceptors || [],
             errorInterceptors: config.errorInterceptors || [],
+            cache: {
+                enabled: config.cache?.enabled ?? true,
+                ttl: config.cache?.ttl ?? 300000, // 5 minutes
+                maxSize: config.cache?.maxSize ?? 1000,
+            },
+            performance: {
+                enabled: config.performance?.enabled ?? true,
+                slowRequestThreshold: config.performance?.slowRequestThreshold ?? 5000, // 5 seconds
+            },
         };
     }
     buildUserAgent() {
@@ -545,27 +562,121 @@ class StatesetClient {
         return safeConfig;
     }
     /**
-     * Legacy request method for backward compatibility
+     * Enhanced request method with caching and performance monitoring
      */
     async request(method, path, data, options = {}) {
-        logger_1.logger.debug('Legacy request method called', {
-            operation: 'client.legacy_request',
-            metadata: { method, path },
+        const timer = this.config.performance.enabled
+            ? performance_1.performanceMonitor.startTimer(`client.request.${method.toUpperCase()}.${path}`)
+            : null;
+        try {
+            // Generate cache key for GET requests
+            const cacheKey = method.toUpperCase() === 'GET'
+                ? `${path}:${JSON.stringify(options.params || {})}`
+                : null;
+            // Check cache for GET requests
+            if (this.config.cache.enabled && cacheKey) {
+                const cached = this.cache.get(cacheKey);
+                if (cached) {
+                    timer?.end(true);
+                    logger_1.logger.debug('Request served from cache', {
+                        operation: 'client.request',
+                        metadata: { method, path, cached: true },
+                    });
+                    return cached;
+                }
+            }
+            logger_1.logger.debug('Making HTTP request', {
+                operation: 'client.request',
+                metadata: { method, path },
+            });
+            const config = {
+                method: method.toLowerCase(),
+                url: path,
+                data,
+                ...options,
+            };
+            const response = await this.httpClient.request(config);
+            const result = response.data;
+            // Cache successful GET responses
+            if (this.config.cache.enabled && cacheKey && method.toUpperCase() === 'GET') {
+                this.cache.set(cacheKey, result);
+            }
+            timer?.end(true);
+            return result;
+        }
+        catch (error) {
+            timer?.end(false, error.message);
+            logger_1.logger.error('Request failed', {
+                operation: 'client.request',
+                metadata: { method, path },
+            }, error);
+            throw error;
+        }
+    }
+    /**
+     * Get cache statistics
+     */
+    getCacheStats() {
+        return this.cache.getStats();
+    }
+    /**
+     * Clear the cache
+     */
+    clearCache() {
+        this.cache.clear();
+        logger_1.logger.info('Cache cleared manually', {
+            operation: 'client.clear_cache',
         });
-        const config = {
-            method: method.toLowerCase(),
-            url: path,
-            data,
-            ...options,
-        };
-        const response = await this.httpClient.request(config);
-        return response.data;
+    }
+    /**
+     * Get performance statistics
+     */
+    getPerformanceStats() {
+        return performance_1.performanceMonitor.getStats();
+    }
+    /**
+     * Enable or disable caching
+     */
+    setCacheEnabled(enabled) {
+        this.config.cache.enabled = enabled;
+        logger_1.logger.info(`Cache ${enabled ? 'enabled' : 'disabled'}`, {
+            operation: 'client.set_cache_enabled',
+            metadata: { enabled },
+        });
+    }
+    /**
+     * Enable or disable performance monitoring
+     */
+    setPerformanceMonitoringEnabled(enabled) {
+        this.config.performance.enabled = enabled;
+        logger_1.logger.info(`Performance monitoring ${enabled ? 'enabled' : 'disabled'}`, {
+            operation: 'client.set_performance_monitoring',
+            metadata: { enabled },
+        });
+    }
+    /**
+     * Bulk operations helper
+     */
+    async bulk(operations, concurrency = 5) {
+        const results = [];
+        const batches = [];
+        // Split operations into batches
+        for (let i = 0; i < operations.length; i += concurrency) {
+            batches.push(operations.slice(i, i + concurrency));
+        }
+        // Execute batches sequentially
+        for (const batch of batches) {
+            const batchResults = await Promise.all(batch.map(op => op()));
+            results.push(...batchResults);
+        }
+        return results;
     }
     /**
      * Clean up resources
      */
     destroy() {
         this.httpClient.destroy();
+        this.cache.destroy();
         logger_1.logger.info('StatesetClient destroyed', {
             operation: 'client.destroy',
         });

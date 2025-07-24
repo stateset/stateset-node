@@ -93,6 +93,21 @@ export interface StatesetClientConfig extends StatesetConfig {
      * Custom error interceptors
      */
     errorInterceptors?: ErrorInterceptor[];
+    /**
+     * Cache configuration
+     */
+    cache?: {
+        enabled?: boolean;
+        ttl?: number;
+        maxSize?: number;
+    };
+    /**
+     * Performance monitoring configuration
+     */
+    performance?: {
+        enabled?: boolean;
+        slowRequestThreshold?: number;
+    };
 }
 interface StatesetClientConfigInternal extends StatesetConfig {
     maxSockets: number;
@@ -100,6 +115,15 @@ interface StatesetClientConfigInternal extends StatesetConfig {
     requestInterceptors: RequestInterceptor[];
     responseInterceptors: ResponseInterceptor[];
     errorInterceptors: ErrorInterceptor[];
+    cache: {
+        enabled: boolean;
+        ttl: number;
+        maxSize: number;
+    };
+    performance: {
+        enabled: boolean;
+        slowRequestThreshold: number;
+    };
     proxy?: string;
     appInfo?: {
         name: string;
@@ -110,6 +134,7 @@ interface StatesetClientConfigInternal extends StatesetConfig {
 export declare class StatesetClient {
     private httpClient;
     private config;
+    private cache;
     returns: Returns;
     returnItems: ReturnLines;
     warranties: Warranties;
@@ -263,9 +288,33 @@ export declare class StatesetClient {
      */
     getConfig(): Omit<StatesetClientConfigInternal, 'apiKey' | 'requestInterceptors' | 'responseInterceptors' | 'errorInterceptors'>;
     /**
-     * Legacy request method for backward compatibility
+     * Enhanced request method with caching and performance monitoring
      */
     request(method: string, path: string, data?: any, options?: any): Promise<any>;
+    /**
+     * Get cache statistics
+     */
+    getCacheStats(): any;
+    /**
+     * Clear the cache
+     */
+    clearCache(): void;
+    /**
+     * Get performance statistics
+     */
+    getPerformanceStats(): any;
+    /**
+     * Enable or disable caching
+     */
+    setCacheEnabled(enabled: boolean): void;
+    /**
+     * Enable or disable performance monitoring
+     */
+    setPerformanceMonitoringEnabled(enabled: boolean): void;
+    /**
+     * Bulk operations helper
+     */
+    bulk<T>(operations: (() => Promise<T>)[], concurrency?: number): Promise<T[]>;
     /**
      * Clean up resources
      */
