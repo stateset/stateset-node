@@ -1,6 +1,6 @@
 'use strict';
 
-import StatesetMethod, { StatesetMethodOptions } from './StatesetMethod';
+import StatesetMethod from './StatesetMethod';
 import { AxiosRequestConfig } from 'axios';
 
 // Interface to define method definition structure

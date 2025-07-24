@@ -44,6 +44,7 @@ class Logger {
                 }
                 catch (handlerError) {
                     // Prevent logging errors from breaking the application
+                    // eslint-disable-next-line no-console
                     console.error('Error in log handler:', handlerError);
                 }
             });
@@ -77,21 +78,26 @@ class Logger {
         }
         switch (entry.level) {
             case LogLevel.ERROR:
+                // eslint-disable-next-line no-console
                 console.error(output);
                 break;
             case LogLevel.WARN:
+                // eslint-disable-next-line no-console
                 console.warn(output);
                 break;
             case LogLevel.INFO:
+                // eslint-disable-next-line no-console
                 console.info(output);
                 break;
             case LogLevel.DEBUG:
+                // eslint-disable-next-line no-console
                 console.debug(output);
                 break;
         }
     };
     // JSON handler for production logging
     static jsonHandler = (entry) => {
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(entry));
     };
     // File handler (would require fs in a real implementation)
@@ -99,6 +105,7 @@ class Logger {
         return (entry) => {
             // In a real implementation, this would write to a file
             // For now, we'll just use console
+            // eslint-disable-next-line no-console
             console.log(`[FILE:${filename}] ${JSON.stringify(entry)}`);
         };
     };

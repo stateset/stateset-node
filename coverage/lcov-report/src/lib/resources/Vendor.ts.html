@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/100</span>
+                <span class='fraction'>14/100</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">10.25% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/39</span>
+                <span class='fraction'>4/39</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">16.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>3/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">16.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/84</span>
+                <span class='fraction'>14/84</span>
             </div>
         
             
@@ -348,17 +348,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -419,27 +419,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">22x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -626,17 +626,17 @@ type NonEmptyString&lt;T extends string&gt; = T extends '' ? never : T;
 type Timestamp = string; // ISO 8601 format expected
 &nbsp;
 // Enums
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export enum V</span>endorStatus {</span>
-<span class="cstat-no" title="statement not covered" >  ACTIVE = 'ACTIVE',</span>
-<span class="cstat-no" title="statement not covered" >  INACTIVE = 'INACTIVE',</span>
-<span class="cstat-no" title="statement not covered" >  PENDING = 'PENDING',</span>
-<span class="cstat-no" title="statement not covered" >  SUSPENDED = 'SUSPENDED'</span>
+export enum VendorStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
+  SUSPENDED = 'SUSPENDED'
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >export enum V</span>endorType {</span>
-<span class="cstat-no" title="statement not covered" >  SUPPLIER = 'SUPPLIER',</span>
-<span class="cstat-no" title="statement not covered" >  SERVICE_PROVIDER = 'SERVICE_PROVIDER',</span>
-<span class="cstat-no" title="statement not covered" >  CONTRACTOR = 'CONTRACTOR'</span>
+export enum VendorType {
+  SUPPLIER = 'SUPPLIER',
+  SERVICE_PROVIDER = 'SERVICE_PROVIDER',
+  CONTRACTOR = 'CONTRACTOR'
 }
 &nbsp;
 // Interfaces
@@ -697,27 +697,27 @@ export interface VendorResponse {
 }
 &nbsp;
 // Error Classes
-<span class="cstat-no" title="statement not covered" >export class V</span>endorError extends Error {
+export class VendorError extends Error {
 <span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >details?: Record&lt;string, unknown&gt;)</span> {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'VendorError';</span>
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export class V</span>endorNotFoundError extends VendorError {
+export class VendorNotFoundError extends VendorError {
 <span class="fstat-no" title="function not covered" >  constructor(v</span>endorId: string) {
 <span class="cstat-no" title="statement not covered" >    super(`Vendor with ID ${vendorId} not found`, { vendorId });</span>
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export class V</span>endorValidationError extends VendorError {
+export class VendorValidationError extends VendorError {
 <span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >errors?: Record&lt;string, string&gt;)</span> {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default class V</span>endors {
-<span class="fstat-no" title="function not covered" >  constructor(private readonly <span class="cstat-no" title="statement not covered" >c</span>lient: stateset)</span> {}
+export default class Vendors {
+  constructor(private readonly client: stateset) {}
 &nbsp;
   private <span class="fstat-no" title="function not covered" >validateVendorData(</span>data: VendorData): void {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.name) <span class="cstat-no" title="statement not covered" >throw new VendorValidationError('Vendor name is required');</span></span>
@@ -904,7 +904,7 @@ export interface VendorResponse {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-23T23:03:42.932Z
+                at 2025-07-24T03:38:23.016Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

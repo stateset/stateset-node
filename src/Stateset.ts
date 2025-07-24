@@ -40,11 +40,11 @@ export class Stateset {
 
   private handleError(error: any): any {
     if (error.response) {
-      console.error('API Error:', error.response.data);
+      // API Error logged by the client
     } else if (error.request) {
-      console.error('No response received:', error.request);
+      // No response received logged by the client
     } else {
-      console.error('Error:', error.message);
+      // Error logged by the client
     }
     return error;
   }

@@ -108,7 +108,7 @@ describe('Retry Utility', () => {
       // First failure
       try {
         await circuitBreaker.execute(mockOperation);
-      } catch (error) {
+      } catch {
         // Expected
       }
       expect(circuitBreaker.getState()).toBe('CLOSED');
@@ -116,7 +116,7 @@ describe('Retry Utility', () => {
       // Second failure - should open
       try {
         await circuitBreaker.execute(mockOperation);
-      } catch (error) {
+      } catch {
         // Expected
       }
       expect(circuitBreaker.getState()).toBe('OPEN');
@@ -129,7 +129,7 @@ describe('Retry Utility', () => {
       for (let i = 0; i < 2; i++) {
         try {
           await circuitBreaker.execute(mockOperation);
-        } catch (error) {
+        } catch {
           // Expected
         }
       }
@@ -146,8 +146,6 @@ describe('Retry Utility', () => {
 
     it('should reset to CLOSED state', () => {
       // Force to OPEN state
-      const mockOperation = jest.fn().mockRejectedValue(new Error('Failure'));
-      
       circuitBreaker.reset();
       
       expect(circuitBreaker.getState()).toBe('CLOSED');

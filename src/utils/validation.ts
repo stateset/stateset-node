@@ -176,7 +176,7 @@ export class Validator {
   }
 
   static phoneNumber(message: string = 'Field must be a valid phone number'): ValidationRule<string> {
-    const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
+    const phoneRegex = /^\+?[\d\s\-()]+$/;
     return {
       validate: (value: string) => phoneRegex.test(value) && value.replace(/\D/g, '').length >= 10,
       message,
@@ -184,7 +184,7 @@ export class Validator {
   }
 
   static postalCode(message: string = 'Field must be a valid postal code'): ValidationRule<string> {
-    const postalCodeRegex = /^[A-Za-z0-9\s\-]{3,10}$/;
+    const postalCodeRegex = /^[A-Za-z0-9\s-]{3,10}$/;
     return {
       validate: (value: string) => postalCodeRegex.test(value),
       message,

@@ -17,7 +17,7 @@ export class MemoryCache<T = any> {
   private cache = new Map<string, CacheEntry<T>>();
   private readonly defaultTtl: number;
   private readonly maxSize: number;
-  private cleanupInterval: NodeJS.Timeout | null = null;
+  private cleanupInterval: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: CacheOptions = {}) {
     this.defaultTtl = options.ttl || 300000; // 5 minutes default

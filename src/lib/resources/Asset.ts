@@ -30,13 +30,7 @@ interface RetiredAssetResponse extends BaseAssetResponse {
 
 type AssetResponse = ActiveAssetResponse | InactiveAssetResponse | MaintenanceAssetResponse | RetiredAssetResponse;
 
-interface ApiResponse {
-  update_assets_by_pk: {
-    id: string;
-    status: AssetStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface InventoryData {
   quantity: number;

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">8.1% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/37</span>
+                <span class='fraction'>0/37</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.14% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">8.1% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/37</span>
+                <span class='fraction'>0/37</span>
             </div>
         
             
@@ -361,7 +361,7 @@
 <a name='L296'></a><a href='#L296'>296</a>
 <a name='L297'></a><a href='#L297'>297</a>
 <a name='L298'></a><a href='#L298'>298</a>
-<a name='L299'></a><a href='#L299'>299</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L299'></a><a href='#L299'>299</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -395,9 +395,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -659,8 +659,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { BaseResource } from '../core/base-resource';
-import { HttpClient } from '../core/http-client';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { BaseResource } from '../core/base-resource';</span>
+import { EnhancedHttpClient } from '../core/http-client';
 import { Return, ReturnStatus, ReturnReason, ShippingLabel, RequestOptions } from '../types';
 &nbsp;
 export interface ReturnNote {
@@ -693,9 +693,9 @@ export interface ShippingLabelParams {
   };
 }
 &nbsp;
-export class ReturnsResource extends BaseResource&lt;Return&gt; {
-  constructor(httpClient: HttpClient) {
-    super(httpClient, 'returns');
+<span class="cstat-no" title="statement not covered" >export class R</span>eturnsResource extends BaseResource&lt;Return&gt; {
+<span class="fstat-no" title="function not covered" >  constructor(h</span>ttpClient: EnhancedHttpClient) {
+<span class="cstat-no" title="statement not covered" >    super(httpClient, 'returns');</span>
   }
 &nbsp;
   /**
@@ -715,7 +715,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -732,7 +732,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -749,7 +749,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.shipping_label;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.shipping_label;</span>
   }
 &nbsp;
   /**
@@ -768,7 +768,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -789,7 +789,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -808,7 +808,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -827,7 +827,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.return;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.return;</span>
   }
 &nbsp;
   /**
@@ -847,7 +847,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.note;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.note;</span>
   }
 &nbsp;
   /**
@@ -865,7 +865,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       { ...options, params: queryParams }
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.notes;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.notes;</span>
   }
 &nbsp;
   /**
@@ -877,7 +877,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response.returns;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data.returns;</span>
   }
 &nbsp;
   /**
@@ -906,7 +906,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       { ...options, params: queryParams }
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
 &nbsp;
   /**
@@ -929,7 +929,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
 &nbsp;
   /**
@@ -955,7 +955,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
       options
     );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    return response;</span>
+<span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
 }</pre></td></tr></table></pre>
 
@@ -964,7 +964,7 @@ export class ReturnsResource extends BaseResource&lt;Return&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-23T23:03:43.034Z
+                at 2025-07-24T03:38:23.114Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

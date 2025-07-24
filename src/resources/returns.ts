@@ -1,5 +1,5 @@
 import { BaseResource } from '../core/base-resource';
-import { HttpClient } from '../core/http-client';
+import { EnhancedHttpClient } from '../core/http-client';
 import { Return, ReturnStatus, ReturnReason, ShippingLabel, RequestOptions } from '../types';
 
 export interface ReturnNote {
@@ -33,7 +33,7 @@ export interface ShippingLabelParams {
 }
 
 export class ReturnsResource extends BaseResource<Return> {
-  constructor(httpClient: HttpClient) {
+  constructor(httpClient: EnhancedHttpClient) {
     super(httpClient, 'returns');
   }
 
@@ -54,7 +54,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -71,7 +71,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -88,7 +88,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.shipping_label;
+    return response.data.shipping_label;
   }
 
   /**
@@ -107,7 +107,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -128,7 +128,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -147,7 +147,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -166,7 +166,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.return;
+    return response.data.return;
   }
 
   /**
@@ -186,7 +186,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.note;
+    return response.data.note;
   }
 
   /**
@@ -204,7 +204,7 @@ export class ReturnsResource extends BaseResource<Return> {
       { ...options, params: queryParams }
     );
 
-    return response.notes;
+    return response.data.notes;
   }
 
   /**
@@ -216,7 +216,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response.returns;
+    return response.data.returns;
   }
 
   /**
@@ -245,7 +245,7 @@ export class ReturnsResource extends BaseResource<Return> {
       { ...options, params: queryParams }
     );
 
-    return response;
+    return response.data;
   }
 
   /**
@@ -268,7 +268,7 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response;
+    return response.data;
   }
 
   /**
@@ -294,6 +294,6 @@ export class ReturnsResource extends BaseResource<Return> {
       options
     );
 
-    return response;
+    return response.data;
   }
 }

@@ -1,7 +1,7 @@
 import { EnhancedHttpClient, HttpClientOptions, RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './core/http-client';
 import { logger } from './utils/logger';
 import { performanceMonitor } from './utils/performance';
-import { MemoryCache, resourceCache } from './utils/cache';
+import { MemoryCache } from './utils/cache';
 import { StatesetConfig } from './types';
 
 // Import all resource classes
@@ -373,7 +373,7 @@ export class StatesetClient {
           password: decodeURIComponent(parsed.password),
         } : undefined,
       };
-    } catch (error) {
+    } catch {
       logger.warn('Invalid proxy URL provided', {
         operation: 'client.init',
         metadata: { proxyUrl: '[REDACTED]' },
@@ -691,6 +691,7 @@ export class StatesetClient {
    * Get current configuration (sanitized)
    */
   getConfig(): Omit<StatesetClientConfigInternal, 'apiKey' | 'requestInterceptors' | 'responseInterceptors' | 'errorInterceptors'> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } = this.config;
     return safeConfig;
   }
