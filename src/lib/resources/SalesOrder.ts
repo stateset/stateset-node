@@ -47,13 +47,7 @@ export type SalesOrderResponse =
   | PaidSalesOrderResponse
   | CancelledSalesOrderResponse;
 
-interface ApiResponse {
-  update_salesorders_by_pk: {
-    id: string;
-    status: SalesOrderStatus;
-    [key: string]: any;
-  };
-}
+
 
 export interface SalesOrderItem {
   item_id: string;

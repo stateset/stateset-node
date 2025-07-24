@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+
 
 type CycleCountStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'RECONCILED';
 
@@ -30,13 +30,7 @@ interface ReconciledCycleCountResponse extends BaseCycleCountResponse {
 
 type CycleCountResponse = PendingCycleCountResponse | InProgressCycleCountResponse | CompletedCycleCountResponse | ReconciledCycleCountResponse;
 
-interface ApiResponse {
-  update_cycle_counts_by_pk: {
-    id: string;
-    status: CycleCountStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface CycleCountData {
   location: string;

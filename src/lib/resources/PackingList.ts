@@ -35,13 +35,7 @@ interface CancelledPackingListResponse extends BasePackingListResponse {
 
 type PackingListResponse = DraftPackingListResponse | SubmittedPackingListResponse | VerifiedPackingListResponse | ShippedPackingListResponse | CancelledPackingListResponse;
 
-interface ApiResponse {
-  update_packinglists_by_pk: {
-    id: string;
-    status: PackingListStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface PackageItem {
   purchase_order_item_id: string;

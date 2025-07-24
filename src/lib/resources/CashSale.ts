@@ -31,13 +31,7 @@ export type CashSaleResponse =
   | CancelledCashSaleResponse
   | RefundedCashSaleResponse;
 
-interface ApiResponse {
-  update_cashsales_by_pk: {
-    id: string;
-    status: CashSaleStatus;
-    [key: string]: any;
-  };
-}
+
 
 export interface CashSaleLine {
   item_id: string;

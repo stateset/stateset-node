@@ -288,7 +288,7 @@ class StatesetClient {
                 } : undefined,
             };
         }
-        catch (error) {
+        catch {
             logger_1.logger.warn('Invalid proxy URL provided', {
                 operation: 'client.init',
                 metadata: { proxyUrl: '[REDACTED]' },
@@ -558,6 +558,7 @@ class StatesetClient {
      * Get current configuration (sanitized)
      */
     getConfig() {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } = this.config;
         return safeConfig;
     }

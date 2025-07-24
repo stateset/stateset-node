@@ -47,13 +47,7 @@ export type FulfillmentOrderResponse =
   | ShippedFulfillmentOrderResponse
   | CancelledFulfillmentOrderResponse;
 
-interface ApiResponse {
-  update_fulfillmentorders_by_pk: {
-    id: string;
-    status: FulfillmentOrderStatus;
-    [key: string]: any;
-  };
-}
+
 
 export interface FulfillmentOrderLine {
   item_id: string;

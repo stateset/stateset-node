@@ -295,6 +295,7 @@ const utils: Utils = {
 
   emitWarning(warning: string): void {
     if (typeof process.emitWarning !== 'function') {
+      // eslint-disable-next-line no-console
       return console.warn(`Stateset: ${warning}`);
     }
 
@@ -323,7 +324,7 @@ const utils: Utils = {
         const newKey = prevKey ? `${prevKey}[${key}]` : key;
 
         if (utils.isObject(value)) {
-          if (!Buffer.isBuffer(value) && !value.hasOwnProperty('data')) {
+          if (!Buffer.isBuffer(value) && !Object.prototype.hasOwnProperty.call(value, 'data')) {
             return step(value, newKey);
           } else {
             result[newKey] = value;

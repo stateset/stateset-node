@@ -12,20 +12,15 @@ export default abstract class BaseIntegration {
 
   protected async request(method: string, path: string, data?: any) {
     const url = `${this.baseUrl}/${path}`;
-    try {
-      const response = await axios.request({
-        method,
-        url,
-        data,
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error in integration request:', error);
-      throw error;
-    }
+    const response = await axios.request({
+      method,
+      url,
+      data,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
   }
 }

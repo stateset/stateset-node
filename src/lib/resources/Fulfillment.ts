@@ -35,13 +35,7 @@ interface CancelledFulfillmentResponse extends BaseFulfillmentResponse {
 
 type FulfillmentResponse = PendingFulfillmentResponse | ProcessingFulfillmentResponse | ShippedFulfillmentResponse | DeliveredFulfillmentResponse | CancelledFulfillmentResponse;
 
-interface ApiResponse {
-  update_fulfillments_by_pk: {
-    id: string;
-    status: FulfillmentStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface FulfillmentData {
   order_id: string;

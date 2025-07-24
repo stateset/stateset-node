@@ -31,13 +31,7 @@ export type ItemReceiptResponse =
   | PartialItemReceiptResponse
   | CancelledItemReceiptResponse;
 
-interface ApiResponse {
-  update_itemreceipts_by_pk: {
-    id: string;
-    status: ItemReceiptStatus;
-    [key: string]: any;
-  };
-}
+
 
 export interface ItemReceiptLine {
   item_id: string;

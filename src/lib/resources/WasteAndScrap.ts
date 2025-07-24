@@ -30,13 +30,7 @@ interface RecycledWasteAndScrapResponse extends BaseWasteAndScrapResponse {
 
 type WasteAndScrapResponse = PendingWasteAndScrapResponse | ProcessedWasteAndScrapResponse | DisposedWasteAndScrapResponse | RecycledWasteAndScrapResponse;
 
-interface ApiResponse {
-  update_waste_and_scrap_by_pk: {
-    id: string;
-    status: WasteAndScrapStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface WasteAndScrapData {
   type: 'WASTE' | 'SCRAP';

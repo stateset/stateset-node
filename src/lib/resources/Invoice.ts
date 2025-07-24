@@ -35,13 +35,7 @@ interface CancelledInvoiceResponse extends BaseInvoiceResponse {
 
 type InvoiceResponse = DraftInvoiceResponse | SentInvoiceResponse | PaidInvoiceResponse | OverdueInvoiceResponse | CancelledInvoiceResponse;
 
-interface ApiResponse {
-  update_invoices_by_pk: {
-    id: string;
-    status: InvoiceStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface InvoiceData {
   customer_id: string;

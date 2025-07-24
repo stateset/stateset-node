@@ -452,7 +452,7 @@ export class stateset {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Error in Stateset request:', error);
+      // Error logged by the Stateset client
       if (error.response) {
         const status = error.response.status;
         const raw = {

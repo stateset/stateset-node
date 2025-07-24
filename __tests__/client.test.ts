@@ -1,6 +1,4 @@
-import { StatesetClient } from '../src/client';
-import { StatesetClientConfig } from '../src/client';
-import { StatesetConfig } from '../src/types';
+import { StatesetClient, StatesetClientConfig } from '../src/client';
 
 describe('StatesetClient', () => {
   const testConfig: StatesetClientConfig = {
@@ -173,10 +171,7 @@ describe('StatesetClient', () => {
       const mockHealthCheck = jest.fn().mockRejectedValue(new Error('Connection failed'));
       (client as any).httpClient.healthCheck = mockHealthCheck;
 
-      const result = await client.healthCheck();
-      
-      expect(result.status).toBe('error');
-      expect(result.details?.error).toBe('Connection failed');
+      await expect(client.healthCheck()).rejects.toThrow('Connection failed');
     });
   });
 

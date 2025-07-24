@@ -259,26 +259,29 @@ class Activities {
             case ActivityType.AI_INFERENCE:
             case ActivityType.AI_TRAINING:
             case ActivityType.AI_VALIDATION:
-            case ActivityType.PROMPT_GENERATION:
+            case ActivityType.PROMPT_GENERATION: {
                 const aiConfig = data.configuration;
                 if (!aiConfig.model || !aiConfig.provider) {
                     throw new ActivityValidationError('AI activity requires model and provider');
                 }
                 break;
+            }
             case ActivityType.API_CALL:
-            case ActivityType.WEBHOOK:
+            case ActivityType.WEBHOOK: {
                 const integrationConfig = data.configuration;
                 if (!integrationConfig.endpoint) {
                     throw new ActivityValidationError('Integration activity requires endpoint');
                 }
                 break;
+            }
             case ActivityType.HUMAN_REVIEW:
-            case ActivityType.APPROVAL:
+            case ActivityType.APPROVAL: {
                 const humanConfig = data.configuration;
                 if (!humanConfig.form_configuration) {
                     throw new ActivityValidationError('Human task requires form configuration');
                 }
                 break;
+            }
         }
     }
 }

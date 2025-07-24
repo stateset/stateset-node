@@ -35,13 +35,7 @@ interface CancelledPurchaseOrderResponse extends BasePurchaseOrderResponse {
 
 type PurchaseOrderResponse = DraftPurchaseOrderResponse | SubmittedPurchaseOrderResponse | ApprovedPurchaseOrderResponse | ReceivedPurchaseOrderResponse | CancelledPurchaseOrderResponse;
 
-interface ApiResponse {
-  update_purchaseorders_by_pk: {
-    id: string;
-    status: PurchaseOrderStatus;
-    [key: string]: any;
-  };
-}
+
 
 interface PurchaseOrderData {
   supplier_id: string;

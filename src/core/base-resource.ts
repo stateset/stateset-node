@@ -3,7 +3,6 @@ import { logger } from '../utils/logger';
 import { 
   BaseEntity, 
   ListResponse, 
-  PaginationParams, 
   SearchParams,
   CreateParams,
   UpdateParams,

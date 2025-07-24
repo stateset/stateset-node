@@ -14,22 +14,16 @@ class BaseIntegration {
     }
     async request(method, path, data) {
         const url = `${this.baseUrl}/${path}`;
-        try {
-            const response = await axios_1.default.request({
-                method,
-                url,
-                data,
-                headers: {
-                    Authorization: `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            return response.data;
-        }
-        catch (error) {
-            console.error('Error in integration request:', error);
-            throw error;
-        }
+        const response = await axios_1.default.request({
+            method,
+            url,
+            data,
+            headers: {
+                Authorization: `Bearer ${this.apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
     }
 }
 exports.default = BaseIntegration;
