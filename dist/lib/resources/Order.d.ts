@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum OrderStatus {
     DRAFT = "DRAFT",
     PENDING = "PENDING",
@@ -178,7 +178,7 @@ export declare class OrderValidationError extends OrderError {
 }
 export declare class Orders {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     list(params?: {
         status?: OrderStatus;

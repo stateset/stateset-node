@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum OpportunityStatus {
@@ -49,7 +49,7 @@ export declare class OpportunityValidationError extends OpportunityError {
 }
 export default class Opportunities {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateOpportunityData;
     private mapResponse;
     list(params?: {

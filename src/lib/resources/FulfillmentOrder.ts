@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 export type FulfillmentOrderStatus =
   | 'OPEN'
@@ -63,7 +63,7 @@ export interface FulfillmentOrderData {
 }
 
 class FulfillmentOrders {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   private handleCommandResponse(response: any): FulfillmentOrderResponse {
     if (response.error) {

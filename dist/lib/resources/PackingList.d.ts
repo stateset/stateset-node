@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type PackingListStatus = 'DRAFT' | 'SUBMITTED' | 'VERIFIED' | 'SHIPPED' | 'CANCELLED';
 interface BasePackingListResponse {
     id: string;
@@ -66,7 +66,7 @@ interface PackingListData {
 }
 declare class PackingList {
     private stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private handleCommandResponse;
     /**
      * Get all packing lists

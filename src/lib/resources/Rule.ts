@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for rule management
 export enum RuleType {
@@ -156,7 +156,7 @@ export class RuleExecutionError extends Error {
 
 // Main Rules Class
 class Rules {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List rules with optional filtering

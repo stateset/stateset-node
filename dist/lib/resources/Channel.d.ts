@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum ChannelType {
     TEXT = "text",
     VOICE = "voice",
@@ -148,7 +148,7 @@ export declare class ChannelOperationError extends Error {
 }
 declare class Channels {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List channels with optional filtering
      * @param params - Optional filtering parameters

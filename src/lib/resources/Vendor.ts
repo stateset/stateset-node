@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -96,7 +96,7 @@ export class VendorValidationError extends VendorError {
 }
 
 export default class Vendors {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateVendorData(data: VendorData): void {
     if (!data.name) throw new VendorValidationError('Vendor name is required');

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for warehouse management
 export enum WarehouseStatus {
@@ -229,7 +229,7 @@ export class InventoryOperationError extends Error {
 
 // Main Warehouses Class
 class Warehouses {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List warehouses with optional filtering

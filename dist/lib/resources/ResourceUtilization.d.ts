@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum ResourceUtilizationStatus {
@@ -48,7 +48,7 @@ export declare class ResourceUtilizationValidationError extends ResourceUtilizat
 }
 export default class ResourceUtilization {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateResourceUtilizationData;
     private mapResponse;
     list(params?: {

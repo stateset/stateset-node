@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums
 export enum MachineStatus {
@@ -167,7 +167,7 @@ export class MachineValidationError extends MachineError {
 
 // Main Machines Class
 export class Machines {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

@@ -1,7 +1,7 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 class ShipTo {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   async list() {
     return this.stateset.request('GET', 'ship_to');

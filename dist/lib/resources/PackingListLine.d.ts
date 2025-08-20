@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 interface PackingListLineItem {
     id: string;
     packing_list_id: string;
@@ -26,7 +26,7 @@ interface PackingListLineItem {
 }
 declare class PackingListLines {
     private stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * Get all packing list line items
      * @param packingListId - Optional packing list ID

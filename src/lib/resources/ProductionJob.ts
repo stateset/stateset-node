@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums and Types
 export enum JobStatus {
@@ -137,7 +137,7 @@ export class JobStateError extends Error {
 
 // Main ProductionJob Class
 class ProductionJob {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * Validates job data

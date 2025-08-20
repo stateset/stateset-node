@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum WeightUnit {
     LB = "LB",
     KG = "KG"
@@ -47,7 +47,7 @@ type CreateASNLineItem = Omit<ASNLineItem, 'id' | 'created_at' | 'updated_at' | 
 };
 export declare class ASNLines {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     private validateLineItem;
     list(params?: {

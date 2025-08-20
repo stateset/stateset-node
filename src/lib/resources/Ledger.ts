@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -59,7 +59,7 @@ export class LedgerValidationError extends LedgerError {
 }
 
 export default class Ledger {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateLedgerData(data: LedgerData): void {
     if (!data.reference_id) throw new LedgerValidationError('Reference ID is required');

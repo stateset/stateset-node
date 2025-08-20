@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -68,7 +68,7 @@ export class PaymentValidationError extends PaymentError {
 }
 
 export default class Payments {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validatePaymentData(data: PaymentData): void {
     if (!data.customer_id) throw new PaymentValidationError('Customer ID is required');

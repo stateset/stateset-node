@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for response management
 export enum ResponseType {
@@ -50,7 +50,7 @@ export class ResponseValidationError extends Error {
 
 // Main Responses class
 class Responses {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List responses with optional filtering

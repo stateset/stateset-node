@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type UnitOfWeight = 'lb' | 'kg' | 'oz';
@@ -241,7 +241,7 @@ export class CarrierApiError extends ShipmentError {
 
 // Main Shipments Class with improved error handling and validation
 export class Shipments {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateShipmentData(data: ShipmentData): void {
     if (!data.order_id) throw new ShipmentValidationError('Order ID is required');

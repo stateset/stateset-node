@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum JobStatus {
     PLANNED = "PLANNED",
     IN_PROGRESS = "IN_PROGRESS",
@@ -101,7 +101,7 @@ export declare class JobStateError extends Error {
 }
 declare class ProductionJob {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * Validates job data
      */

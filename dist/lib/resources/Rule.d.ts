@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum RuleType {
     AUTOMATION = "automation",
     RESTRICTION = "restriction",
@@ -129,7 +129,7 @@ export declare class RuleExecutionError extends Error {
 }
 declare class Rules {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List rules with optional filtering
      * @param params - Filtering parameters

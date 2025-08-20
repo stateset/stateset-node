@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum InventoryStatus {
     IN_STOCK = "in_stock",
     LOW_STOCK = "low_stock",
@@ -113,7 +113,7 @@ export declare class InventoryValidationError extends InventoryError {
 }
 export declare class Inventory {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     private validateInventoryData;
     list(params?: {

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum MessageType {
     TEXT = "text",
     CODE = "code",
@@ -126,7 +126,7 @@ export declare class MessageDeliveryError extends Error {
 }
 declare class Messages {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List messages with optional filtering
      * @param params - Optional filtering parameters

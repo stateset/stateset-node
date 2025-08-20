@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum ScheduleType {
     RECURRING = "recurring",
     ONE_TIME = "one_time",
@@ -156,7 +156,7 @@ export declare class ScheduleExecutionError extends Error {
 }
 declare class Schedule {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List schedules with optional filtering
      * @param params - Filtering parameters

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Packing List Line Items
 interface PackingListLineItem {
@@ -28,7 +28,7 @@ interface PackingListLineItem {
   }
   
   class PackingListLines {
-    constructor(private stateset: stateset) {}
+    constructor(private stateset: ApiClientLike) {}
   
     /**
      * Get all packing list line items

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -98,7 +98,7 @@ export class ReturnLineValidationError extends ReturnLineError {
 
 // Main ReturnLines Class
 export class ReturnLines {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateReturnLineData(data: ReturnLineData): void {
     if (!data.return_id) {

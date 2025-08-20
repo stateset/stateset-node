@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -65,7 +65,7 @@ export class RefundValidationError extends RefundError {
 }
 
 export default class Refunds {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateRefundData(data: RefundData): void {
     if (!data.payment_id) throw new RefundValidationError('Payment ID is required');

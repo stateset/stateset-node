@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums
 export enum BOMStatus {
@@ -100,7 +100,7 @@ export class BOMStateError extends BOMError {
 
 // Main BillOfMaterials Class
 export class BillOfMaterials {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

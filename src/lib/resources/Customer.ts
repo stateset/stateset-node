@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -95,7 +95,7 @@ export class CustomerValidationError extends CustomerError {
 
 // Main Customers Class
 export class Customers {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateCustomerData(data: CustomerData): void {
     if (!data.name) throw new CustomerValidationError('Customer name is required');

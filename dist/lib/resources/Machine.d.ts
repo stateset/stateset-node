@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum MachineStatus {
     OPERATIONAL = "OPERATIONAL",
     MAINTENANCE = "MAINTENANCE",
@@ -151,7 +151,7 @@ export declare class MachineValidationError extends MachineError {
 }
 export declare class Machines {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     private validateRuntimeData;
     list(params?: {

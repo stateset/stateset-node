@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -67,7 +67,7 @@ export class OpportunityValidationError extends OpportunityError {
 }
 
 export default class Opportunities {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateOpportunityData(data: OpportunityData): void {
     if (!data.lead_id) throw new OpportunityValidationError('Lead ID is required');

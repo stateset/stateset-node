@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums
 export enum WeightUnit {
@@ -67,7 +67,7 @@ type CreateASNLineItem = Omit<ASNLineItem, 'id' | 'created_at' | 'updated_at' | 
 
 // Main ASNLines Class
 export class ASNLines {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

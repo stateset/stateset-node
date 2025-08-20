@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 type PackingListStatus = 'DRAFT' | 'SUBMITTED' | 'VERIFIED' | 'SHIPPED' | 'CANCELLED';
 
@@ -79,7 +79,7 @@ interface PackingListData {
 }
 
 class PackingList {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   private handleCommandResponse(response: any): PackingListResponse {
     if (response.error) {

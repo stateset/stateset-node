@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum BOMStatus {
     DRAFT = "DRAFT",
     ACTIVE = "ACTIVE",
@@ -80,7 +80,7 @@ export declare class BOMStateError extends BOMError {
 }
 export declare class BillOfMaterials {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     private validateComponent;
     list(params?: {

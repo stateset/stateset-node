@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum ReturnStatus {
     REQUESTED = "REQUESTED",
     PENDING_APPROVAL = "PENDING_APPROVAL",
@@ -252,7 +252,7 @@ export interface Logger {
 declare class Returns {
     private readonly stateset;
     private readonly logger;
-    constructor(stateset: stateset, options?: {
+    constructor(stateset: ApiClientLike, options?: {
         logger?: Logger;
     });
     /**

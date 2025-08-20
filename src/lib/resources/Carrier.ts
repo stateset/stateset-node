@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -70,7 +70,7 @@ export class CarrierValidationError extends CarrierError {
 }
 
 export default class Carriers {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateCarrierData(data: CarrierData): void {
     if (!data.name) throw new CarrierValidationError('Carrier name is required');

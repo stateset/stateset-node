@@ -1,7 +1,7 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 class Log {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   /**
    * List logs
