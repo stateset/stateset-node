@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -68,7 +68,7 @@ export class RouteValidationError extends RouteError {
 }
 
 export default class Routes {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateRouteData(data: RouteData): void {
     if (!data.carrier_id) throw new RouteValidationError('Carrier ID is required');

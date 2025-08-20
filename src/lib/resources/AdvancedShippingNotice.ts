@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums
 export enum ASNStatus {
@@ -78,7 +78,7 @@ export class ASNStateError extends ASNError {
 
 // Main ASN Class
 export class ASN {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

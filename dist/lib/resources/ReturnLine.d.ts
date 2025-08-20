@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum ReturnLineStatus {
@@ -78,7 +78,7 @@ export declare class ReturnLineValidationError extends ReturnLineError {
 }
 export declare class ReturnLines {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private validateReturnLineData;
     private mapResponse;
     list(params?: {

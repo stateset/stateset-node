@@ -1,7 +1,7 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 declare class Log {
     private stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List logs
      * @returns Array of LogResponse objects

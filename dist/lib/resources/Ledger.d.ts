@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum LedgerEventType {
@@ -42,7 +42,7 @@ export declare class LedgerValidationError extends LedgerError {
 }
 export default class Ledger {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateLedgerData;
     private mapResponse;
     list(params?: {

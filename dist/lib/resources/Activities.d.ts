@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum ActivityType {
     AI_INFERENCE = "ai_inference",
     AI_TRAINING = "ai_training",
@@ -183,7 +183,7 @@ export declare class ActivityExecutionError extends Error {
 }
 declare class Activities {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List activities with optional filtering
      * @param params - Optional filtering parameters

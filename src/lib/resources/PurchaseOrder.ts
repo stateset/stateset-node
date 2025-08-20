@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 type PurchaseOrderStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'RECEIVED' | 'CANCELLED';
 
@@ -49,7 +49,7 @@ interface PurchaseOrderData {
 }
 
 class PurchaseOrders {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   private handleCommandResponse(response: any): PurchaseOrderResponse {
     if (response.error) {

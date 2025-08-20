@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -88,7 +88,7 @@ export class WarrantyLineValidationError extends WarrantyLineError {
 
 // Main WarrantyLines Class
 export class WarrantyLines {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateWarrantyLineData(data: WarrantyLineData): void {
     if (!data.warranty_id) {

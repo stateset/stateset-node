@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Constants and Enums
 const DEFAULT_CURRENCY = 'USD';
@@ -211,7 +211,7 @@ const validateOrderTotals = (orderData: OrderData): void => {
 
 // Main Orders Class
 export class Orders {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -71,7 +71,7 @@ export class ContactValidationError extends ContactError {
 }
 
 export default class Contacts {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateContactData(data: ContactData): void {
     if (!data.entity_id) throw new ContactValidationError('Entity ID is required');

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for evaluation management
 export enum EvalType {
@@ -45,7 +45,7 @@ export class EvalValidationError extends Error {
 }
 
 class Evals {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List evaluations with optional filtering

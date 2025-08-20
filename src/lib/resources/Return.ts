@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for returns management
 export enum ReturnStatus {
@@ -337,7 +337,7 @@ class Returns {
   private readonly logger: Logger;
   
   constructor(
-    private readonly stateset: stateset,
+    private readonly stateset: ApiClientLike,
     options?: {
       logger?: Logger;
     }

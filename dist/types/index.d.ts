@@ -13,6 +13,9 @@ export interface StatesetConfig {
         url?: string;
     };
 }
+export interface ApiClientLike {
+    request(method: string, path: string, data?: any, options?: any): Promise<any>;
+}
 export interface RequestOptions {
     timeout?: number;
     retries?: number;

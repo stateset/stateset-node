@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum WorkorderStatus {
@@ -220,7 +220,7 @@ export declare class ResourceConflictError extends WorkorderError {
 }
 export declare class Workorders {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private validateWorkorderData;
     private mapResponse;
     list(params?: {

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum PickStatus {
@@ -199,7 +199,7 @@ export declare class PickOperationError extends PickError {
 }
 export declare class Picks {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private validatePickData;
     list(params?: {
         status?: PickStatus;

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for activity management
 export enum ActivityType {
@@ -222,7 +222,7 @@ export class ActivityExecutionError extends Error {
 
 // Main Activities Class
 class Activities {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List activities with optional filtering

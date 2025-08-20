@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum CarrierStatus {
@@ -52,7 +52,7 @@ export declare class CarrierValidationError extends CarrierError {
 }
 export default class Carriers {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateCarrierData;
     private mapResponse;
     list(params?: {
