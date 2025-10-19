@@ -47,8 +47,6 @@ export type FulfillmentOrderResponse =
   | ShippedFulfillmentOrderResponse
   | CancelledFulfillmentOrderResponse;
 
-
-
 export interface FulfillmentOrderLine {
   item_id: string;
   quantity: number;

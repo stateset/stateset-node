@@ -10,13 +10,13 @@ export enum MaintenanceScheduleStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-  OVERDUE = 'OVERDUE'
+  OVERDUE = 'OVERDUE',
 }
 
 export enum MaintenanceType {
   PREVENTIVE = 'PREVENTIVE',
   CORRECTIVE = 'CORRECTIVE',
-  PREDICTIVE = 'PREDICTIVE'
+  PREDICTIVE = 'PREDICTIVE',
 }
 
 // Interfaces
@@ -51,7 +51,10 @@ export interface MaintenanceScheduleResponse {
 
 // Error Classes
 export class MaintenanceScheduleError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'MaintenanceScheduleError';
   }
@@ -59,12 +62,17 @@ export class MaintenanceScheduleError extends Error {
 
 export class MaintenanceScheduleNotFoundError extends MaintenanceScheduleError {
   constructor(maintenanceScheduleId: string) {
-    super(`Maintenance schedule with ID ${maintenanceScheduleId} not found`, { maintenanceScheduleId });
+    super(`Maintenance schedule with ID ${maintenanceScheduleId} not found`, {
+      maintenanceScheduleId,
+    });
   }
 }
 
 export class MaintenanceScheduleValidationError extends MaintenanceScheduleError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -74,10 +82,13 @@ export default class MaintenanceSchedules {
 
   private validateMaintenanceScheduleData(data: MaintenanceScheduleData): void {
     if (!data.asset_id) throw new MaintenanceScheduleValidationError('Asset ID is required');
-    if (!data.scheduled_date) throw new MaintenanceScheduleValidationError('Scheduled date is required');
+    if (!data.scheduled_date)
+      throw new MaintenanceScheduleValidationError('Scheduled date is required');
     if (!data.due_date) throw new MaintenanceScheduleValidationError('Due date is required');
-    if (data.duration_estimate < 0) throw new MaintenanceScheduleValidationError('Duration estimate cannot be negative');
-    if (data.cost_estimate < 0) throw new MaintenanceScheduleValidationError('Cost estimate cannot be negative');
+    if (data.duration_estimate < 0)
+      throw new MaintenanceScheduleValidationError('Duration estimate cannot be negative');
+    if (data.cost_estimate < 0)
+      throw new MaintenanceScheduleValidationError('Cost estimate cannot be negative');
   }
 
   private mapResponse(data: any): MaintenanceScheduleResponse {
@@ -135,7 +146,10 @@ export default class MaintenanceSchedules {
     }
 
     try {
-      const response = await this.stateset.request('GET', `maintenance_schedules?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `maintenance_schedules?${queryParams.toString()}`
+      );
       return {
         maintenance_schedules: response.maintenance_schedules.map(this.mapResponse),
         pagination: {
@@ -151,7 +165,10 @@ export default class MaintenanceSchedules {
 
   async get(maintenanceScheduleId: NonEmptyString<string>): Promise<MaintenanceScheduleResponse> {
     try {
-      const response = await this.stateset.request('GET', `maintenance_schedules/${maintenanceScheduleId}`);
+      const response = await this.stateset.request(
+        'GET',
+        `maintenance_schedules/${maintenanceScheduleId}`
+      );
       return this.mapResponse(response.maintenance_schedule);
     } catch (error: any) {
       throw this.handleError(error, 'get', maintenanceScheduleId);
@@ -173,7 +190,11 @@ export default class MaintenanceSchedules {
     data: Partial<MaintenanceScheduleData>
   ): Promise<MaintenanceScheduleResponse> {
     try {
-      const response = await this.stateset.request('PUT', `maintenance_schedules/${maintenanceScheduleId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `maintenance_schedules/${maintenanceScheduleId}`,
+        data
+      );
       return this.mapResponse(response.maintenance_schedule);
     } catch (error: any) {
       throw this.handleError(error, 'update', maintenanceScheduleId);
@@ -205,8 +226,10 @@ export default class MaintenanceSchedules {
   }
 
   private handleError(error: any, operation: string, maintenanceScheduleId?: string): never {
-    if (error.status === 404) throw new MaintenanceScheduleNotFoundError(maintenanceScheduleId || 'unknown');
-    if (error.status === 400) throw new MaintenanceScheduleValidationError(error.message, error.errors);
+    if (error.status === 404)
+      throw new MaintenanceScheduleNotFoundError(maintenanceScheduleId || 'unknown');
+    if (error.status === 400)
+      throw new MaintenanceScheduleValidationError(error.message, error.errors);
     throw new MaintenanceScheduleError(
       `Failed to ${operation} maintenance schedule: ${error.message}`,
       { operation, originalError: error }

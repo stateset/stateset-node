@@ -5,13 +5,13 @@ export enum ResponseType {
   TEXT = 'text',
   ACTION = 'action',
   ERROR = 'error',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
 }
 
 export enum ResponseStatus {
   PENDING = 'pending',
   SENT = 'sent',
-  FAILED = 'failed'
+  FAILED = 'failed',
 }
 
 // Interfaces for response data structures

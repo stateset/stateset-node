@@ -52,5 +52,4 @@ export default class PayPalIntegration extends BaseIntegration {
   public async getPaymentAuthorization(paymentId: string) {
     return this.request('GET', `payments/${paymentId}/authorization`);
   }
-  
 }

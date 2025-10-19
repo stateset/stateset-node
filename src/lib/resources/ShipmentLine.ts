@@ -12,14 +12,14 @@ export enum ShipmentLineStatus {
   IN_TRANSIT = 'IN_TRANSIT',
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
-  RETURNED = 'RETURNED'
+  RETURNED = 'RETURNED',
 }
 
 export enum ShipmentLineType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
   DOCUMENT = 'DOCUMENT',
-  SAMPLE = 'SAMPLE'
+  SAMPLE = 'SAMPLE',
 }
 
 // Core Interfaces
@@ -84,7 +84,10 @@ export interface ShipmentLineResponse {
 
 // Error Classes
 export class ShipmentLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -97,7 +100,10 @@ export class ShipmentLineNotFoundError extends ShipmentLineError {
 }
 
 export class ShipmentLineValidationError extends ShipmentLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -148,17 +154,19 @@ export class ShipmentLine {
     };
   }
 
-  async list(params: {
-    shipment_id?: string;
-    status?: ShipmentLineStatus;
-    type?: ShipmentLineType;
-    order_line_id?: string;
-    package_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      shipment_id?: string;
+      status?: ShipmentLineStatus;
+      type?: ShipmentLineType;
+      order_line_id?: string;
+      package_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     shipment_lines: ShipmentLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -179,7 +187,11 @@ export class ShipmentLine {
       const response = await this.client.request('GET', `shipment_line_items?${query}`);
       return {
         shipment_lines: response.shipment_lines.map(this.mapResponse),
-        pagination: response.pagination || { total: response.shipment_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.shipment_lines.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -210,7 +222,11 @@ export class ShipmentLine {
     data: Partial<ShipmentLineData>
   ): Promise<ShipmentLineResponse> {
     try {
-      const response = await this.client.request('PUT', `shipment_line_items/${shipmentLineId}`, data);
+      const response = await this.client.request(
+        'PUT',
+        `shipment_line_items/${shipmentLineId}`,
+        data
+      );
       return this.mapResponse(response.shipment_line);
     } catch (error: any) {
       throw this.handleError(error, 'update', shipmentLineId);
@@ -258,11 +274,13 @@ export class ShipmentLine {
     }
   }
 
-  async getMetrics(params: {
-    shipment_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      shipment_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_lines: number;
     status_breakdown: Record<ShipmentLineStatus, number>;
     type_breakdown: Record<ShipmentLineType, number>;
@@ -290,10 +308,10 @@ export class ShipmentLine {
   private handleError(error: any, operation: string, shipmentLineId?: string): never {
     if (error.status === 404) throw new ShipmentLineNotFoundError(shipmentLineId || 'unknown');
     if (error.status === 400) throw new ShipmentLineValidationError(error.message, error.errors);
-    throw new ShipmentLineError(
-      `Failed to ${operation} shipment line: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new ShipmentLineError(`Failed to ${operation} shipment line: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

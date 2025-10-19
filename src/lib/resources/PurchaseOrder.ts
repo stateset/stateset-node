@@ -33,9 +33,12 @@ interface CancelledPurchaseOrderResponse extends BasePurchaseOrderResponse {
   cancelled: true;
 }
 
-type PurchaseOrderResponse = DraftPurchaseOrderResponse | SubmittedPurchaseOrderResponse | ApprovedPurchaseOrderResponse | ReceivedPurchaseOrderResponse | CancelledPurchaseOrderResponse;
-
-
+type PurchaseOrderResponse =
+  | DraftPurchaseOrderResponse
+  | SubmittedPurchaseOrderResponse
+  | ApprovedPurchaseOrderResponse
+  | ReceivedPurchaseOrderResponse
+  | CancelledPurchaseOrderResponse;
 
 interface PurchaseOrderData {
   supplier_id: string;
@@ -90,7 +93,9 @@ class PurchaseOrders {
    */
   async list(): Promise<PurchaseOrderResponse[]> {
     const response = await this.stateset.request('GET', 'purchaseorders');
-    return response.map((purchaseOrder: any) => this.handleCommandResponse({ update_purchaseorders_by_pk: purchaseOrder }));
+    return response.map((purchaseOrder: any) =>
+      this.handleCommandResponse({ update_purchaseorders_by_pk: purchaseOrder })
+    );
   }
 
   /**
@@ -119,8 +124,15 @@ class PurchaseOrders {
    * @param purchaseOrderData - Partial<PurchaseOrderData> object
    * @returns PurchaseOrderResponse object
    */
-  async update(purchaseOrderId: string, purchaseOrderData: Partial<PurchaseOrderData>): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request('PUT', `purchaseorders/${purchaseOrderId}`, purchaseOrderData);
+  async update(
+    purchaseOrderId: string,
+    purchaseOrderData: Partial<PurchaseOrderData>
+  ): Promise<PurchaseOrderResponse> {
+    const response = await this.stateset.request(
+      'PUT',
+      `purchaseorders/${purchaseOrderId}`,
+      purchaseOrderData
+    );
     return this.handleCommandResponse(response);
   }
 
@@ -138,7 +150,10 @@ class PurchaseOrders {
    * @returns SubmittedPurchaseOrderResponse object
    */
   async submit(purchaseOrderId: string): Promise<SubmittedPurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/submit`);
+    const response = await this.stateset.request(
+      'POST',
+      `purchaseorders/${purchaseOrderId}/submit`
+    );
     return this.handleCommandResponse(response) as SubmittedPurchaseOrderResponse;
   }
 
@@ -148,7 +163,10 @@ class PurchaseOrders {
    * @returns ApprovedPurchaseOrderResponse object
    */
   async approve(purchaseOrderId: string): Promise<ApprovedPurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/approve`);
+    const response = await this.stateset.request(
+      'POST',
+      `purchaseorders/${purchaseOrderId}/approve`
+    );
     return this.handleCommandResponse(response) as ApprovedPurchaseOrderResponse;
   }
 
@@ -158,8 +176,15 @@ class PurchaseOrders {
    * @param receivedItems - Array of received items
    * @returns ReceivedPurchaseOrderResponse object
    */
-  async receive(purchaseOrderId: string, receivedItems: { item_id: string; quantity_received: number }[]): Promise<ReceivedPurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/receive`, { received_items: receivedItems });
+  async receive(
+    purchaseOrderId: string,
+    receivedItems: { item_id: string; quantity_received: number }[]
+  ): Promise<ReceivedPurchaseOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `purchaseorders/${purchaseOrderId}/receive`,
+      { received_items: receivedItems }
+    );
     return this.handleCommandResponse(response) as ReceivedPurchaseOrderResponse;
   }
 
@@ -169,7 +194,10 @@ class PurchaseOrders {
    * @returns CancelledPurchaseOrderResponse object
    */
   async cancel(purchaseOrderId: string): Promise<CancelledPurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/cancel`);
+    const response = await this.stateset.request(
+      'POST',
+      `purchaseorders/${purchaseOrderId}/cancel`
+    );
     return this.handleCommandResponse(response) as CancelledPurchaseOrderResponse;
   }
 
@@ -179,8 +207,15 @@ class PurchaseOrders {
    * @param item - Item object
    * @returns PurchaseOrderResponse object
    */
-  async addItem(purchaseOrderId: string, item: PurchaseOrderData['items'][0]): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', `purchaseorders/${purchaseOrderId}/items`, item);
+  async addItem(
+    purchaseOrderId: string,
+    item: PurchaseOrderData['items'][0]
+  ): Promise<PurchaseOrderResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `purchaseorders/${purchaseOrderId}/items`,
+      item
+    );
     return this.handleCommandResponse(response);
   }
 
@@ -191,7 +226,10 @@ class PurchaseOrders {
    * @returns PurchaseOrderResponse object
    */
   async removeItem(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request('DELETE', `purchaseorders/${purchaseOrderId}/items/${itemId}`);
+    const response = await this.stateset.request(
+      'DELETE',
+      `purchaseorders/${purchaseOrderId}/items/${itemId}`
+    );
     return this.handleCommandResponse(response);
   }
 }

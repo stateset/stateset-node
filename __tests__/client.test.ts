@@ -6,7 +6,7 @@ describe('StatesetClient', () => {
     baseUrl: 'https://api.test.com',
     timeout: 30000,
     retry: 2,
-    retryDelayMs: 500
+    retryDelayMs: 500,
   };
 
   afterEach(() => {
@@ -20,7 +20,7 @@ describe('StatesetClient', () => {
   describe('Initialization', () => {
     it('should initialize with provided config', () => {
       const client = new StatesetClient(testConfig);
-      
+
       expect(client).toBeInstanceOf(StatesetClient);
       expect(client.returns).toBeDefined();
       expect(client.orders).toBeDefined();
@@ -33,9 +33,7 @@ describe('StatesetClient', () => {
     });
 
     it('should throw error when API key is missing', () => {
-      expect(() => new StatesetClient({})).toThrow(
-        'Stateset API key is required'
-      );
+      expect(() => new StatesetClient({})).toThrow('Stateset API key is required');
     });
 
     it('should use environment variables when config is not provided', () => {
@@ -55,7 +53,7 @@ describe('StatesetClient', () => {
     it('should include app info in the default user agent', () => {
       const client = new StatesetClient({
         apiKey: 'test-key',
-        appInfo: { name: 'MyApp', version: '1.2.3', url: 'https://example.com' }
+        appInfo: { name: 'MyApp', version: '1.2.3', url: 'https://example.com' },
       });
 
       const config = client.getConfig();
@@ -79,24 +77,33 @@ describe('StatesetClient', () => {
     });
 
     it('should validate base URL format', () => {
-      expect(() => new StatesetClient({
-        apiKey: 'test-key',
-        baseUrl: 'invalid-url'
-      })).toThrow('Invalid base URL');
+      expect(
+        () =>
+          new StatesetClient({
+            apiKey: 'test-key',
+            baseUrl: 'invalid-url',
+          })
+      ).toThrow('Invalid base URL');
     });
 
     it('should validate timeout range', () => {
-      expect(() => new StatesetClient({
-        apiKey: 'test-key',
-        timeout: 500
-      })).toThrow('Timeout must be between 1000ms and 600000ms (10 minutes)');
+      expect(
+        () =>
+          new StatesetClient({
+            apiKey: 'test-key',
+            timeout: 500,
+          })
+      ).toThrow('Timeout must be between 1000ms and 600000ms (10 minutes)');
     });
 
     it('should validate retry count range', () => {
-      expect(() => new StatesetClient({
-        apiKey: 'test-key',
-        retry: 15
-      })).toThrow('Retry count must be between 0 and 10');
+      expect(
+        () =>
+          new StatesetClient({
+            apiKey: 'test-key',
+            retry: 15,
+          })
+      ).toThrow('Retry count must be between 0 and 10');
     });
   });
 
@@ -155,9 +162,7 @@ describe('StatesetClient', () => {
     it('should update headers', () => {
       client.setHeaders({ 'X-Custom': 'value' });
       const config = client.getConfig();
-      expect(config.additionalHeaders).toEqual(
-        expect.objectContaining({ 'X-Custom': 'value' })
-      );
+      expect(config.additionalHeaders).toEqual(expect.objectContaining({ 'X-Custom': 'value' }));
     });
 
     it('should update app info', () => {
@@ -180,14 +185,14 @@ describe('StatesetClient', () => {
       const mockHealthCheck = jest.fn().mockResolvedValue({
         status: 'ok',
         timestamp: '2023-01-01T00:00:00Z',
-        details: { test: 'data' }
+        details: { test: 'data' },
       });
-      
+
       // Access the private httpClient through any
       (client as any).httpClient.healthCheck = mockHealthCheck;
 
       const result = await client.healthCheck();
-      
+
       expect(result.status).toBe('ok');
       expect(result.timestamp).toBeDefined();
       expect(result.details).toBeDefined();
@@ -214,7 +219,7 @@ describe('StatesetClient', () => {
       (client as any).httpClient.getCircuitBreakerState = mockGetState;
 
       const state = client.getCircuitBreakerState();
-      
+
       expect(state).toBe('CLOSED');
       expect(mockGetState).toHaveBeenCalled();
     });
@@ -224,7 +229,7 @@ describe('StatesetClient', () => {
       (client as any).httpClient.resetCircuitBreaker = mockReset;
 
       client.resetCircuitBreaker();
-      
+
       expect(mockReset).toHaveBeenCalled();
     });
   });
@@ -256,7 +261,7 @@ describe('StatesetClient', () => {
         client.shipments,
         client.workorders,
         client.agents,
-        client.inventory
+        client.inventory,
       ];
 
       resources.forEach(resource => {
@@ -271,7 +276,8 @@ describe('StatesetClient', () => {
   describe('Caching Behaviour', () => {
     it('should cache GET responses and invalidate after write operations', async () => {
       const client = new StatesetClient(testConfig);
-      const requestMock = jest.fn()
+      const requestMock = jest
+        .fn()
         .mockResolvedValueOnce({ data: { value: 1 } })
         .mockResolvedValueOnce({ data: { ok: true } })
         .mockResolvedValueOnce({ data: { value: 2 } });
@@ -298,7 +304,8 @@ describe('StatesetClient', () => {
 
     it('should allow disabling cache per request', async () => {
       const client = new StatesetClient(testConfig);
-      const requestMock = jest.fn()
+      const requestMock = jest
+        .fn()
         .mockResolvedValueOnce({ data: { value: 1 } })
         .mockResolvedValueOnce({ data: { value: 2 } });
 
@@ -320,7 +327,8 @@ describe('StatesetClient', () => {
 
     it('should respect custom cache keys and explicit invalidation', async () => {
       const client = new StatesetClient(testConfig);
-      const requestMock = jest.fn()
+      const requestMock = jest
+        .fn()
         .mockResolvedValueOnce({ data: { value: 'A' } })
         .mockResolvedValueOnce({ data: { ok: true } })
         .mockResolvedValueOnce({ data: { value: 'C' } });
@@ -344,9 +352,14 @@ describe('StatesetClient', () => {
       expect(cached.value).toBe('A');
       expect(requestMock).toHaveBeenCalledTimes(1);
 
-      await client.request('PATCH', '/by-org/123', { value: 'C' }, {
-        invalidateCachePaths: ['by-org'],
-      });
+      await client.request(
+        'PATCH',
+        '/by-org/123',
+        { value: 'C' },
+        {
+          invalidateCachePaths: ['by-org'],
+        }
+      );
       expect(requestMock).toHaveBeenCalledTimes(2);
 
       const refreshed = await client.request('GET', '/by-org', null, {
@@ -369,11 +382,16 @@ describe('StatesetClient', () => {
 
       const controller = new AbortController();
 
-      await client.request('POST', '/idempotent', { foo: 'bar' }, {
-        idempotencyKey: 'idem-123',
-        headers: { 'X-Test': 'value' },
-        signal: controller.signal,
-      });
+      await client.request(
+        'POST',
+        '/idempotent',
+        { foo: 'bar' },
+        {
+          idempotencyKey: 'idem-123',
+          headers: { 'X-Test': 'value' },
+          signal: controller.signal,
+        }
+      );
 
       const config = requestMock.mock.calls[0][0];
       expect(config.headers['Idempotency-Key']).toBe('idem-123');
@@ -416,7 +434,9 @@ describe('StatesetClient', () => {
       expect(config.retryOptions).toMatchObject({ maxAttempts: 6, baseDelay: 150, jitter: false });
       expect(config.retry).toBe(5);
       expect(config.retryDelayMs).toBe(150);
-      expect(updateSpy).toHaveBeenCalledWith(expect.objectContaining({ maxAttempts: 6, baseDelay: 150 }));
+      expect(updateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ maxAttempts: 6, baseDelay: 150 })
+      );
 
       updateSpy.mockRestore();
       client.destroy();
@@ -461,13 +481,15 @@ describe('StatesetClient', () => {
       (client as any).httpClient.request = mockRequest;
 
       const result = await client.request('GET', '/test', null, {});
-      
+
       expect(result).toEqual('test');
-      expect(mockRequest).toHaveBeenCalledWith(expect.objectContaining({
-        method: 'get',
-        url: '/test',
-        data: null,
-      }));
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'get',
+          url: '/test',
+          data: null,
+        })
+      );
     });
   });
 

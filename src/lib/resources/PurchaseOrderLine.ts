@@ -27,7 +27,7 @@ class PurchaseOrderLines {
    * @returns Array of PurchaseOrderLineItem objects
    */
   async list(purchaseOrderId?: string): Promise<PurchaseOrderLineItem[]> {
-    const endpoint = purchaseOrderId 
+    const endpoint = purchaseOrderId
       ? `purchase_orders/${purchaseOrderId}/line_items`
       : 'purchase_order_line_items';
     return this.stateset.request('GET', endpoint);
@@ -57,7 +57,10 @@ class PurchaseOrderLines {
    * @param lineItemData - Partial<PurchaseOrderLineItem> object
    * @returns PurchaseOrderLineItem object
    */
-  async update(lineItemId: string, lineItemData: Partial<PurchaseOrderLineItem>): Promise<PurchaseOrderLineItem> {
+  async update(
+    lineItemId: string,
+    lineItemData: Partial<PurchaseOrderLineItem>
+  ): Promise<PurchaseOrderLineItem> {
     return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}`, lineItemData);
   }
 
@@ -75,8 +78,13 @@ class PurchaseOrderLines {
    * @param lineItems - Array of PurchaseOrderLineItem objects
    * @returns Array of PurchaseOrderLineItem objects
    */
-  async bulkCreate(purchaseOrderId: string, lineItems: Array<Omit<PurchaseOrderLineItem, 'id' | 'purchase_order_id'>>): Promise<PurchaseOrderLineItem[]> {
-    return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, { line_items: lineItems });
+  async bulkCreate(
+    purchaseOrderId: string,
+    lineItems: Array<Omit<PurchaseOrderLineItem, 'id' | 'purchase_order_id'>>
+  ): Promise<PurchaseOrderLineItem[]> {
+    return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, {
+      line_items: lineItems,
+    });
   }
 
   /**
@@ -85,8 +93,13 @@ class PurchaseOrderLines {
    * @param quantityReceived - Quantity received
    * @returns PurchaseOrderLineItem object
    */
-  async updateQuantityReceived(lineItemId: string, quantityReceived: number): Promise<PurchaseOrderLineItem> {
-    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, { quantity_received: quantityReceived });
+  async updateQuantityReceived(
+    lineItemId: string,
+    quantityReceived: number
+  ): Promise<PurchaseOrderLineItem> {
+    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, {
+      quantity_received: quantityReceived,
+    });
   }
 }
 

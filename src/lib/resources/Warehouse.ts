@@ -7,7 +7,7 @@ export enum WarehouseStatus {
   MAINTENANCE = 'MAINTENANCE',
   CLOSED = 'CLOSED',
   OVER_CAPACITY = 'OVER_CAPACITY',
-  RESTRICTED = 'RESTRICTED'
+  RESTRICTED = 'RESTRICTED',
 }
 
 export enum ZoneType {
@@ -19,7 +19,7 @@ export enum ZoneType {
   RETURNS = 'returns',
   HAZMAT = 'hazmat',
   TEMPERATURE_CONTROLLED = 'temperature_controlled',
-  QUARANTINE = 'quarantine'
+  QUARANTINE = 'quarantine',
 }
 
 export enum StorageType {
@@ -28,7 +28,7 @@ export enum StorageType {
   BULK_STORAGE = 'bulk_storage',
   BIN_SHELVING = 'bin_shelving',
   DRIVE_IN_RACK = 'drive_in_rack',
-  AUTOMATED_STORAGE = 'automated_storage'
+  AUTOMATED_STORAGE = 'automated_storage',
 }
 
 // Interfaces for warehouse data structures
@@ -244,7 +244,7 @@ class Warehouses {
     org_id?: string;
   }): Promise<WarehouseResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.status) queryParams.append('status', params.status);
     if (params?.country) queryParams.append('country', params.country);
     if (params?.state) queryParams.append('state', params.state);
@@ -302,7 +302,11 @@ class Warehouses {
     warehouseData: Partial<WarehouseData>
   ): Promise<WarehouseResponse> {
     try {
-      const response = await this.stateset.request('PUT', `warehouses/${warehouseId}`, warehouseData);
+      const response = await this.stateset.request(
+        'PUT',
+        `warehouses/${warehouseId}`,
+        warehouseData
+      );
       return response.warehouse;
     } catch (error: any) {
       if (error.status === 404) {
@@ -342,7 +346,7 @@ class Warehouses {
     }
   ): Promise<InventoryItem[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.zone_id) queryParams.append('zone_id', params.zone_id);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.below_reorder_point !== undefined) {
@@ -362,10 +366,7 @@ class Warehouses {
    * @param zoneData - Zone object
    * @returns WarehouseResponse object
    */
-  async addZone(
-    warehouseId: string,
-    zoneData: Zone
-  ): Promise<WarehouseResponse> {
+  async addZone(warehouseId: string, zoneData: Zone): Promise<WarehouseResponse> {
     const response = await this.stateset.request(
       'POST',
       `warehouses/${warehouseId}/zones`,
@@ -428,7 +429,7 @@ class Warehouses {
     }
   ): Promise<WarehouseMetrics> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
 

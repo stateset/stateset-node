@@ -10,14 +10,14 @@ export enum SupplierStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum SupplierType {
   MANUFACTURER = 'MANUFACTURER',
   DISTRIBUTOR = 'DISTRIBUTOR',
   WHOLESALER = 'WHOLESALER',
-  SERVICE_PROVIDER = 'SERVICE_PROVIDER'
+  SERVICE_PROVIDER = 'SERVICE_PROVIDER',
 }
 
 // Core Interfaces
@@ -90,7 +90,10 @@ export interface SupplierResponse {
 
 // Error Classes
 export class SupplierError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -103,7 +106,10 @@ export class SupplierNotFoundError extends SupplierError {
 }
 
 export class SupplierValidationError extends SupplierError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -115,7 +121,8 @@ export default class Suppliers {
     if (!data.name) throw new SupplierValidationError('Supplier name is required');
     if (!data.supplier_code) throw new SupplierValidationError('Supplier code is required');
     if (!data.email) throw new SupplierValidationError('Email is required');
-    if (!data.addresses?.length) throw new SupplierValidationError('At least one address is required');
+    if (!data.addresses?.length)
+      throw new SupplierValidationError('At least one address is required');
     if (!data.payment_terms?.terms) throw new SupplierValidationError('Payment terms are required');
   }
 
@@ -173,16 +180,18 @@ export default class Suppliers {
     }
   }
 
-  async list(params: {
-    status?: SupplierStatus;
-    type?: SupplierType;
-    category?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: SupplierStatus;
+      type?: SupplierType;
+      category?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+      search?: string;
+    } = {}
+  ): Promise<{
     suppliers: SupplierResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -202,7 +211,11 @@ export default class Suppliers {
       const response = await this.client.request('GET', `suppliers?${query.toString()}`);
       return {
         suppliers: response.suppliers.map(this.mapResponse),
-        pagination: response.pagination || { total: response.suppliers.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.suppliers.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -265,10 +278,17 @@ export default class Suppliers {
     });
 
     try {
-      const response = await this.client.request('GET', `suppliers/${id}/products?${query.toString()}`);
+      const response = await this.client.request(
+        'GET',
+        `suppliers/${id}/products?${query.toString()}`
+      );
       return {
         products: response.products,
-        pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.products.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'listProducts', id);
@@ -287,11 +307,13 @@ export default class Suppliers {
     }
   }
 
-  async getMetrics(params: {
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    type?: SupplierType;
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      type?: SupplierType;
+    } = {}
+  ): Promise<{
     total_suppliers: number;
     status_breakdown: Record<SupplierStatus, number>;
     type_breakdown: Record<SupplierType, number>;
@@ -320,9 +342,9 @@ export default class Suppliers {
   private handleError(error: any, operation: string, supplierId?: string): never {
     if (error.status === 404) throw new SupplierNotFoundError(supplierId || 'unknown');
     if (error.status === 400) throw new SupplierValidationError(error.message, error.errors);
-    throw new SupplierError(
-      `Failed to ${operation} supplier: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new SupplierError(`Failed to ${operation} supplier: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

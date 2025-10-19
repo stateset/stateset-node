@@ -91,13 +91,13 @@ class Logger {
   private consoleHandler = (entry: LogEntry): void => {
     const levelNames = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
     const levelName = levelNames[entry.level];
-    
+
     let output = `[${entry.timestamp}] ${levelName}: ${entry.message}`;
-    
+
     if (entry.context) {
       output += ` | Context: ${JSON.stringify(entry.context)}`;
     }
-    
+
     if (entry.error) {
       output += ` | Error: ${entry.error.message}`;
       if (entry.error.stack) {

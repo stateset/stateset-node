@@ -5,7 +5,7 @@ export enum ScheduleType {
   RECURRING = 'recurring',
   ONE_TIME = 'one_time',
   ADAPTIVE = 'adaptive',
-  CONDITIONAL = 'conditional'
+  CONDITIONAL = 'conditional',
 }
 
 export enum ScheduleStatus {
@@ -13,14 +13,14 @@ export enum ScheduleStatus {
   PAUSED = 'paused',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  PENDING = 'pending'
+  PENDING = 'pending',
 }
 
 export enum TaskPriority {
   CRITICAL = 'critical',
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 export enum RecurrencePattern {
@@ -28,13 +28,13 @@ export enum RecurrencePattern {
   DAILY = 'daily',
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export enum ExecutionStrategy {
   SEQUENTIAL = 'sequential',
   PARALLEL = 'parallel',
-  ROUND_ROBIN = 'round_robin'
+  ROUND_ROBIN = 'round_robin',
 }
 
 // Interfaces for schedule data structures
@@ -177,7 +177,10 @@ export class ScheduleValidationError extends Error {
 }
 
 export class ScheduleExecutionError extends Error {
-  constructor(message: string, public readonly scheduleId: string) {
+  constructor(
+    message: string,
+    public readonly scheduleId: string
+  ) {
     super(message);
     this.name = 'ScheduleExecutionError';
   }
@@ -200,7 +203,7 @@ class Schedule {
     org_id?: string;
   }): Promise<ScheduleResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.status) queryParams.append('status', params.status);
     if (params?.schedule_type) queryParams.append('schedule_type', params.schedule_type);
     if (params?.priority) queryParams.append('priority', params.priority);
@@ -253,10 +256,7 @@ class Schedule {
    * @param scheduleData - Partial<ScheduleData> object
    * @returns ScheduleResponse object
    */
-  async update(
-    scheduleId: string, 
-    scheduleData: Partial<ScheduleData>
-  ): Promise<ScheduleResponse> {
+  async update(scheduleId: string, scheduleData: Partial<ScheduleData>): Promise<ScheduleResponse> {
     if (Object.keys(scheduleData).length > 0) {
       this.validateScheduleData(scheduleData as ScheduleData, true);
     }
@@ -348,7 +348,7 @@ class Schedule {
     }
   ): Promise<ExecutionResult[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
     if (params?.status) queryParams.append('status', params.status);
@@ -400,15 +400,21 @@ class Schedule {
     }
 
     if (data.schedule_type === ScheduleType.RECURRING && !data.recurrence_config) {
-      throw new ScheduleValidationError('Recurrence configuration is required for recurring schedules');
+      throw new ScheduleValidationError(
+        'Recurrence configuration is required for recurring schedules'
+      );
     }
 
     if (data.schedule_type === ScheduleType.ADAPTIVE && !data.adaptive_config) {
-      throw new ScheduleValidationError('Adaptive configuration is required for adaptive schedules');
+      throw new ScheduleValidationError(
+        'Adaptive configuration is required for adaptive schedules'
+      );
     }
 
     if (data.schedule_type === ScheduleType.CONDITIONAL && !data.conditional_config) {
-      throw new ScheduleValidationError('Conditional configuration is required for conditional schedules');
+      throw new ScheduleValidationError(
+        'Conditional configuration is required for conditional schedules'
+      );
     }
 
     if (data.time_window) {

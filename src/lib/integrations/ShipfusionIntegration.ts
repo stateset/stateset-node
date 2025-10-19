@@ -36,5 +36,4 @@ export default class ShipfusionIntegration extends BaseIntegration {
   public async getRates(data: any) {
     return this.request('POST', 'rates', data);
   }
-  
 }

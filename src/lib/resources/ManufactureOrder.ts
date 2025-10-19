@@ -11,21 +11,21 @@ export enum ManufacturerOrderStatus {
   QUALITY_CHECK = 'QUALITY_CHECK',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
 }
 
 export enum ProductionPriority {
   URGENT = 'urgent',
   HIGH = 'high',
   NORMAL = 'normal',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 export enum QualityCheckStatus {
   PENDING = 'pending',
   PASSED = 'passed',
   FAILED = 'failed',
-  CONDITIONAL = 'conditional'
+  CONDITIONAL = 'conditional',
 }
 
 // Base Interfaces
@@ -167,15 +167,20 @@ interface BaseManufacturerOrderResponse {
   data: ManufacturerOrderData;
 }
 
-export type ManufacturerOrderResponse = BaseManufacturerOrderResponse & {
-  [K in ManufacturerOrderStatus]: {
-    status: K;
-  } & (K extends ManufacturerOrderStatus.IN_PRODUCTION ? { inProduction: true; production_updates: ProductionUpdate[] }
-    : K extends ManufacturerOrderStatus.QUALITY_CHECK ? { qualityCheck: true; quality_results?: QualityCheckResult }
-    : K extends ManufacturerOrderStatus.COMPLETED ? { completed: true; final_costs: ProductionCosts; quality_results: QualityCheckResult }
-    : K extends ManufacturerOrderStatus.CANCELLED ? { cancelled: true; cancellation_reason: string; cancellation_costs?: ProductionCosts }
-    : {});
-}[ManufacturerOrderStatus];
+export type ManufacturerOrderResponse = BaseManufacturerOrderResponse &
+  {
+    [K in ManufacturerOrderStatus]: {
+      status: K;
+    } & (K extends ManufacturerOrderStatus.IN_PRODUCTION
+      ? { inProduction: true; production_updates: ProductionUpdate[] }
+      : K extends ManufacturerOrderStatus.QUALITY_CHECK
+        ? { qualityCheck: true; quality_results?: QualityCheckResult }
+        : K extends ManufacturerOrderStatus.COMPLETED
+          ? { completed: true; final_costs: ProductionCosts; quality_results: QualityCheckResult }
+          : K extends ManufacturerOrderStatus.CANCELLED
+            ? { cancelled: true; cancellation_reason: string; cancellation_costs?: ProductionCosts }
+            : {});
+  }[ManufacturerOrderStatus];
 
 // Custom Error Classes
 export class ManufacturerOrderError extends Error {
@@ -236,17 +241,19 @@ export class ManufacturerOrders {
     }
   }
 
-  async list(params: {
-    status?: ManufacturerOrderStatus;
-    manufacturer_id?: string;
-    product_id?: string;
-    priority?: ProductionPriority;
-    from_date?: Date;
-    to_date?: Date;
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ orders: ManufacturerOrderResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: ManufacturerOrderStatus;
+      manufacturer_id?: string;
+      product_id?: string;
+      priority?: ProductionPriority;
+      from_date?: Date;
+      to_date?: Date;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ orders: ManufacturerOrderResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -270,16 +277,23 @@ export class ManufacturerOrders {
       ...orderData,
       estimated_costs: orderData.estimated_costs && {
         ...orderData.estimated_costs,
-        currency: orderData.estimated_costs.currency || DEFAULT_CURRENCY
-      }
+        currency: orderData.estimated_costs.currency || DEFAULT_CURRENCY,
+      },
     });
   }
 
-  async update(orderId: string, orderData: Partial<ManufacturerOrderData>): Promise<ManufacturerOrderResponse> {
+  async update(
+    orderId: string,
+    orderData: Partial<ManufacturerOrderData>
+  ): Promise<ManufacturerOrderResponse> {
     if (orderData.material_requirements) {
       validateMaterials(orderData.material_requirements);
     }
-    return this.request<ManufacturerOrderResponse>('PUT', `manufacturerorders/${orderId}`, orderData);
+    return this.request<ManufacturerOrderResponse>(
+      'PUT',
+      `manufacturerorders/${orderId}`,
+      orderData
+    );
   }
 
   async delete(orderId: string): Promise<void> {
@@ -378,14 +392,10 @@ export class ManufacturerOrders {
 
   // Cost Management
   async updateCosts(orderId: string, costs: ProductionCosts): Promise<ManufacturerOrderResponse> {
-    return this.request<ManufacturerOrderResponse>(
-      'POST',
-      `manufacturerorders/${orderId}/costs`,
-      {
-        ...costs,
-        currency: costs.currency || DEFAULT_CURRENCY
-      }
-    );
+    return this.request<ManufacturerOrderResponse>('POST', `manufacturerorders/${orderId}/costs`, {
+      ...costs,
+      currency: costs.currency || DEFAULT_CURRENCY,
+    });
   }
 
   // Material Management
@@ -405,12 +415,14 @@ export class ManufacturerOrders {
   }
 
   // Metrics
-  async getManufacturingMetrics(params: {
-    from_date?: Date;
-    to_date?: Date;
-    manufacturer_id?: string;
-    org_id?: string;
-  } = {}): Promise<{
+  async getManufacturingMetrics(
+    params: {
+      from_date?: Date;
+      to_date?: Date;
+      manufacturer_id?: string;
+      org_id?: string;
+    } = {}
+  ): Promise<{
     total_orders: number;
     completed_orders: number;
     average_production_time: number;
@@ -424,10 +436,7 @@ export class ManufacturerOrders {
     if (params.manufacturer_id) queryParams.append('manufacturer_id', params.manufacturer_id);
     if (params.org_id) queryParams.append('org_id', params.org_id);
 
-    return this.request(
-      'GET',
-      `manufacturerorders/metrics?${queryParams.toString()}`
-    );
+    return this.request('GET', `manufacturerorders/metrics?${queryParams.toString()}`);
   }
 }
 

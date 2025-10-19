@@ -11,12 +11,12 @@ export enum AmazonOrderStatus {
   PARTIALLY_SHIPPED = 'PartiallyShipped',
   SHIPPED = 'Shipped',
   CANCELED = 'Canceled',
-  UNFULFILLABLE = 'Unfulfillable'
+  UNFULFILLABLE = 'Unfulfillable',
 }
 
 export enum AmazonFulfillmentMethod {
   FBA = 'FBA', // Fulfillment by Amazon
-  FBM = 'FBM'  // Fulfillment by Merchant
+  FBM = 'FBM', // Fulfillment by Merchant
 }
 
 // Core Interfaces
@@ -98,7 +98,10 @@ export interface AmazonReport {
 
 // Error Classes
 export class AmazonIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'AmazonIntegrationError';
   }
@@ -111,18 +114,20 @@ export default class AmazonIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new AmazonIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    limit?: number;
-    offset?: number;
-    status?: AmazonProduct['status'];
-    category?: string;
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      limit?: number;
+      offset?: number;
+      status?: AmazonProduct['status'];
+      category?: string;
+    } = {}
+  ): Promise<{
     products: AmazonProduct[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -137,7 +142,11 @@ export default class AmazonIntegration extends BaseIntegration {
       const response = await this.request('GET', `products?${query.toString()}`);
       return {
         products: response.products,
-        pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.products.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new AmazonIntegrationError('Failed to fetch products', { originalError: error });
@@ -153,13 +162,15 @@ export default class AmazonIntegration extends BaseIntegration {
     }
   }
 
-  public async getOrders(params: {
-    status?: AmazonOrderStatus;
-    fulfillment_method?: AmazonFulfillmentMethod;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      status?: AmazonOrderStatus;
+      fulfillment_method?: AmazonFulfillmentMethod;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     orders: AmazonOrder[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -176,14 +187,20 @@ export default class AmazonIntegration extends BaseIntegration {
       const response = await this.request('GET', `orders?${query.toString()}`);
       return {
         orders: response.orders,
-        pagination: response.pagination || { total: response.orders.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.orders.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new AmazonIntegrationError('Failed to fetch orders', { originalError: error });
     }
   }
 
-  public async createOrder(data: Omit<AmazonOrder, 'amazon_order_id' | 'purchase_date'>): Promise<AmazonOrder> {
+  public async createOrder(
+    data: Omit<AmazonOrder, 'amazon_order_id' | 'purchase_date'>
+  ): Promise<AmazonOrder> {
     this.validateRequestData(data, ['items', 'shipping_address']);
     try {
       return await this.request('POST', 'orders', data);
@@ -192,11 +209,13 @@ export default class AmazonIntegration extends BaseIntegration {
     }
   }
 
-  public async getInventory(params: {
-    limit?: number;
-    offset?: number;
-    sku?: string;
-  } = {}): Promise<{
+  public async getInventory(
+    params: {
+      limit?: number;
+      offset?: number;
+      sku?: string;
+    } = {}
+  ): Promise<{
     inventory: AmazonInventory[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -210,14 +229,20 @@ export default class AmazonIntegration extends BaseIntegration {
       const response = await this.request('GET', `inventory?${query.toString()}`);
       return {
         inventory: response.inventory,
-        pagination: response.pagination || { total: response.inventory.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.inventory.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new AmazonIntegrationError('Failed to fetch inventory', { originalError: error });
     }
   }
 
-  public async createInventory(data: Pick<AmazonInventory, 'sku' | 'quantity_available'>): Promise<AmazonInventory> {
+  public async createInventory(
+    data: Pick<AmazonInventory, 'sku' | 'quantity_available'>
+  ): Promise<AmazonInventory> {
     this.validateRequestData(data, ['sku', 'quantity_available']);
     if (data.quantity_available < 0) {
       throw new AmazonIntegrationError('Quantity available cannot be negative');
@@ -229,13 +254,15 @@ export default class AmazonIntegration extends BaseIntegration {
     }
   }
 
-  public async getReviews(params: {
-    asin?: string;
-    rating?: 1 | 2 | 3 | 4 | 5;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getReviews(
+    params: {
+      asin?: string;
+      rating?: 1 | 2 | 3 | 4 | 5;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     reviews: AmazonReview[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -252,7 +279,11 @@ export default class AmazonIntegration extends BaseIntegration {
       const response = await this.request('GET', `reviews?${query.toString()}`);
       return {
         reviews: response.reviews,
-        pagination: response.pagination || { total: response.reviews.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.reviews.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new AmazonIntegrationError('Failed to fetch reviews', { originalError: error });
@@ -264,7 +295,7 @@ export default class AmazonIntegration extends BaseIntegration {
     try {
       return await this.request('POST', 'reviews', data);
     } catch (error: any) {
-      return error
+      return error;
     }
   }
 }

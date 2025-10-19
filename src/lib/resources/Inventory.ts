@@ -6,7 +6,7 @@ export enum InventoryStatus {
   LOW_STOCK = 'low_stock',
   OUT_OF_STOCK = 'out_of_stock',
   RESERVED = 'reserved',
-  DAMAGED = 'damaged'
+  DAMAGED = 'damaged',
 }
 
 export enum LocationType {
@@ -14,7 +14,7 @@ export enum LocationType {
   STORE = 'store',
   TRANSIT = 'transit',
   SUPPLIER = 'supplier',
-  CUSTOMER = 'customer'
+  CUSTOMER = 'customer',
 }
 
 export enum AdjustmentType {
@@ -24,7 +24,7 @@ export enum AdjustmentType {
   DAMAGE = 'damage',
   LOSS = 'loss',
   ADJUSTMENT = 'adjustment',
-  CYCLE_COUNT = 'cycle_count'
+  CYCLE_COUNT = 'cycle_count',
 }
 
 // Interfaces
@@ -189,16 +189,18 @@ export class Inventory {
     }
   }
 
-  async list(params: {
-    status?: InventoryStatus;
-    location_type?: LocationType;
-    item_id?: string;
-    low_stock?: boolean;
-    expiring_before?: Date;
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ inventory: InventoryResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: InventoryStatus;
+      location_type?: LocationType;
+      item_id?: string;
+      low_stock?: boolean;
+      expiring_before?: Date;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ inventory: InventoryResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -221,7 +223,10 @@ export class Inventory {
     return this.request<InventoryResponse>('POST', 'inventory', inventoryData);
   }
 
-  async update(inventoryId: string, inventoryData: Partial<InventoryData>): Promise<InventoryResponse> {
+  async update(
+    inventoryId: string,
+    inventoryData: Partial<InventoryData>
+  ): Promise<InventoryResponse> {
     this.validateInventoryData(inventoryData);
     return this.request<InventoryResponse>('PUT', `inventory/${inventoryId}`, inventoryData);
   }
@@ -237,11 +242,7 @@ export class Inventory {
     if (adjustment.quantity === 0) {
       throw new InventoryValidationError('Adjustment quantity cannot be zero');
     }
-    return this.request<InventoryResponse>(
-      'POST',
-      `inventory/${inventoryId}/adjust`,
-      adjustment
-    );
+    return this.request<InventoryResponse>('POST', `inventory/${inventoryId}/adjust`, adjustment);
   }
 
   async transfer(transfer: InventoryTransfer): Promise<{
@@ -293,21 +294,17 @@ export class Inventory {
     return this.request('POST', `inventory/${inventoryId}/reserve`, { quantity, ...params });
   }
 
-  async releaseReservation(
-    inventoryId: string,
-    reservationId: string
-  ): Promise<InventoryResponse> {
-    return this.request(
-      'POST',
-      `inventory/${inventoryId}/release-reservation/${reservationId}`
-    );
+  async releaseReservation(inventoryId: string, reservationId: string): Promise<InventoryResponse> {
+    return this.request('POST', `inventory/${inventoryId}/release-reservation/${reservationId}`);
   }
 
-  async getLowStockAlerts(params: {
-    org_id?: string;
-    location_type?: LocationType;
-    threshold?: number;
-  } = {}): Promise<Array<InventoryResponse & { threshold: number }>> {
+  async getLowStockAlerts(
+    params: {
+      org_id?: string;
+      location_type?: LocationType;
+      threshold?: number;
+    } = {}
+  ): Promise<Array<InventoryResponse & { threshold: number }>> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) queryParams.append(key, String(value));
@@ -316,11 +313,13 @@ export class Inventory {
     return this.request('GET', `inventory/low-stock-alerts?${queryParams.toString()}`);
   }
 
-  async getInventoryValue(params: {
-    org_id?: string;
-    location_type?: LocationType;
-    status?: InventoryStatus;
-  } = {}): Promise<{
+  async getInventoryValue(
+    params: {
+      org_id?: string;
+      location_type?: LocationType;
+      status?: InventoryStatus;
+    } = {}
+  ): Promise<{
     total_value: number;
     currency: string;
     breakdown: Record<string, { quantity: number; value: number }>;

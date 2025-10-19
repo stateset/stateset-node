@@ -8,20 +8,20 @@ type Timestamp = string; // ISO 8601 format expected
 export enum ShopifyProductStatus {
   ACTIVE = 'active',
   DRAFT = 'draft',
-  ARCHIVED = 'archived'
+  ARCHIVED = 'archived',
 }
 
 export enum ShopifyOrderStatus {
   OPEN = 'open',
   CLOSED = 'closed',
   CANCELLED = 'cancelled',
-  PENDING = 'pending'
+  PENDING = 'pending',
 }
 
 export enum ShopifyInventoryAdjustmentType {
   INCREASE = 'increase',
   DECREASE = 'decrease',
-  SET = 'set'
+  SET = 'set',
 }
 
 // Core Interfaces
@@ -107,7 +107,10 @@ export interface ShopifyInventory {
 
 // Error Classes
 export class ShopifyIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'ShopifyIntegrationError';
   }
@@ -120,18 +123,20 @@ export default class ShopifyIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new ShopifyIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    status?: ShopifyProductStatus;
-    limit?: number; // Shopify uses limit up to 250
-    page_info?: string; // For cursor-based pagination
-    fields?: string[]; // Specific fields to return
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      status?: ShopifyProductStatus;
+      limit?: number; // Shopify uses limit up to 250
+      page_info?: string; // For cursor-based pagination
+      fields?: string[]; // Specific fields to return
+    } = {}
+  ): Promise<{
     products: ShopifyProduct[];
     pagination: { limit: number; page_info?: string };
   }> {
@@ -153,7 +158,9 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async createProduct(data: Omit<ShopifyProduct, 'id' | 'created_at' | 'updated_at'>): Promise<ShopifyProduct> {
+  public async createProduct(
+    data: Omit<ShopifyProduct, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<ShopifyProduct> {
     this.validateRequestData(data, ['title']);
     try {
       const response = await this.request('POST', 'products', { product: data });
@@ -163,12 +170,18 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async updateProduct(id: NonEmptyString<string>, data: Partial<ShopifyProduct>): Promise<ShopifyProduct> {
+  public async updateProduct(
+    id: NonEmptyString<string>,
+    data: Partial<ShopifyProduct>
+  ): Promise<ShopifyProduct> {
     try {
       const response = await this.request('PUT', `products/${id}`, { product: data });
       return response.product;
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to update product', { originalError: error, productId: id });
+      throw new ShopifyIntegrationError('Failed to update product', {
+        originalError: error,
+        productId: id,
+      });
     }
   }
 
@@ -176,16 +189,21 @@ export default class ShopifyIntegration extends BaseIntegration {
     try {
       await this.request('DELETE', `products/${id}`);
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to delete product', { originalError: error, productId: id });
+      throw new ShopifyIntegrationError('Failed to delete product', {
+        originalError: error,
+        productId: id,
+      });
     }
   }
 
-  public async getOrders(params: {
-    status?: ShopifyOrderStatus;
-    date_range?: { since: Date; until: Date };
-    limit?: number;
-    page_info?: string;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      status?: ShopifyOrderStatus;
+      date_range?: { since: Date; until: Date };
+      limit?: number;
+      page_info?: string;
+    } = {}
+  ): Promise<{
     orders: ShopifyOrder[];
     pagination: { limit: number; page_info?: string };
   }> {
@@ -208,7 +226,9 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async createOrder(data: Omit<ShopifyOrder, 'id' | 'order_number' | 'created_at'>): Promise<ShopifyOrder> {
+  public async createOrder(
+    data: Omit<ShopifyOrder, 'id' | 'order_number' | 'created_at'>
+  ): Promise<ShopifyOrder> {
     this.validateRequestData(data, ['line_items']);
     try {
       const response = await this.request('POST', 'orders', { order: data });
@@ -218,12 +238,18 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async updateOrder(id: NonEmptyString<string>, data: Partial<ShopifyOrder>): Promise<ShopifyOrder> {
+  public async updateOrder(
+    id: NonEmptyString<string>,
+    data: Partial<ShopifyOrder>
+  ): Promise<ShopifyOrder> {
     try {
       const response = await this.request('PUT', `orders/${id}`, { order: data });
       return response.order;
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to update order', { originalError: error, orderId: id });
+      throw new ShopifyIntegrationError('Failed to update order', {
+        originalError: error,
+        orderId: id,
+      });
     }
   }
 
@@ -231,15 +257,20 @@ export default class ShopifyIntegration extends BaseIntegration {
     try {
       await this.request('DELETE', `orders/${id}`);
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to delete order', { originalError: error, orderId: id });
+      throw new ShopifyIntegrationError('Failed to delete order', {
+        originalError: error,
+        orderId: id,
+      });
     }
   }
 
-  public async getCustomers(params: {
-    limit?: number;
-    page_info?: string;
-    search?: string;
-  } = {}): Promise<{
+  public async getCustomers(
+    params: {
+      limit?: number;
+      page_info?: string;
+      search?: string;
+    } = {}
+  ): Promise<{
     customers: ShopifyCustomer[];
     pagination: { limit: number; page_info?: string };
   }> {
@@ -260,7 +291,9 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async createCustomer(data: Omit<ShopifyCustomer, 'id' | 'created_at' | 'updated_at'>): Promise<ShopifyCustomer> {
+  public async createCustomer(
+    data: Omit<ShopifyCustomer, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<ShopifyCustomer> {
     this.validateRequestData(data, ['email']);
     try {
       const response = await this.request('POST', 'customers', { customer: data });
@@ -270,12 +303,18 @@ export default class ShopifyIntegration extends BaseIntegration {
     }
   }
 
-  public async updateCustomer(id: NonEmptyString<string>, data: Partial<ShopifyCustomer>): Promise<ShopifyCustomer> {
+  public async updateCustomer(
+    id: NonEmptyString<string>,
+    data: Partial<ShopifyCustomer>
+  ): Promise<ShopifyCustomer> {
     try {
       const response = await this.request('PUT', `customers/${id}`, { customer: data });
       return response.customer;
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to update customer', { originalError: error, customerId: id });
+      throw new ShopifyIntegrationError('Failed to update customer', {
+        originalError: error,
+        customerId: id,
+      });
     }
   }
 
@@ -283,15 +322,20 @@ export default class ShopifyIntegration extends BaseIntegration {
     try {
       await this.request('DELETE', `customers/${id}`);
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to delete customer', { originalError: error, customerId: id });
+      throw new ShopifyIntegrationError('Failed to delete customer', {
+        originalError: error,
+        customerId: id,
+      });
     }
   }
 
-  public async getInventory(params: {
-    location_id?: string;
-    limit?: number;
-    page_info?: string;
-  } = {}): Promise<{
+  public async getInventory(
+    params: {
+      location_id?: string;
+      limit?: number;
+      page_info?: string;
+    } = {}
+  ): Promise<{
     inventory_items: ShopifyInventory[];
     pagination: { limit: number; page_info?: string };
   }> {
@@ -338,13 +382,17 @@ export default class ShopifyIntegration extends BaseIntegration {
       throw new ShopifyIntegrationError('Available quantity cannot be negative');
     }
     try {
-      const endpoint = data.adjustment_type === ShopifyInventoryAdjustmentType.SET 
-        ? 'inventory_levels/set' 
-        : 'inventory_levels/adjust';
+      const endpoint =
+        data.adjustment_type === ShopifyInventoryAdjustmentType.SET
+          ? 'inventory_levels/set'
+          : 'inventory_levels/adjust';
       const response = await this.request('PUT', endpoint, { inventory_item_id: id, ...data });
       return response.inventory_item;
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to update inventory', { originalError: error, inventoryItemId: id });
+      throw new ShopifyIntegrationError('Failed to update inventory', {
+        originalError: error,
+        inventoryItemId: id,
+      });
     }
   }
 
@@ -352,7 +400,10 @@ export default class ShopifyIntegration extends BaseIntegration {
     try {
       await this.request('DELETE', `inventory_levels/${id}`);
     } catch (error: any) {
-      throw new ShopifyIntegrationError('Failed to delete inventory', { originalError: error, inventoryItemId: id });
+      throw new ShopifyIntegrationError('Failed to delete inventory', {
+        originalError: error,
+        inventoryItemId: id,
+      });
     }
   }
 }

@@ -47,7 +47,7 @@ export class ReturnsResource extends BaseResource<Return> {
     options: RequestOptions = {}
   ): Promise<Return> {
     const data = { status, notes };
-    
+
     const response = await this.httpClient.patch<{ return: Return }>(
       `${this.resourceName}/${returnId}/status`,
       data,
@@ -100,7 +100,7 @@ export class ReturnsResource extends BaseResource<Return> {
     options: RequestOptions = {}
   ): Promise<Return> {
     const data = { inspection_notes: inspectionNotes };
-    
+
     const response = await this.httpClient.post<{ return: Return }>(
       `${this.resourceName}/${returnId}/receive`,
       data,
@@ -134,13 +134,9 @@ export class ReturnsResource extends BaseResource<Return> {
   /**
    * Cancel a return
    */
-  async cancel(
-    returnId: string,
-    reason: string,
-    options: RequestOptions = {}
-  ): Promise<Return> {
+  async cancel(returnId: string, reason: string, options: RequestOptions = {}): Promise<Return> {
     const data = { reason };
-    
+
     const response = await this.httpClient.post<{ return: Return }>(
       `${this.resourceName}/${returnId}/cancel`,
       data,
@@ -153,13 +149,9 @@ export class ReturnsResource extends BaseResource<Return> {
   /**
    * Reopen a return
    */
-  async reopen(
-    returnId: string,
-    reason: string,
-    options: RequestOptions = {}
-  ): Promise<Return> {
+  async reopen(returnId: string, reason: string, options: RequestOptions = {}): Promise<Return> {
     const data = { reason };
-    
+
     const response = await this.httpClient.post<{ return: Return }>(
       `${this.resourceName}/${returnId}/reopen`,
       data,
@@ -179,7 +171,7 @@ export class ReturnsResource extends BaseResource<Return> {
     options: RequestOptions = {}
   ): Promise<ReturnNote> {
     const data = { content, is_internal: isInternal };
-    
+
     const response = await this.httpClient.post<{ note: ReturnNote }>(
       `${this.resourceName}/${returnId}/notes`,
       data,
@@ -198,7 +190,7 @@ export class ReturnsResource extends BaseResource<Return> {
     options: RequestOptions = {}
   ): Promise<ReturnNote[]> {
     const queryParams = { include_internal: includeInternal };
-    
+
     const response = await this.httpClient.get<{ notes: ReturnNote[] }>(
       `${this.resourceName}/${returnId}/notes`,
       { ...options, params: queryParams }
@@ -239,11 +231,11 @@ export class ReturnsResource extends BaseResource<Return> {
     refund_rate: number;
   }> {
     const queryParams = filters || {};
-    
-    const response = await this.httpClient.get<any>(
-      `${this.resourceName}/analytics`,
-      { ...options, params: queryParams }
-    );
+
+    const response = await this.httpClient.get<any>(`${this.resourceName}/analytics`, {
+      ...options,
+      params: queryParams,
+    });
 
     return response.data;
   }
@@ -287,7 +279,7 @@ export class ReturnsResource extends BaseResource<Return> {
     }>;
   }> {
     const data = { order_item_ids: orderItemIds };
-    
+
     const response = await this.httpClient.post<any>(
       `${this.resourceName}/validate-eligibility`,
       data,

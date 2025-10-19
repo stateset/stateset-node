@@ -9,7 +9,7 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum UserRole {
@@ -17,7 +17,7 @@ export enum UserRole {
   MANAGER = 'MANAGER',
   STAFF = 'STAFF',
   TECHNICIAN = 'TECHNICIAN',
-  CUSTOMER = 'CUSTOMER'
+  CUSTOMER = 'CUSTOMER',
 }
 
 // Interfaces
@@ -55,7 +55,10 @@ export interface UserResponse {
 
 // Error Classes
 export class UserError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'UserError';
   }
@@ -68,7 +71,10 @@ export class UserNotFoundError extends UserError {
 }
 
 export class UserValidationError extends UserError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -196,17 +202,15 @@ export default class Users {
       throw new UserValidationError('New password must be at least 8 characters long');
     }
     try {
-      await this.stateset.request('POST', `users/${userId}/reset-password`, { password: newPassword });
+      await this.stateset.request('POST', `users/${userId}/reset-password`, {
+        password: newPassword,
+      });
     } catch (error: any) {
       throw this.handleError(error, 'resetPassword', userId);
     }
   }
 
-  async getMetrics(params?: {
-    org_id?: string;
-    date_from?: Date;
-    date_to?: Date;
-  }): Promise<{
+  async getMetrics(params?: { org_id?: string; date_from?: Date; date_to?: Date }): Promise<{
     total_users: number;
     status_breakdown: Record<UserStatus, number>;
     role_breakdown: Record<UserRole, number>;
@@ -220,7 +224,10 @@ export default class Users {
     }
 
     try {
-      const response = await this.stateset.request('GET', `users/metrics?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `users/metrics?${queryParams.toString()}`
+      );
       return response.metrics;
     } catch (error: any) {
       throw this.handleError(error, 'getMetrics');
@@ -230,9 +237,9 @@ export default class Users {
   private handleError(error: any, operation: string, userId?: string): never {
     if (error.status === 404) throw new UserNotFoundError(userId || 'unknown');
     if (error.status === 400) throw new UserValidationError(error.message, error.errors);
-    throw new UserError(
-      `Failed to ${operation} user: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new UserError(`Failed to ${operation} user: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

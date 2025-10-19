@@ -9,7 +9,7 @@ export enum DeliveryConfirmationStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
   DISPUTED = 'DISPUTED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 // Interfaces
@@ -39,7 +39,10 @@ export interface DeliveryConfirmationResponse {
 
 // Error Classes
 export class DeliveryConfirmationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'DeliveryConfirmationError';
   }
@@ -47,12 +50,17 @@ export class DeliveryConfirmationError extends Error {
 
 export class DeliveryConfirmationNotFoundError extends DeliveryConfirmationError {
   constructor(deliveryConfirmationId: string) {
-    super(`Delivery confirmation with ID ${deliveryConfirmationId} not found`, { deliveryConfirmationId });
+    super(`Delivery confirmation with ID ${deliveryConfirmationId} not found`, {
+      deliveryConfirmationId,
+    });
   }
 }
 
 export class DeliveryConfirmationValidationError extends DeliveryConfirmationError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -62,7 +70,8 @@ export default class DeliveryConfirmations {
 
   private validateDeliveryConfirmationData(data: DeliveryConfirmationData): void {
     if (!data.shipment_id) throw new DeliveryConfirmationValidationError('Shipment ID is required');
-    if (!data.delivery_date) throw new DeliveryConfirmationValidationError('Delivery date is required');
+    if (!data.delivery_date)
+      throw new DeliveryConfirmationValidationError('Delivery date is required');
   }
 
   private mapResponse(data: any): DeliveryConfirmationResponse {
@@ -109,7 +118,10 @@ export default class DeliveryConfirmations {
     }
 
     try {
-      const response = await this.stateset.request('GET', `delivery_confirmations?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `delivery_confirmations?${queryParams.toString()}`
+      );
       return {
         delivery_confirmations: response.delivery_confirmations.map(this.mapResponse),
         pagination: {
@@ -125,7 +137,10 @@ export default class DeliveryConfirmations {
 
   async get(deliveryConfirmationId: NonEmptyString<string>): Promise<DeliveryConfirmationResponse> {
     try {
-      const response = await this.stateset.request('GET', `delivery_confirmations/${deliveryConfirmationId}`);
+      const response = await this.stateset.request(
+        'GET',
+        `delivery_confirmations/${deliveryConfirmationId}`
+      );
       return this.mapResponse(response.delivery_confirmation);
     } catch (error: any) {
       throw this.handleError(error, 'get', deliveryConfirmationId);
@@ -147,7 +162,11 @@ export default class DeliveryConfirmations {
     data: Partial<DeliveryConfirmationData>
   ): Promise<DeliveryConfirmationResponse> {
     try {
-      const response = await this.stateset.request('PUT', `delivery_confirmations/${deliveryConfirmationId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `delivery_confirmations/${deliveryConfirmationId}`,
+        data
+      );
       return this.mapResponse(response.delivery_confirmation);
     } catch (error: any) {
       throw this.handleError(error, 'update', deliveryConfirmationId);
@@ -164,7 +183,10 @@ export default class DeliveryConfirmations {
 
   async confirmDelivery(
     deliveryConfirmationId: NonEmptyString<string>,
-    confirmationData: { recipient_name: string; proof_of_delivery: DeliveryConfirmationData['proof_of_delivery'] }
+    confirmationData: {
+      recipient_name: string;
+      proof_of_delivery: DeliveryConfirmationData['proof_of_delivery'];
+    }
   ): Promise<DeliveryConfirmationResponse> {
     try {
       const response = await this.stateset.request(
@@ -179,8 +201,10 @@ export default class DeliveryConfirmations {
   }
 
   private handleError(error: any, operation: string, deliveryConfirmationId?: string): never {
-    if (error.status === 404) throw new DeliveryConfirmationNotFoundError(deliveryConfirmationId || 'unknown');
-    if (error.status === 400) throw new DeliveryConfirmationValidationError(error.message, error.errors);
+    if (error.status === 404)
+      throw new DeliveryConfirmationNotFoundError(deliveryConfirmationId || 'unknown');
+    if (error.status === 400)
+      throw new DeliveryConfirmationValidationError(error.message, error.errors);
     throw new DeliveryConfirmationError(
       `Failed to ${operation} delivery confirmation: ${error.message}`,
       { operation, originalError: error }

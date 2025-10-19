@@ -27,7 +27,8 @@ export class RetryError extends Error {
   }
 }
 
-type InternalRetryOptions = Required<Omit<RetryOptions, 'onRetryAttempt'>> & Pick<RetryOptions, 'onRetryAttempt'>;
+type InternalRetryOptions = Required<Omit<RetryOptions, 'onRetryAttempt'>> &
+  Pick<RetryOptions, 'onRetryAttempt'>;
 
 const DEFAULT_RETRY_OPTIONS: InternalRetryOptions = {
   maxAttempts: 3,
@@ -50,51 +51,51 @@ export async function withRetry<T>(
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       const result = await operation();
-      
+
       if (attempts.length > 0) {
         logger.info('Operation succeeded after retry', {
           operation: 'retry',
           metadata: { attempt, totalAttempts: attempts.length + 1 },
         });
       }
-      
+
       return result;
     } catch (error) {
       lastError = error as Error;
-      
+
       // For the last attempt, don't check retry condition and don't delay
       if (attempt === config.maxAttempts) {
         attempts.push({ attempt, delay: 0, error: lastError });
         break;
       }
-      
+
       // Check retry condition for non-final attempts
       const shouldRetry = config.retryCondition(lastError);
-      
+
       if (!shouldRetry) {
         // If retry condition fails, throw the original error immediately
         throw lastError;
       }
-      
+
       const delay = calculateDelay(attempt, config);
       const attemptInfo: RetryAttempt = { attempt, delay, error: lastError };
       attempts.push(attemptInfo);
-      
+
       logger.warn('Operation failed, retrying', {
         operation: 'retry',
-        metadata: { 
-          attempt, 
+        metadata: {
+          attempt,
           maxAttempts: config.maxAttempts,
           delay,
-          error: lastError.message 
+          error: lastError.message,
         },
       });
-      
+
       config.onRetryAttempt?.(attemptInfo);
       await sleep(delay);
     }
   }
-  
+
   throw new RetryError(
     `Operation failed after ${config.maxAttempts} attempts`,
     attempts,
@@ -105,12 +106,12 @@ export async function withRetry<T>(
 function calculateDelay(attempt: number, options: InternalRetryOptions): number {
   let delay = options.baseDelay * Math.pow(options.backoffMultiplier, attempt - 1);
   delay = Math.min(delay, options.maxDelay);
-  
+
   if (options.jitter) {
     // Add random jitter to prevent thundering herd
     delay = delay * (0.5 + Math.random() * 0.5);
   }
-  
+
   return Math.floor(delay);
 }
 
@@ -126,11 +127,11 @@ export function retry(options: Partial<RetryOptions> = {}) {
     descriptor: TypedPropertyDescriptor<T>
   ) {
     const originalMethod = descriptor.value!;
-    
+
     descriptor.value = async function (this: any, ...args: any[]) {
       return withRetry(() => originalMethod.apply(this, args), options);
     } as T;
-    
+
     return descriptor;
   };
 }

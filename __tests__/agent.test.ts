@@ -41,7 +41,7 @@ describe('Agent Resource', () => {
         attributes: { department: 'support', level: 'senior' },
         metadata: { custom_field: 'value' },
         capabilities: ['CHAT', 'EMAIL'] as AgentCapability[],
-        status: 'AVAILABLE'
+        status: 'AVAILABLE',
       };
 
       mockRequest.mockResolvedValue({ agent: agentData });
@@ -65,7 +65,7 @@ describe('Agent Resource', () => {
         skills: { languages: ['en', 'es'], expertise: ['billing', 'technical'] },
         attributes: { department: 'support', level: 'senior' },
         metadata: { custom_field: 'value' },
-        capabilities: ['CHAT', 'EMAIL'] as AgentCapability[]
+        capabilities: ['CHAT', 'EMAIL'] as AgentCapability[],
       };
 
       const result = await agents.create(createParams);
@@ -90,7 +90,7 @@ describe('Agent Resource', () => {
         model_id: agentData.model_id,
         skills: agentData.skills,
         attributes: agentData.attributes,
-        metadata: agentData.metadata
+        metadata: agentData.metadata,
       });
     });
   });
@@ -103,7 +103,7 @@ describe('Agent Resource', () => {
         activated: false,
         voice_model: 'new_model',
         skills: { languages: ['en', 'fr', 'de'] },
-        metadata: { updated: true }
+        metadata: { updated: true },
       };
 
       const updatedAgent = {
@@ -112,7 +112,7 @@ describe('Agent Resource', () => {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-02T00:00:00Z',
         ...updateData,
-        status: 'OFFLINE'
+        status: 'OFFLINE',
       };
 
       mockRequest.mockResolvedValue({ agent: updatedAgent });
@@ -139,7 +139,7 @@ describe('Agent Resource', () => {
           agent_name: 'Agent 1',
           agent_type: 'sales',
           activated: true,
-          status: 'AVAILABLE'
+          status: 'AVAILABLE',
         },
         {
           id: '2',
@@ -149,8 +149,8 @@ describe('Agent Resource', () => {
           agent_name: 'Agent 2',
           agent_type: 'support',
           activated: true,
-          status: 'BUSY'
-        }
+          status: 'BUSY',
+        },
       ];
 
       mockRequest.mockResolvedValue({ agents: agentsList });
@@ -191,7 +191,7 @@ describe('Agent Resource', () => {
         skills: { languages: ['en'] },
         attributes: { level: 'senior' },
         metadata: { custom: 'data' },
-        status: 'AVAILABLE'
+        status: 'AVAILABLE',
       };
 
       mockRequest.mockResolvedValue({ agent: agentData });
@@ -205,4 +205,4 @@ describe('Agent Resource', () => {
       expect(result.skills).toEqual(agentData.skills);
     });
   });
-}); 
+});

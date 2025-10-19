@@ -9,13 +9,13 @@ export enum ContactType {
   CUSTOMER = 'CUSTOMER',
   SUPPLIER = 'SUPPLIER',
   VENDOR = 'VENDOR',
-  EMPLOYEE = 'EMPLOYEE'
+  EMPLOYEE = 'EMPLOYEE',
 }
 
 export enum ContactStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  PENDING = 'PENDING'
+  PENDING = 'PENDING',
 }
 
 // Interfaces
@@ -52,7 +52,10 @@ export interface ContactResponse {
 
 // Error Classes
 export class ContactError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'ContactError';
   }
@@ -65,7 +68,10 @@ export class ContactNotFoundError extends ContactError {
 }
 
 export class ContactValidationError extends ContactError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -75,8 +81,10 @@ export default class Contacts {
 
   private validateContactData(data: ContactData): void {
     if (!data.entity_id) throw new ContactValidationError('Entity ID is required');
-    if (!data.first_name || !data.last_name) throw new ContactValidationError('First and last name are required');
-    if (!data.email && !data.phone) throw new ContactValidationError('At least one of email or phone is required');
+    if (!data.first_name || !data.last_name)
+      throw new ContactValidationError('First and last name are required');
+    if (!data.email && !data.phone)
+      throw new ContactValidationError('At least one of email or phone is required');
   }
 
   private mapResponse(data: any): ContactResponse {
@@ -159,7 +167,10 @@ export default class Contacts {
     }
   }
 
-  async update(contactId: NonEmptyString<string>, data: Partial<ContactData>): Promise<ContactResponse> {
+  async update(
+    contactId: NonEmptyString<string>,
+    data: Partial<ContactData>
+  ): Promise<ContactResponse> {
     try {
       const response = await this.stateset.request('PUT', `contacts/${contactId}`, data);
       return this.mapResponse(response.contact);
@@ -188,9 +199,9 @@ export default class Contacts {
   private handleError(error: any, operation: string, contactId?: string): never {
     if (error.status === 404) throw new ContactNotFoundError(contactId || 'unknown');
     if (error.status === 400) throw new ContactValidationError(error.message, error.errors);
-    throw new ContactError(
-      `Failed to ${operation} contact: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new ContactError(`Failed to ${operation} contact: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

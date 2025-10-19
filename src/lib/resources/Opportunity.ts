@@ -12,13 +12,13 @@ export enum OpportunityStatus {
   NEGOTIATION = 'NEGOTIATION',
   WON = 'WON',
   LOST = 'LOST',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
 }
 
 export enum OpportunityStage {
   LEAD = 'LEAD',
   OPPORTUNITY = 'OPPORTUNITY',
-  CUSTOMER = 'CUSTOMER'
+  CUSTOMER = 'CUSTOMER',
 }
 
 // Interfaces
@@ -48,7 +48,10 @@ export interface OpportunityResponse {
 
 // Error Classes
 export class OpportunityError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'OpportunityError';
   }
@@ -61,7 +64,10 @@ export class OpportunityNotFoundError extends OpportunityError {
 }
 
 export class OpportunityValidationError extends OpportunityError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -130,7 +136,10 @@ export default class Opportunities {
     }
 
     try {
-      const response = await this.stateset.request('GET', `opportunities?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `opportunities?${queryParams.toString()}`
+      );
       return {
         opportunities: response.opportunities.map(this.mapResponse),
         pagination: {
@@ -188,7 +197,11 @@ export default class Opportunities {
     customerId: NonEmptyString<string>
   ): Promise<OpportunityResponse> {
     try {
-      const response = await this.stateset.request('POST', `opportunities/${opportunityId}/convert`, { customer_id: customerId });
+      const response = await this.stateset.request(
+        'POST',
+        `opportunities/${opportunityId}/convert`,
+        { customer_id: customerId }
+      );
       return this.mapResponse(response.opportunity);
     } catch (error: any) {
       throw this.handleError(error, 'convertToCustomer', opportunityId);
@@ -198,9 +211,9 @@ export default class Opportunities {
   private handleError(error: any, operation: string, opportunityId?: string): never {
     if (error.status === 404) throw new OpportunityNotFoundError(opportunityId || 'unknown');
     if (error.status === 400) throw new OpportunityValidationError(error.message, error.errors);
-    throw new OpportunityError(
-      `Failed to ${operation} opportunity: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new OpportunityError(`Failed to ${operation} opportunity: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

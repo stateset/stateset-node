@@ -9,13 +9,13 @@ export enum ResourceUtilizationStatus {
   AVAILABLE = 'AVAILABLE',
   IN_USE = 'IN_USE',
   MAINTENANCE = 'MAINTENANCE',
-  RESERVED = 'RESERVED'
+  RESERVED = 'RESERVED',
 }
 
 export enum ResourceCategory {
   WAREHOUSE = 'WAREHOUSE',
   MANUFACTURING = 'MANUFACTURING',
-  STAFFING = 'STAFFING'
+  STAFFING = 'STAFFING',
 }
 
 // Interfaces
@@ -47,7 +47,10 @@ export interface ResourceUtilizationResponse {
 
 // Error Classes
 export class ResourceUtilizationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'ResourceUtilizationError';
   }
@@ -55,12 +58,17 @@ export class ResourceUtilizationError extends Error {
 
 export class ResourceUtilizationNotFoundError extends ResourceUtilizationError {
   constructor(resourceUtilizationId: string) {
-    super(`Resource utilization with ID ${resourceUtilizationId} not found`, { resourceUtilizationId });
+    super(`Resource utilization with ID ${resourceUtilizationId} not found`, {
+      resourceUtilizationId,
+    });
   }
 }
 
 export class ResourceUtilizationValidationError extends ResourceUtilizationError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -70,10 +78,14 @@ export default class ResourceUtilization {
 
   private validateResourceUtilizationData(data: ResourceUtilizationData): void {
     if (!data.resource_id) throw new ResourceUtilizationValidationError('Resource ID is required');
-    if (!data.utilization_start) throw new ResourceUtilizationValidationError('Utilization start date is required');
-    if (data.capacity < 0) throw new ResourceUtilizationValidationError('Capacity cannot be negative');
-    if (data.utilized_capacity < 0) throw new ResourceUtilizationValidationError('Utilized capacity cannot be negative');
-    if (data.efficiency < 0 || data.efficiency > 100) throw new ResourceUtilizationValidationError('Efficiency must be between 0 and 100');
+    if (!data.utilization_start)
+      throw new ResourceUtilizationValidationError('Utilization start date is required');
+    if (data.capacity < 0)
+      throw new ResourceUtilizationValidationError('Capacity cannot be negative');
+    if (data.utilized_capacity < 0)
+      throw new ResourceUtilizationValidationError('Utilized capacity cannot be negative');
+    if (data.efficiency < 0 || data.efficiency > 100)
+      throw new ResourceUtilizationValidationError('Efficiency must be between 0 and 100');
   }
 
   private mapResponse(data: any): ResourceUtilizationResponse {
@@ -128,7 +140,10 @@ export default class ResourceUtilization {
     }
 
     try {
-      const response = await this.stateset.request('GET', `resource_utilizations?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `resource_utilizations?${queryParams.toString()}`
+      );
       return {
         resource_utilizations: response.resource_utilizations.map(this.mapResponse),
         pagination: {
@@ -144,7 +159,10 @@ export default class ResourceUtilization {
 
   async get(resourceUtilizationId: NonEmptyString<string>): Promise<ResourceUtilizationResponse> {
     try {
-      const response = await this.stateset.request('GET', `resource_utilizations/${resourceUtilizationId}`);
+      const response = await this.stateset.request(
+        'GET',
+        `resource_utilizations/${resourceUtilizationId}`
+      );
       return this.mapResponse(response.resource_utilization);
     } catch (error: any) {
       throw this.handleError(error, 'get', resourceUtilizationId);
@@ -166,7 +184,11 @@ export default class ResourceUtilization {
     data: Partial<ResourceUtilizationData>
   ): Promise<ResourceUtilizationResponse> {
     try {
-      const response = await this.stateset.request('PUT', `resource_utilizations/${resourceUtilizationId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `resource_utilizations/${resourceUtilizationId}`,
+        data
+      );
       return this.mapResponse(response.resource_utilization);
     } catch (error: any) {
       throw this.handleError(error, 'update', resourceUtilizationId);
@@ -198,8 +220,10 @@ export default class ResourceUtilization {
   }
 
   private handleError(error: any, operation: string, resourceUtilizationId?: string): never {
-    if (error.status === 404) throw new ResourceUtilizationNotFoundError(resourceUtilizationId || 'unknown');
-    if (error.status === 400) throw new ResourceUtilizationValidationError(error.message, error.errors);
+    if (error.status === 404)
+      throw new ResourceUtilizationNotFoundError(resourceUtilizationId || 'unknown');
+    if (error.status === 400)
+      throw new ResourceUtilizationValidationError(error.message, error.errors);
     throw new ResourceUtilizationError(
       `Failed to ${operation} resource utilization: ${error.message}`,
       { operation, originalError: error }

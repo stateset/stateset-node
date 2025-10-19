@@ -9,7 +9,7 @@ export enum WooCommerceProductStatus {
   PUBLISH = 'publish',
   DRAFT = 'draft',
   PENDING = 'pending',
-  PRIVATE = 'private'
+  PRIVATE = 'private',
 }
 
 export enum WooCommerceOrderStatus {
@@ -19,7 +19,7 @@ export enum WooCommerceOrderStatus {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
   REFUNDED = 'refunded',
-  FAILED = 'failed'
+  FAILED = 'failed',
 }
 
 // Core Interfaces
@@ -116,7 +116,10 @@ export interface WooCommerceRate {
 
 // Error Classes
 export class WooCommerceIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'WooCommerceIntegrationError';
   }
@@ -129,18 +132,20 @@ export default class WooCommerceIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new WooCommerceIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    status?: WooCommerceProductStatus;
-    type?: WooCommerceProduct['type'];
-    page?: number;
-    per_page?: number; // WooCommerce caps at 100
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      status?: WooCommerceProductStatus;
+      type?: WooCommerceProduct['type'];
+      page?: number;
+      per_page?: number; // WooCommerce caps at 100
+    } = {}
+  ): Promise<{
     products: WooCommerceProduct[];
     pagination: { total: number; page: number; per_page: number; total_pages: number };
   }> {
@@ -167,7 +172,9 @@ export default class WooCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async createProduct(data: Omit<WooCommerceProduct, 'id' | 'date_created' | 'date_modified'>): Promise<WooCommerceProduct> {
+  public async createProduct(
+    data: Omit<WooCommerceProduct, 'id' | 'date_created' | 'date_modified'>
+  ): Promise<WooCommerceProduct> {
     this.validateRequestData(data, ['name', 'type']);
     try {
       const response = await this.request('POST', 'wc/v3/products', data);
@@ -177,12 +184,14 @@ export default class WooCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async getOrders(params: {
-    status?: WooCommerceOrderStatus;
-    date_range?: { after: Date; before: Date };
-    page?: number;
-    per_page?: number;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      status?: WooCommerceOrderStatus;
+      date_range?: { after: Date; before: Date };
+      page?: number;
+      per_page?: number;
+    } = {}
+  ): Promise<{
     orders: WooCommerceOrder[];
     pagination: { total: number; page: number; per_page: number; total_pages: number };
   }> {
@@ -210,7 +219,9 @@ export default class WooCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async createOrder(data: Omit<WooCommerceOrder, 'id' | 'order_key' | 'date_created'>): Promise<WooCommerceOrder> {
+  public async createOrder(
+    data: Omit<WooCommerceOrder, 'id' | 'order_key' | 'date_created'>
+  ): Promise<WooCommerceOrder> {
     this.validateRequestData(data, ['line_items', 'billing']);
     try {
       const response = await this.request('POST', 'wc/v3/orders', data);
@@ -220,11 +231,13 @@ export default class WooCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async getShipments(params: {
-    order_id?: number;
-    page?: number;
-    per_page?: number;
-  } = {}): Promise<{
+  public async getShipments(
+    params: {
+      order_id?: number;
+      page?: number;
+      per_page?: number;
+    } = {}
+  ): Promise<{
     shipments: WooCommerceShipment[];
     pagination: { total: number; page: number; per_page: number; total_pages: number };
   }> {
@@ -279,7 +292,11 @@ export default class WooCommerceIntegration extends BaseIntegration {
     this.validateRequestData(data, ['order_id', 'shipping']);
     try {
       // Note: WooCommerce rates typically come from shipping plugins; adjust endpoint accordingly
-      const response = await this.request('POST', `wc/v3/orders/${data.order_id}/shipping/rates`, data);
+      const response = await this.request(
+        'POST',
+        `wc/v3/orders/${data.order_id}/shipping/rates`,
+        data
+      );
       return response.data;
     } catch (error: any) {
       throw new WooCommerceIntegrationError('Failed to fetch rates', { originalError: error });

@@ -1,10 +1,10 @@
 // lib/resources/InvoiceLine.ts
 
 export default class InvoiceLines {
-    private client: any;
-  
-    constructor(client: any) {
-      this.client = client;
+  private client: any;
+
+  constructor(client: any) {
+    this.client = client;
   }
 
   /**

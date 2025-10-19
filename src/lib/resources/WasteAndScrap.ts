@@ -28,9 +28,11 @@ interface RecycledWasteAndScrapResponse extends BaseWasteAndScrapResponse {
   recycled: true;
 }
 
-type WasteAndScrapResponse = PendingWasteAndScrapResponse | ProcessedWasteAndScrapResponse | DisposedWasteAndScrapResponse | RecycledWasteAndScrapResponse;
-
-
+type WasteAndScrapResponse =
+  | PendingWasteAndScrapResponse
+  | ProcessedWasteAndScrapResponse
+  | DisposedWasteAndScrapResponse
+  | RecycledWasteAndScrapResponse;
 
 interface WasteAndScrapData {
   type: 'WASTE' | 'SCRAP';
@@ -92,7 +94,7 @@ export default class WasteAndScrap {
   /**
    * @param data - WasteAndScrapData object
    * @returns WasteAndScrapResponse object
-   */ 
+   */
   async create(data: WasteAndScrapData): Promise<WasteAndScrapResponse> {
     const response = await this.client.request('POST', 'waste-and-scrap', data);
     return this.handleCommandResponse(response);
@@ -123,7 +125,9 @@ export default class WasteAndScrap {
    */
   async list(params?: any): Promise<WasteAndScrapResponse[]> {
     const response = await this.client.request('GET', 'waste-and-scrap', params);
-    return response.map((item: any) => this.handleCommandResponse({ update_waste_and_scrap_by_pk: item }));
+    return response.map((item: any) =>
+      this.handleCommandResponse({ update_waste_and_scrap_by_pk: item })
+    );
   }
 
   /**

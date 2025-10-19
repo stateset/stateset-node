@@ -33,9 +33,12 @@ interface CancelledInvoiceResponse extends BaseInvoiceResponse {
   cancelled: true;
 }
 
-type InvoiceResponse = DraftInvoiceResponse | SentInvoiceResponse | PaidInvoiceResponse | OverdueInvoiceResponse | CancelledInvoiceResponse;
-
-
+type InvoiceResponse =
+  | DraftInvoiceResponse
+  | SentInvoiceResponse
+  | PaidInvoiceResponse
+  | OverdueInvoiceResponse
+  | CancelledInvoiceResponse;
 
 interface InvoiceData {
   customer_id: string;
@@ -124,9 +127,11 @@ export default class Invoices {
    * @param params - Optional filtering parameters
    * @returns Array of InvoiceResponse objects
    */
-    async list(params?: any): Promise<InvoiceResponse[]> {
+  async list(params?: any): Promise<InvoiceResponse[]> {
     const response = await this.client.request('GET', 'invoices', params);
-    return response.map((invoice: any) => this.handleCommandResponse({ update_invoices_by_pk: invoice }));
+    return response.map((invoice: any) =>
+      this.handleCommandResponse({ update_invoices_by_pk: invoice })
+    );
   }
 
   /**

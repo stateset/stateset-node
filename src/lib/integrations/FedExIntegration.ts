@@ -5,7 +5,7 @@ export default class FedExIntegration extends BaseIntegration {
     super(apiKey, 'https://api.fedex.com');
   }
 
-  public async getRates(data: any) {    
+  public async getRates(data: any) {
     return this.request('POST', 'rates', data);
   }
 
@@ -28,5 +28,4 @@ export default class FedExIntegration extends BaseIntegration {
   public async getTrackingInfo(shipmentId: string) {
     return this.request('GET', `shipments/${shipmentId}/tracking`);
   }
-  
 }

@@ -31,8 +31,6 @@ export type CashSaleResponse =
   | CancelledCashSaleResponse
   | RefundedCashSaleResponse;
 
-
-
 export interface CashSaleLine {
   item_id: string;
   quantity: number;
@@ -83,9 +81,7 @@ class CashSales {
 
   async list(): Promise<CashSaleResponse[]> {
     const response = await this.stateset.request('GET', 'cashsales');
-    return response.map((cs: any) =>
-      this.handleCommandResponse({ update_cashsales_by_pk: cs })
-    );
+    return response.map((cs: any) => this.handleCommandResponse({ update_cashsales_by_pk: cs }));
   }
 
   async get(id: string): Promise<CashSaleResponse> {

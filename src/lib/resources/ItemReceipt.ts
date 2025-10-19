@@ -31,8 +31,6 @@ export type ItemReceiptResponse =
   | PartialItemReceiptResponse
   | CancelledItemReceiptResponse;
 
-
-
 export interface ItemReceiptLine {
   item_id: string;
   quantity_received: number;
@@ -82,9 +80,7 @@ class ItemReceipts {
 
   async list(): Promise<ItemReceiptResponse[]> {
     const response = await this.stateset.request('GET', 'itemreceipts');
-    return response.map((r: any) =>
-      this.handleCommandResponse({ update_itemreceipts_by_pk: r })
-    );
+    return response.map((r: any) => this.handleCommandResponse({ update_itemreceipts_by_pk: r }));
   }
 
   async get(id: string): Promise<ItemReceiptResponse> {

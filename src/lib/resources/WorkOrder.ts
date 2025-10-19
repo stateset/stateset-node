@@ -15,7 +15,7 @@ export enum WorkorderStatus {
   REVIEW = 'REVIEW',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 export enum WorkorderType {
@@ -26,7 +26,7 @@ export enum WorkorderType {
   UPGRADE = 'UPGRADE',
   CLEANING = 'CLEANING',
   CALIBRATION = 'CALIBRATION',
-  QUALITY_CHECK = 'QUALITY_CHECK'
+  QUALITY_CHECK = 'QUALITY_CHECK',
 }
 
 export enum WorkorderPriority {
@@ -34,7 +34,7 @@ export enum WorkorderPriority {
   HIGH = 'HIGH',
   MEDIUM = 'MEDIUM',
   LOW = 'LOW',
-  ROUTINE = 'ROUTINE'
+  ROUTINE = 'ROUTINE',
 }
 
 export enum MaintenanceType {
@@ -42,7 +42,7 @@ export enum MaintenanceType {
   CORRECTIVE = 'CORRECTIVE',
   PREDICTIVE = 'PREDICTIVE',
   CONDITION_BASED = 'CONDITION_BASED',
-  EMERGENCY = 'EMERGENCY'
+  EMERGENCY = 'EMERGENCY',
 }
 
 // Core Interfaces
@@ -187,15 +187,40 @@ export type WorkorderResponse = {
   data: WorkorderData;
 } & (
   | { status: WorkorderStatus.DRAFT; draft_details: { created_by: string } }
-  | { status: WorkorderStatus.SCHEDULED; schedule_details: { start_date: Timestamp; end_date: Timestamp; assigned_resources: Resource[] } }
-  | { status: WorkorderStatus.IN_PROGRESS; progress: { completed_tasks: number; total_tasks: number; current_task?: Task; time_elapsed: number } }
-  | { status: WorkorderStatus.COMPLETED; completion_details: { completed_at: Timestamp; completed_by: string; quality_results: QualityCheck[] } }
+  | {
+      status: WorkorderStatus.SCHEDULED;
+      schedule_details: {
+        start_date: Timestamp;
+        end_date: Timestamp;
+        assigned_resources: Resource[];
+      };
+    }
+  | {
+      status: WorkorderStatus.IN_PROGRESS;
+      progress: {
+        completed_tasks: number;
+        total_tasks: number;
+        current_task?: Task;
+        time_elapsed: number;
+      };
+    }
+  | {
+      status: WorkorderStatus.COMPLETED;
+      completion_details: {
+        completed_at: Timestamp;
+        completed_by: string;
+        quality_results: QualityCheck[];
+      };
+    }
   | { status: WorkorderStatus.FAILED; failure_details: { reason: string; failed_tasks: Task[] } }
 );
 
 // Error Classes
 export class WorkorderError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -208,13 +233,19 @@ export class WorkorderNotFoundError extends WorkorderError {
 }
 
 export class WorkorderValidationError extends WorkorderError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
 
 export class ResourceConflictError extends WorkorderError {
-  constructor(message: string, public readonly resourceId?: string) {
+  constructor(
+    message: string,
+    public readonly resourceId?: string
+  ) {
     super(message, { resourceId });
   }
 }
@@ -232,7 +263,7 @@ export class Workorders {
 
   private mapResponse(data: any): WorkorderResponse {
     if (!data?.id || !data.status) throw new WorkorderError('Invalid response format');
-    
+
     const baseResponse = {
       id: data.id,
       object: 'workorder' as const,
@@ -244,32 +275,50 @@ export class Workorders {
 
     switch (data.status) {
       case WorkorderStatus.DRAFT:
-        return { ...baseResponse, status: WorkorderStatus.DRAFT, draft_details: { created_by: data.created_by || 'unknown' } };
+        return {
+          ...baseResponse,
+          status: WorkorderStatus.DRAFT,
+          draft_details: { created_by: data.created_by || 'unknown' },
+        };
       case WorkorderStatus.SCHEDULED:
-        return { ...baseResponse, status: WorkorderStatus.SCHEDULED, schedule_details: data.schedule_details };
+        return {
+          ...baseResponse,
+          status: WorkorderStatus.SCHEDULED,
+          schedule_details: data.schedule_details,
+        };
       case WorkorderStatus.IN_PROGRESS:
         return { ...baseResponse, status: WorkorderStatus.IN_PROGRESS, progress: data.progress };
       case WorkorderStatus.COMPLETED:
-        return { ...baseResponse, status: WorkorderStatus.COMPLETED, completion_details: data.completion_details };
+        return {
+          ...baseResponse,
+          status: WorkorderStatus.COMPLETED,
+          completion_details: data.completion_details,
+        };
       case WorkorderStatus.FAILED:
-        return { ...baseResponse, status: WorkorderStatus.FAILED, failure_details: data.failure_details };
+        return {
+          ...baseResponse,
+          status: WorkorderStatus.FAILED,
+          failure_details: data.failure_details,
+        };
       default:
         return baseResponse as WorkorderResponse;
     }
   }
 
-  async list(params: {
-    status?: WorkorderStatus;
-    type?: WorkorderType;
-    priority?: WorkorderPriority;
-    asset_id?: string;
-    facility_id?: string;
-    assigned_to?: string;
-    date_range?: { from: Date; to: Date };
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: WorkorderStatus;
+      type?: WorkorderType;
+      priority?: WorkorderPriority;
+      asset_id?: string;
+      facility_id?: string;
+      assigned_to?: string;
+      date_range?: { from: Date; to: Date };
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     workorders: WorkorderResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -290,7 +339,11 @@ export class Workorders {
     const response = await this.client.request('GET', `workorders?${query}`);
     return {
       workorders: response.workorders.map(this.mapResponse),
-      pagination: response.pagination || { total: response.workorders.length, limit: params.limit || 100, offset: params.offset || 0 },
+      pagination: response.pagination || {
+        total: response.workorders.length,
+        limit: params.limit || 100,
+        offset: params.offset || 0,
+      },
     };
   }
 
@@ -313,7 +366,10 @@ export class Workorders {
     }
   }
 
-  async update(workorderId: NonEmptyString<string>, data: Partial<WorkorderData>): Promise<WorkorderResponse> {
+  async update(
+    workorderId: NonEmptyString<string>,
+    data: Partial<WorkorderData>
+  ): Promise<WorkorderResponse> {
     try {
       const response = await this.client.request('PUT', `workorders/${workorderId}`, data);
       return this.mapResponse(response.workorder);
@@ -348,7 +404,11 @@ export class Workorders {
     } = {}
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/complete`, completionData);
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/complete`,
+        completionData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'completeWork', workorderId);
@@ -360,7 +420,11 @@ export class Workorders {
     cancellationData: { reason: string; notes?: string }
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/cancel`, cancellationData);
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/cancel`,
+        cancellationData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'cancelWork', workorderId);
@@ -372,7 +436,11 @@ export class Workorders {
     holdData: { reason: string; estimated_resume_date?: Timestamp }
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/hold`, holdData);
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/hold`,
+        holdData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'putOnHold', workorderId);
@@ -388,18 +456,28 @@ export class Workorders {
     }
   }
 
-  async assignWorker(workorderId: NonEmptyString<string>, workerId: NonEmptyString<string>): Promise<WorkorderResponse> {
+  async assignWorker(
+    workorderId: NonEmptyString<string>,
+    workerId: NonEmptyString<string>
+  ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/assign`, { worker_id: workerId });
+      const response = await this.client.request('POST', `workorders/${workorderId}/assign`, {
+        worker_id: workerId,
+      });
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'assignWorker', workorderId);
     }
   }
 
-  async addNote(workorderId: NonEmptyString<string>, note: NonEmptyString<string>): Promise<WorkorderResponse> {
+  async addNote(
+    workorderId: NonEmptyString<string>,
+    note: NonEmptyString<string>
+  ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/notes`, { note });
+      const response = await this.client.request('POST', `workorders/${workorderId}/notes`, {
+        note,
+      });
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'addNote', workorderId);
@@ -412,7 +490,11 @@ export class Workorders {
     taskData: Partial<Task>
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('PUT', `workorders/${workorderId}/tasks/${taskId}`, taskData);
+      const response = await this.client.request(
+        'PUT',
+        `workorders/${workorderId}/tasks/${taskId}`,
+        taskData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'updateTask', workorderId);
@@ -429,7 +511,11 @@ export class Workorders {
     }
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/tasks/${taskId}/complete`, completionData);
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/tasks/${taskId}/complete`,
+        completionData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'completeTask', workorderId);
@@ -441,7 +527,11 @@ export class Workorders {
     resourceData: Resource
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/resources`, resourceData);
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/resources`,
+        resourceData
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       if (error.status === 409) throw new ResourceConflictError(error.message, resourceData.id);
@@ -454,20 +544,26 @@ export class Workorders {
     qualityChecks: QualityCheck[]
   ): Promise<WorkorderResponse> {
     try {
-      const response = await this.client.request('POST', `workorders/${workorderId}/quality-checks`, { quality_checks: qualityChecks });
+      const response = await this.client.request(
+        'POST',
+        `workorders/${workorderId}/quality-checks`,
+        { quality_checks: qualityChecks }
+      );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
       throw this.handleError(error, 'submitQualityCheck', workorderId);
     }
   }
 
-  async getMetrics(params: {
-    date_range?: { start: Date; end: Date };
-    type?: WorkorderType;
-    facility_id?: string;
-    org_id?: string;
-    group_by?: 'DAY' | 'WEEK' | 'MONTH';
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      date_range?: { start: Date; end: Date };
+      type?: WorkorderType;
+      facility_id?: string;
+      org_id?: string;
+      group_by?: 'DAY' | 'WEEK' | 'MONTH';
+    } = {}
+  ): Promise<{
     total_workorders: number;
     average_completion_time: number;
     on_time_completion_rate: number;
@@ -498,7 +594,10 @@ export class Workorders {
   private handleError(error: any, operation: string, workorderId?: string): never {
     if (error.status === 404) throw new WorkorderNotFoundError(workorderId || 'unknown');
     if (error.status === 400) throw new WorkorderValidationError(error.message, error.errors);
-    throw new WorkorderError(`Failed to ${operation} work order: ${error.message}`, { operation, originalError: error });
+    throw new WorkorderError(`Failed to ${operation} work order: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

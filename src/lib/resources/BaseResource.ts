@@ -30,7 +30,7 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async create(data: any, options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.create`);
-    
+
     try {
       logger.debug(`Creating ${this.resourceName}`, {
         operation: `${this.resourceName}.create`,
@@ -38,19 +38,23 @@ export abstract class BaseResource implements BaseResourceInterface {
       });
 
       const response = await this.client.request('POST', this.resourcePath, data, options);
-      
+
       timer.end(true);
       logger.info(`${this.resourceName} created successfully`, {
         operation: `${this.resourceName}.create`,
         metadata: { id: response.id },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to create ${this.resourceName}`, {
-        operation: `${this.resourceName}.create`,
-      }, error as Error);
+      logger.error(
+        `Failed to create ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.create`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -60,23 +64,32 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async get(id: string, options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.get`);
-    
+
     try {
       logger.debug(`Fetching ${this.resourceName}`, {
         operation: `${this.resourceName}.get`,
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('GET', `${this.resourcePath}/${id}`, undefined, options);
-      
+      const response = await this.client.request(
+        'GET',
+        `${this.resourcePath}/${id}`,
+        undefined,
+        options
+      );
+
       timer.end(true);
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to fetch ${this.resourceName}`, {
-        operation: `${this.resourceName}.get`,
-        metadata: { id },
-      }, error as Error);
+      logger.error(
+        `Failed to fetch ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.get`,
+          metadata: { id },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -86,28 +99,37 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async update(id: string, data: any, options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.update`);
-    
+
     try {
       logger.debug(`Updating ${this.resourceName}`, {
         operation: `${this.resourceName}.update`,
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('PUT', `${this.resourcePath}/${id}`, data, options);
-      
+      const response = await this.client.request(
+        'PUT',
+        `${this.resourcePath}/${id}`,
+        data,
+        options
+      );
+
       timer.end(true);
       logger.info(`${this.resourceName} updated successfully`, {
         operation: `${this.resourceName}.update`,
         metadata: { id },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to update ${this.resourceName}`, {
-        operation: `${this.resourceName}.update`,
-        metadata: { id },
-      }, error as Error);
+      logger.error(
+        `Failed to update ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.update`,
+          metadata: { id },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -117,28 +139,37 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async delete(id: string, options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.delete`);
-    
+
     try {
       logger.debug(`Deleting ${this.resourceName}`, {
         operation: `${this.resourceName}.delete`,
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('DELETE', `${this.resourcePath}/${id}`, undefined, options);
-      
+      const response = await this.client.request(
+        'DELETE',
+        `${this.resourcePath}/${id}`,
+        undefined,
+        options
+      );
+
       timer.end(true);
       logger.info(`${this.resourceName} deleted successfully`, {
         operation: `${this.resourceName}.delete`,
         metadata: { id },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to delete ${this.resourceName}`, {
-        operation: `${this.resourceName}.delete`,
-        metadata: { id },
-      }, error as Error);
+      logger.error(
+        `Failed to delete ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.delete`,
+          metadata: { id },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -146,9 +177,12 @@ export abstract class BaseResource implements BaseResourceInterface {
   /**
    * List resources with pagination
    */
-  async list(params: PaginationParams & any = {}, options: RequestOptions = {}): Promise<ListResponse<any>> {
+  async list(
+    params: PaginationParams & any = {},
+    options: RequestOptions = {}
+  ): Promise<ListResponse<any>> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.list`);
-    
+
     try {
       logger.debug(`Listing ${this.resourceName}`, {
         operation: `${this.resourceName}.list`,
@@ -161,14 +195,18 @@ export abstract class BaseResource implements BaseResourceInterface {
       };
 
       const response = await this.client.request('GET', this.resourcePath, undefined, config);
-      
+
       timer.end(true);
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to list ${this.resourceName}`, {
-        operation: `${this.resourceName}.list`,
-      }, error as Error);
+      logger.error(
+        `Failed to list ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.list`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -176,9 +214,13 @@ export abstract class BaseResource implements BaseResourceInterface {
   /**
    * Search resources
    */
-  async search(query: string, params: any = {}, options: RequestOptions = {}): Promise<ListResponse<any>> {
+  async search(
+    query: string,
+    params: any = {},
+    options: RequestOptions = {}
+  ): Promise<ListResponse<any>> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.search`);
-    
+
     try {
       logger.debug(`Searching ${this.resourceName}`, {
         operation: `${this.resourceName}.search`,
@@ -195,16 +237,25 @@ export abstract class BaseResource implements BaseResourceInterface {
         params: searchParams,
       };
 
-      const response = await this.client.request('GET', `${this.resourcePath}/search`, undefined, config);
-      
+      const response = await this.client.request(
+        'GET',
+        `${this.resourcePath}/search`,
+        undefined,
+        config
+      );
+
       timer.end(true);
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to search ${this.resourceName}`, {
-        operation: `${this.resourceName}.search`,
-        metadata: { query },
-      }, error as Error);
+      logger.error(
+        `Failed to search ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.search`,
+          metadata: { query },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -214,7 +265,7 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async count(params: any = {}, options: RequestOptions = {}): Promise<{ count: number }> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.count`);
-    
+
     try {
       logger.debug(`Counting ${this.resourceName}`, {
         operation: `${this.resourceName}.count`,
@@ -226,15 +277,24 @@ export abstract class BaseResource implements BaseResourceInterface {
         params,
       };
 
-      const response = await this.client.request('GET', `${this.resourcePath}/count`, undefined, config);
-      
+      const response = await this.client.request(
+        'GET',
+        `${this.resourcePath}/count`,
+        undefined,
+        config
+      );
+
       timer.end(true);
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to count ${this.resourceName}`, {
-        operation: `${this.resourceName}.count`,
-      }, error as Error);
+      logger.error(
+        `Failed to count ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.count`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -244,7 +304,7 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async exists(id: string, options: RequestOptions = {}): Promise<{ exists: boolean }> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.exists`);
-    
+
     try {
       logger.debug(`Checking if ${this.resourceName} exists`, {
         operation: `${this.resourceName}.exists`,
@@ -264,10 +324,14 @@ export abstract class BaseResource implements BaseResourceInterface {
       }
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to check if ${this.resourceName} exists`, {
-        operation: `${this.resourceName}.exists`,
-        metadata: { id },
-      }, error as Error);
+      logger.error(
+        `Failed to check if ${this.resourceName} exists`,
+        {
+          operation: `${this.resourceName}.exists`,
+          metadata: { id },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -277,81 +341,111 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async bulkCreate(items: any[], options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.bulkCreate`);
-    
+
     try {
       logger.debug(`Bulk creating ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkCreate`,
         metadata: { count: items.length, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('POST', `${this.resourcePath}/bulk`, { items }, options);
-      
+      const response = await this.client.request(
+        'POST',
+        `${this.resourcePath}/bulk`,
+        { items },
+        options
+      );
+
       timer.end(true);
       logger.info(`Bulk created ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkCreate`,
         metadata: { count: items.length },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to bulk create ${this.resourceName}`, {
-        operation: `${this.resourceName}.bulkCreate`,
-      }, error as Error);
+      logger.error(
+        `Failed to bulk create ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.bulkCreate`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
 
-  async bulkUpdate(updates: { id: string; data: any }[], options: RequestOptions = {}): Promise<any> {
+  async bulkUpdate(
+    updates: { id: string; data: any }[],
+    options: RequestOptions = {}
+  ): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.bulkUpdate`);
-    
+
     try {
       logger.debug(`Bulk updating ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkUpdate`,
         metadata: { count: updates.length, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('PUT', `${this.resourcePath}/bulk`, { updates }, options);
-      
+      const response = await this.client.request(
+        'PUT',
+        `${this.resourcePath}/bulk`,
+        { updates },
+        options
+      );
+
       timer.end(true);
       logger.info(`Bulk updated ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkUpdate`,
         metadata: { count: updates.length },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to bulk update ${this.resourceName}`, {
-        operation: `${this.resourceName}.bulkUpdate`,
-      }, error as Error);
+      logger.error(
+        `Failed to bulk update ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.bulkUpdate`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
 
   async bulkDelete(ids: string[], options: RequestOptions = {}): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.bulkDelete`);
-    
+
     try {
       logger.debug(`Bulk deleting ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkDelete`,
         metadata: { count: ids.length, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('DELETE', `${this.resourcePath}/bulk`, { ids }, options);
-      
+      const response = await this.client.request(
+        'DELETE',
+        `${this.resourcePath}/bulk`,
+        { ids },
+        options
+      );
+
       timer.end(true);
       logger.info(`Bulk deleted ${this.resourceName}`, {
         operation: `${this.resourceName}.bulkDelete`,
         metadata: { count: ids.length },
       });
-      
+
       return response;
     } catch (error) {
       timer.end(false, (error as Error).message);
-      logger.error(`Failed to bulk delete ${this.resourceName}`, {
-        operation: `${this.resourceName}.bulkDelete`,
-      }, error as Error);
+      logger.error(
+        `Failed to bulk delete ${this.resourceName}`,
+        {
+          operation: `${this.resourceName}.bulkDelete`,
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -365,11 +459,11 @@ export abstract class BaseResource implements BaseResourceInterface {
 
     while (hasMore) {
       const response = await this.list({ ...params, cursor }, options);
-      
+
       for (const item of response.data) {
         yield item;
       }
-      
+
       hasMore = response.has_more;
       cursor = response.next_cursor;
     }
@@ -380,11 +474,11 @@ export abstract class BaseResource implements BaseResourceInterface {
    */
   async collectAll(params: any = {}, options: RequestOptions = {}): Promise<any[]> {
     const items: any[] = [];
-    
+
     for await (const item of this.iterate(params, options)) {
       items.push(item);
     }
-    
+
     return items;
   }
 }

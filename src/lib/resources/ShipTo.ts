@@ -22,7 +22,6 @@ class ShipTo {
   async delete(id: string) {
     return this.stateset.request('DELETE', `ship_to/${id}`);
   }
-
 }
 
 export default ShipTo;

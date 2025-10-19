@@ -3,13 +3,13 @@ import type { ApiClientLike } from '../../types';
 // Enums
 export enum WeightUnit {
   LB = 'LB',
-  KG = 'KG'
+  KG = 'KG',
 }
 
 export enum LineItemStatus {
   PENDING = 'PENDING',
   IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED'
+  DELIVERED = 'DELIVERED',
 }
 
 // Interfaces
@@ -93,13 +93,15 @@ export class ASNLines {
     }
   }
 
-  async list(params: {
-    asn_id?: string;
-    status?: LineItemStatus;
-    purchase_order_line_item_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ line_items: ASNLineItem[]; total: number }> {
+  async list(
+    params: {
+      asn_id?: string;
+      status?: LineItemStatus;
+      purchase_order_line_item_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ line_items: ASNLineItem[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -107,10 +109,8 @@ export class ASNLines {
       }
     });
 
-    const endpoint = params.asn_id
-      ? `asns/${params.asn_id}/line_items`
-      : 'asn_line_items';
-    
+    const endpoint = params.asn_id ? `asns/${params.asn_id}/line_items` : 'asn_line_items';
+
     return this.request<{ line_items: ASNLineItem[]; total: number }>(
       'GET',
       `${endpoint}?${queryParams.toString()}`
@@ -125,7 +125,7 @@ export class ASNLines {
     this.validateLineItem(lineItemData);
     return this.request<ASNLineItem>('POST', 'asn_line_items', {
       ...lineItemData,
-      status: lineItemData.status || LineItemStatus.PENDING
+      status: lineItemData.status || LineItemStatus.PENDING,
     });
   }
 
@@ -146,15 +146,13 @@ export class ASNLines {
       throw new ASNLineValidationError('At least one line item is required for bulk create');
     }
     lineItems.forEach(this.validateLineItem);
-    
-    return this.request<ASNLineItem[]>(
-      'POST',
-      `asns/${asnId}/line_items/bulk`,
-      { line_items: lineItems.map(item => ({
+
+    return this.request<ASNLineItem[]>('POST', `asns/${asnId}/line_items/bulk`, {
+      line_items: lineItems.map(item => ({
         ...item,
-        status: item.status || LineItemStatus.PENDING
-      })) }
-    );
+        status: item.status || LineItemStatus.PENDING,
+      })),
+    });
   }
 
   async updateTrackingInfo(
@@ -165,11 +163,7 @@ export class ASNLines {
       carrier_status?: string;
     }
   ): Promise<ASNLineItem> {
-    return this.request<ASNLineItem>(
-      'PUT',
-      `asn_line_items/${lineItemId}/tracking`,
-      trackingInfo
-    );
+    return this.request<ASNLineItem>('PUT', `asn_line_items/${lineItemId}/tracking`, trackingInfo);
   }
 
   async updateStatus(
@@ -180,11 +174,10 @@ export class ASNLines {
       notes?: string;
     } = {}
   ): Promise<ASNLineItem> {
-    return this.request<ASNLineItem>(
-      'PUT',
-      `asn_line_items/${lineItemId}/status`,
-      { status, ...statusDetails }
-    );
+    return this.request<ASNLineItem>('PUT', `asn_line_items/${lineItemId}/status`, {
+      status,
+      ...statusDetails,
+    });
   }
 
   async getTrackingHistory(
@@ -193,14 +186,16 @@ export class ASNLines {
       from_date?: Date;
       to_date?: Date;
     } = {}
-  ): Promise<Array<{
-    timestamp: string;
-    status: LineItemStatus;
-    package_number?: string;
-    tracking_number?: string;
-    carrier_status?: string;
-    notes?: string;
-  }>> {
+  ): Promise<
+    Array<{
+      timestamp: string;
+      status: LineItemStatus;
+      package_number?: string;
+      tracking_number?: string;
+      carrier_status?: string;
+      notes?: string;
+    }>
+  > {
     const queryParams = new URLSearchParams();
     if (params.from_date) queryParams.append('from_date', params.from_date.toISOString());
     if (params.to_date) queryParams.append('to_date', params.to_date.toISOString());

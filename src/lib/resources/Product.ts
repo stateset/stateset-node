@@ -10,14 +10,14 @@ export enum ProductStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   DRAFT = 'DRAFT',
-  DISCONTINUED = 'DISCONTINUED'
+  DISCONTINUED = 'DISCONTINUED',
 }
 
 export enum ProductType {
   PHYSICAL = 'PHYSICAL',
   DIGITAL = 'DIGITAL',
   SERVICE = 'SERVICE',
-  BUNDLE = 'BUNDLE'
+  BUNDLE = 'BUNDLE',
 }
 
 // Core Interfaces
@@ -83,7 +83,10 @@ export interface ProductResponse {
 
 // Error Classes
 export class ProductError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -96,7 +99,10 @@ export class ProductNotFoundError extends ProductError {
 }
 
 export class ProductValidationError extends ProductError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -167,17 +173,19 @@ export default class Products {
     }
   }
 
-  async list(params: {
-    status?: ProductStatus;
-    type?: ProductType;
-    category?: string;
-    tag?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: ProductStatus;
+      type?: ProductType;
+      category?: string;
+      tag?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+      search?: string;
+    } = {}
+  ): Promise<{
     products: ProductResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -198,7 +206,11 @@ export default class Products {
       const response = await this.client.request('GET', `products?${query.toString()}`);
       return {
         products: response.products.map(this.mapResponse),
-        pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.products.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -226,8 +238,10 @@ export default class Products {
     id: NonEmptyString<string>,
     data: Partial<ProductInventory> & { warehouse_id: string }
   ): Promise<ProductInventory> {
-    if (!data.warehouse_id) throw new ProductValidationError('Warehouse ID is required for inventory update');
-    if (data.quantity && data.quantity < 0) throw new ProductValidationError('Inventory quantity cannot be negative');
+    if (!data.warehouse_id)
+      throw new ProductValidationError('Warehouse ID is required for inventory update');
+    if (data.quantity && data.quantity < 0)
+      throw new ProductValidationError('Inventory quantity cannot be negative');
 
     try {
       const response = await this.client.request('PUT', `products/${id}/inventory`, data);
@@ -237,11 +251,13 @@ export default class Products {
     }
   }
 
-  async getMetrics(params: {
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    type?: ProductType;
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      type?: ProductType;
+    } = {}
+  ): Promise<{
     total_products: number;
     status_breakdown: Record<ProductStatus, number>;
     type_breakdown: Record<ProductType, number>;
@@ -282,9 +298,9 @@ export default class Products {
   private handleError(error: any, operation: string, productId?: string): never {
     if (error.status === 404) throw new ProductNotFoundError(productId || 'unknown');
     if (error.status === 400) throw new ProductValidationError(error.message, error.errors);
-    throw new ProductError(
-      `Failed to ${operation} product: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new ProductError(`Failed to ${operation} product: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

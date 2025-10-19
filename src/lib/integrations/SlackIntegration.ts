@@ -24,6 +24,4 @@ export default class XeroIntegration extends BaseIntegration {
   public async getUserMessages(userId: string) {
     return this.request('GET', `users/${userId}/messages`);
   }
-  
-  
 }

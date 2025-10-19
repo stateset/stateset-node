@@ -10,7 +10,7 @@ export enum QualityControlStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   PASSED = 'PASSED',
   FAILED = 'FAILED',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
 }
 
 // Interfaces
@@ -47,7 +47,10 @@ export interface QualityControlResponse {
 
 // Error Classes
 export class QualityControlError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'QualityControlError';
   }
@@ -60,7 +63,10 @@ export class QualityControlNotFoundError extends QualityControlError {
 }
 
 export class QualityControlValidationError extends QualityControlError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -70,8 +76,10 @@ export default class QualityControl {
 
   private validateQualityControlData(data: QualityControlData): void {
     if (!data.inspector_id) throw new QualityControlValidationError('Inspector ID is required');
-    if (!data.inspection_date) throw new QualityControlValidationError('Inspection date is required');
-    if (!data.standards?.length) throw new QualityControlValidationError('At least one quality standard is required');
+    if (!data.inspection_date)
+      throw new QualityControlValidationError('Inspection date is required');
+    if (!data.standards?.length)
+      throw new QualityControlValidationError('At least one quality standard is required');
   }
 
   private mapResponse(data: any): QualityControlResponse {
@@ -122,7 +130,10 @@ export default class QualityControl {
     }
 
     try {
-      const response = await this.stateset.request('GET', `quality_controls?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `quality_controls?${queryParams.toString()}`
+      );
       return {
         quality_controls: response.quality_controls.map(this.mapResponse),
         pagination: {
@@ -160,7 +171,11 @@ export default class QualityControl {
     data: Partial<QualityControlData>
   ): Promise<QualityControlResponse> {
     try {
-      const response = await this.stateset.request('PUT', `quality_controls/${qualityControlId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `quality_controls/${qualityControlId}`,
+        data
+      );
       return this.mapResponse(response.quality_control);
     } catch (error: any) {
       throw this.handleError(error, 'update', qualityControlId);
@@ -194,9 +209,9 @@ export default class QualityControl {
   private handleError(error: any, operation: string, qualityControlId?: string): never {
     if (error.status === 404) throw new QualityControlNotFoundError(qualityControlId || 'unknown');
     if (error.status === 400) throw new QualityControlValidationError(error.message, error.errors);
-    throw new QualityControlError(
-      `Failed to ${operation} quality control: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new QualityControlError(`Failed to ${operation} quality control: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

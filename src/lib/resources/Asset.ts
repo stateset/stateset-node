@@ -28,9 +28,11 @@ interface RetiredAssetResponse extends BaseAssetResponse {
   retired: true;
 }
 
-type AssetResponse = ActiveAssetResponse | InactiveAssetResponse | MaintenanceAssetResponse | RetiredAssetResponse;
-
-
+type AssetResponse =
+  | ActiveAssetResponse
+  | InactiveAssetResponse
+  | MaintenanceAssetResponse
+  | RetiredAssetResponse;
 
 interface InventoryData {
   quantity: number;

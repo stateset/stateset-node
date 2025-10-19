@@ -5,7 +5,7 @@ export enum EvalType {
   AGENT = 'agent',
   RESPONSE = 'response',
   RULE = 'rule',
-  ATTRIBUTE = 'attribute'
+  ATTRIBUTE = 'attribute',
 }
 
 export interface EvalMetric {

@@ -13,7 +13,7 @@ export enum PickStatus {
   ON_HOLD = 'ON_HOLD',
   QUALITY_CHECK = 'QUALITY_CHECK',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export enum PickType {
@@ -21,14 +21,14 @@ export enum PickType {
   BATCH = 'BATCH',
   ZONE = 'ZONE',
   WAVE = 'WAVE',
-  CLUSTER = 'CLUSTER'
+  CLUSTER = 'CLUSTER',
 }
 
 export enum PickPriority {
   URGENT = 'URGENT',
   HIGH = 'HIGH',
   NORMAL = 'NORMAL',
-  LOW = 'LOW'
+  LOW = 'LOW',
 }
 
 export enum PickMethod {
@@ -36,7 +36,7 @@ export enum PickMethod {
   BATCH = 'BATCH',
   ZONE = 'ZONE',
   WAVE = 'WAVE',
-  CLUSTER = 'CLUSTER'
+  CLUSTER = 'CLUSTER',
 }
 
 // Core Interfaces
@@ -98,7 +98,7 @@ export interface PickRoute {
   sequence: PickLocation[];
   optimization: {
     distance: number; // in meters
-    time: number;    // in minutes
+    time: number; // in minutes
     algorithm: 'SHORTEST_PATH' | 'NEAREST_NEIGHBOR' | 'GENETIC';
   };
   zones?: string[];
@@ -136,8 +136,8 @@ export interface PickMetrics {
   };
   performance: {
     completion_rate: number; // percentage
-    time: number;          // in minutes
-    distance: number;      // in meters
+    time: number; // in minutes
+    distance: number; // in meters
     picks_per_hour: number;
   };
   timestamp: Timestamp;
@@ -187,7 +187,10 @@ export type PickResponse = {
 
 // Error Classes
 export class PickError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -200,13 +203,19 @@ export class PickNotFoundError extends PickError {
 }
 
 export class PickValidationError extends PickError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
 
 export class PickOperationError extends PickError {
-  constructor(message: string, public readonly operation?: string) {
+  constructor(
+    message: string,
+    public readonly operation?: string
+  ) {
     super(message);
   }
 }
@@ -218,7 +227,7 @@ export class Picks {
   private validatePickData(data: PickData): void {
     if (!data.warehouse_id) throw new PickValidationError('Warehouse ID is required');
     if (!data.items?.length) throw new PickValidationError('At least one pick item is required');
-    
+
     if (data.type === PickType.BATCH && !data.grouping?.batch_id) {
       throw new PickValidationError('Batch ID required for batch picks');
     }
@@ -236,19 +245,21 @@ export class Picks {
     });
   }
 
-  async list(params: {
-    status?: PickStatus;
-    type?: PickType;
-    priority?: PickPriority;
-    warehouse_id?: string;
-    picker_id?: string;
-    batch_id?: string;
-    wave_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: PickStatus;
+      type?: PickType;
+      priority?: PickPriority;
+      warehouse_id?: string;
+      picker_id?: string;
+      batch_id?: string;
+      wave_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     picks: PickResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -383,10 +394,7 @@ export class Picks {
   private handleError(error: any, operation: string, pickId?: string): never {
     if (error.status === 404) throw new PickNotFoundError(pickId || 'unknown');
     if (error.status === 400) throw new PickValidationError(error.message, error.errors);
-    throw new PickOperationError(
-      `Failed to ${operation} pick: ${error.message}`,
-      operation
-    );
+    throw new PickOperationError(`Failed to ${operation} pick: ${error.message}`, operation);
   }
 }
 

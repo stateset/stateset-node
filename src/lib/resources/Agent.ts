@@ -120,10 +120,10 @@ interface OnBreakAgentResponse extends BaseAgentResponse {
   onBreak: true;
 }
 
-export type AgentResponse = 
-  | AvailableAgentResponse 
-  | BusyAgentResponse 
-  | OfflineAgentResponse 
+export type AgentResponse =
+  | AvailableAgentResponse
+  | BusyAgentResponse
+  | OfflineAgentResponse
   | OnBreakAgentResponse;
 
 // Error Classes
@@ -142,7 +142,10 @@ export class InvalidAgentStatusError extends Error {
 }
 
 export class AgentOperationError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
     super(message);
     this.name = 'AgentOperationError';
   }
@@ -165,7 +168,7 @@ class Agents {
     }
 
     const agentData = response.update_agents_by_pk;
-    
+
     const baseResponse: BaseAgentResponse = {
       id: agentData.id,
       object: 'agent',
@@ -192,18 +195,18 @@ class Agents {
       metadata: agentData.metadata,
       capabilities: agentData.capabilities,
       status: agentData.status,
-      current_task: agentData.current_task
+      current_task: agentData.current_task,
     };
 
     switch (agentData.status) {
       case 'AVAILABLE':
         return { ...baseResponse, status: 'AVAILABLE', available: true };
       case 'BUSY':
-        return { 
-          ...baseResponse, 
-          status: 'BUSY', 
+        return {
+          ...baseResponse,
+          status: 'BUSY',
           busy: true,
-          current_task: agentData.current_task
+          current_task: agentData.current_task,
         };
       case 'OFFLINE':
         return { ...baseResponse, status: 'OFFLINE', offline: true };
@@ -228,7 +231,9 @@ class Agents {
     if (params?.capability) queryParams.append('capability', params.capability);
 
     const response = await this.stateset.request('GET', `agents?${queryParams.toString()}`);
-    return response.agents.map((agent: any) => this.handleCommandResponse({ update_agents_by_pk: agent }));
+    return response.agents.map((agent: any) =>
+      this.handleCommandResponse({ update_agents_by_pk: agent })
+    );
   }
 
   /**
@@ -315,7 +320,7 @@ class Agents {
   }
 
   /**
-  * Task management methods
+   * Task management methods
    */
   async assignTask(agentId: string, taskData: TaskData): Promise<BusyAgentResponse> {
     const response = await this.stateset.request('POST', `agents/${agentId}/assign-task`, taskData);
@@ -324,7 +329,7 @@ class Agents {
 
   async completeTask(agentId: string, taskId: string): Promise<AvailableAgentResponse> {
     const response = await this.stateset.request(
-      'POST', 
+      'POST',
       `agents/${agentId}/complete-task/${taskId}`
     );
     return this.handleCommandResponse(response) as AvailableAgentResponse;
@@ -350,7 +355,7 @@ class Agents {
   async getSchedule(agentId: string, startDate: Date, endDate: Date) {
     const params = new URLSearchParams({
       start_date: startDate.toISOString(),
-      end_date: endDate.toISOString()
+      end_date: endDate.toISOString(),
     });
     return this.stateset.request('GET', `agents/${agentId}/schedule?${params.toString()}`);
   }

@@ -67,7 +67,8 @@ export class Validator {
 
   static object(message: string = 'Field must be an object'): ValidationRule<any> {
     return {
-      validate: (value: any) => typeof value === 'object' && value !== null && !Array.isArray(value),
+      validate: (value: any) =>
+        typeof value === 'object' && value !== null && !Array.isArray(value),
       message,
     };
   }
@@ -175,7 +176,9 @@ export class Validator {
     };
   }
 
-  static phoneNumber(message: string = 'Field must be a valid phone number'): ValidationRule<string> {
+  static phoneNumber(
+    message: string = 'Field must be a valid phone number'
+  ): ValidationRule<string> {
     const phoneRegex = /^\+?[\d\s\-()]+$/;
     return {
       validate: (value: string) => phoneRegex.test(value) && value.replace(/\D/g, '').length >= 10,
@@ -284,7 +287,10 @@ export const CommonSchemas = {
 
   order: {
     customer_id: [Validator.required(), Validator.string()],
-    status: [Validator.required(), Validator.statusCode(['DRAFT', 'PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'])],
+    status: [
+      Validator.required(),
+      Validator.statusCode(['DRAFT', 'PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED']),
+    ],
     currency: [Validator.required(), Validator.currency()],
     total: [Validator.required(), Validator.number(), Validator.min(0)],
   },
@@ -304,17 +310,16 @@ export function validate(schema: ValidationSchema) {
     descriptor: TypedPropertyDescriptor<T>
   ) {
     const originalMethod = descriptor.value!;
-    
+
     descriptor.value = function (this: any, ...args: any[]) {
       // Validate the first argument (usually data)
       if (args.length > 0 && args[0]) {
         SchemaValidator.validateAndThrow(args[0], schema);
       }
-      
+
       return originalMethod.apply(this, args);
     } as T;
-    
+
     return descriptor;
   };
 }
-

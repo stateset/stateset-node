@@ -10,14 +10,14 @@ export enum RuleType {
   ROUTING = 'routing',
   ESCALATION = 'escalation',
   COMPLIANCE = 'compliance',
-  SECURITY = 'security'
+  SECURITY = 'security',
 }
 
 export enum RulePriority {
   CRITICAL = 'critical',
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 export enum TriggerType {
@@ -25,7 +25,7 @@ export enum TriggerType {
   SCHEDULE = 'schedule',
   CONDITION = 'condition',
   THRESHOLD = 'threshold',
-  PATTERN = 'pattern'
+  PATTERN = 'pattern',
 }
 
 export enum ActionType {
@@ -36,13 +36,23 @@ export enum ActionType {
   DELETE = 'delete',
   ESCALATE = 'escalate',
   RESTRICT = 'restrict',
-  LOG = 'log'
+  LOG = 'log',
 }
 
 // Interfaces for rule data structures
 export interface Condition {
   field: string;
-  operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'not_contains' | 'in' | 'not_in' | 'exists' | 'not_exists';
+  operator:
+    | 'equals'
+    | 'not_equals'
+    | 'greater_than'
+    | 'less_than'
+    | 'contains'
+    | 'not_contains'
+    | 'in'
+    | 'not_in'
+    | 'exists'
+    | 'not_exists';
   value: any;
   logical_operator?: 'AND' | 'OR';
 }
@@ -148,7 +158,10 @@ export class RuleValidationError extends Error {
 }
 
 export class RuleExecutionError extends Error {
-  constructor(message: string, public readonly ruleId: string) {
+  constructor(
+    message: string,
+    public readonly ruleId: string
+  ) {
     super(message);
     this.name = 'RuleExecutionError';
   }
@@ -171,9 +184,10 @@ class Rules {
     org_id?: string;
   }): Promise<RuleResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.rule_type) queryParams.append('rule_type', params.rule_type);
-    if (params?.activated !== undefined) queryParams.append('activated', params.activated.toString());
+    if (params?.activated !== undefined)
+      queryParams.append('activated', params.activated.toString());
     if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
     if (params?.priority) queryParams.append('priority', params.priority);
     if (params?.org_id) queryParams.append('org_id', params.org_id);
@@ -186,7 +200,7 @@ class Rules {
    * Get specific rule by ID
    * @param ruleId - Rule ID
    * @returns RuleResponse object
-    */
+   */
   async get(ruleId: string): Promise<RuleResponse> {
     try {
       const response = await this.stateset.request('GET', `rules/${ruleId}`);
@@ -207,7 +221,7 @@ class Rules {
   async create(ruleData: RuleData): Promise<RuleResponse> {
     // Validate rule conditions
     this.validateConditions(ruleData.conditions);
-    
+
     // Validate rule actions
     this.validateActions(ruleData.actions);
 
@@ -232,7 +246,7 @@ class Rules {
     if (ruleData.conditions) {
       this.validateConditions(ruleData.conditions);
     }
-    
+
     if (ruleData.actions) {
       this.validateActions(ruleData.actions);
     }
@@ -270,11 +284,9 @@ class Rules {
    * @returns RuleResponse object
    */
   async setActivation(ruleId: string, activated: boolean): Promise<RuleResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `rules/${ruleId}/activation`,
-      { activated }
-    );
+    const response = await this.stateset.request('POST', `rules/${ruleId}/activation`, {
+      activated,
+    });
     return response.rule;
   }
 
@@ -284,16 +296,9 @@ class Rules {
    * @param testData - Record<string, any> object
    * @returns RuleExecutionResult object
    */
-  async testRule(
-    ruleId: string,
-    testData: Record<string, any>
-  ): Promise<RuleExecutionResult> {
+  async testRule(ruleId: string, testData: Record<string, any>): Promise<RuleExecutionResult> {
     try {
-      const response = await this.stateset.request(
-        'POST',
-        `rules/${ruleId}/test`,
-        testData
-      );
+      const response = await this.stateset.request('POST', `rules/${ruleId}/test`, testData);
       return response.result;
     } catch (error: any) {
       throw new RuleExecutionError(error.message, ruleId);
@@ -316,7 +321,7 @@ class Rules {
     }
   ): Promise<RuleExecutionResult[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
     if (params?.status) queryParams.append('status', params.status);
@@ -342,11 +347,7 @@ class Rules {
       activate?: boolean;
     }
   ): Promise<RuleResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `rules/${ruleId}/clone`,
-      options
-    );
+    const response = await this.stateset.request('POST', `rules/${ruleId}/clone`, options);
     return response.rule;
   }
 
@@ -360,8 +361,13 @@ class Rules {
         throw new RuleValidationError('Invalid condition: missing required fields');
       }
 
-      if (['equals', 'not_equals', 'greater_than', 'less_than'].includes(condition.operator) && condition.value === undefined) {
-        throw new RuleValidationError(`Invalid condition: ${condition.operator} operator requires a value`);
+      if (
+        ['equals', 'not_equals', 'greater_than', 'less_than'].includes(condition.operator) &&
+        condition.value === undefined
+      ) {
+        throw new RuleValidationError(
+          `Invalid condition: ${condition.operator} operator requires a value`
+        );
       }
     }
   }

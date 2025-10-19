@@ -13,7 +13,7 @@ export enum ReturnStatus {
   REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED',
   CLOSED = 'CLOSED',
-  REOPENED = 'REOPENED'
+  REOPENED = 'REOPENED',
 }
 
 export enum ReturnReason {
@@ -25,7 +25,7 @@ export enum ReturnReason {
   QUALITY_ISSUE = 'quality_issue',
   ARRIVED_LATE = 'arrived_late',
   CHANGED_MIND = 'changed_mind',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export enum ReturnCondition {
@@ -33,27 +33,27 @@ export enum ReturnCondition {
   LIKE_NEW = 'like_new',
   USED = 'used',
   DAMAGED = 'damaged',
-  UNSALVAGEABLE = 'unsalvageable'
+  UNSALVAGEABLE = 'unsalvageable',
 }
 
 export enum RefundMethod {
   ORIGINAL_PAYMENT = 'original_payment',
   STORE_CREDIT = 'store_credit',
   BANK_TRANSFER = 'bank_transfer',
-  GIFT_CARD = 'gift_card'
+  GIFT_CARD = 'gift_card',
 }
 
 export enum RecommendedAction {
   REFURBISH = 'refurbish',
   LIQUIDATE = 'liquidate',
   DISPOSE = 'dispose',
-  RESTOCK = 'restock'
+  RESTOCK = 'restock',
 }
 
 export enum DamageSeverity {
   MINOR = 'minor',
   MODERATE = 'moderate',
-  SEVERE = 'severe'
+  SEVERE = 'severe',
 }
 
 // Interfaces for return data structures
@@ -296,10 +296,12 @@ export class ReturnValidationError extends Error {
 
 export class ReturnStateError extends Error {
   constructor(currentState: ReturnStatus, requiredState: ReturnStatus | ReturnStatus[]) {
-    const stateMessage = Array.isArray(requiredState) 
-      ? `one of [${requiredState.join(', ')}]` 
+    const stateMessage = Array.isArray(requiredState)
+      ? `one of [${requiredState.join(', ')}]`
       : requiredState;
-    super(`Invalid state transition. Current state: ${currentState}, required state: ${stateMessage}`);
+    super(
+      `Invalid state transition. Current state: ${currentState}, required state: ${stateMessage}`
+    );
     this.name = 'ReturnStateError';
   }
 }
@@ -307,7 +309,7 @@ export class ReturnStateError extends Error {
 export class ReturnApiError extends Error {
   status: number;
   code?: string;
-  
+
   constructor(message: string, status: number, code?: string) {
     super(message);
     this.name = 'ReturnApiError';
@@ -335,7 +337,7 @@ const defaultLogger: Logger = {
 // Main Returns Class
 class Returns {
   private readonly logger: Logger;
-  
+
   constructor(
     private readonly stateset: ApiClientLike,
     options?: {
@@ -358,7 +360,7 @@ class Returns {
   }> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.status) queryParams.append('status', params.status);
       if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
       if (params?.order_id) queryParams.append('order_id', params.order_id);
@@ -376,7 +378,7 @@ class Returns {
         returns: response.returns,
         total_count: response.total_count,
         limit: response.limit,
-        offset: response.offset
+        offset: response.offset,
       };
     } catch (error: any) {
       this.logger.error('Error listing returns', { error, params });
@@ -424,18 +426,18 @@ class Returns {
         }
       }
 
-      this.logger.debug('Creating return', { 
+      this.logger.debug('Creating return', {
         order_id: returnData.order_id,
         customer_id: returnData.customer_id,
-        item_count: returnData.items.length
+        item_count: returnData.items.length,
       });
       const response = await this.stateset.request('POST', 'returns', returnData);
       return response.return;
     } catch (error: any) {
-      this.logger.error('Error creating return', { 
-        error, 
+      this.logger.error('Error creating return', {
+        error,
         order_id: returnData.order_id,
-        customer_id: returnData.customer_id
+        customer_id: returnData.customer_id,
       });
       this.handleApiError(error);
     }
@@ -476,7 +478,11 @@ class Returns {
   ): Promise<ApprovedReturnResponse> {
     try {
       this.logger.debug('Approving return', { returnId });
-      const response = await this.stateset.request('POST', `returns/${returnId}/approve`, approvalData);
+      const response = await this.stateset.request(
+        'POST',
+        `returns/${returnId}/approve`,
+        approvalData
+      );
       return response.return as ApprovedReturnResponse;
     } catch (error: any) {
       this.logger.error('Error approving return', { error, returnId });
@@ -500,7 +506,11 @@ class Returns {
   ): Promise<ReceivedReturnResponse> {
     try {
       this.logger.debug('Marking return as received', { returnId });
-      const response = await this.stateset.request('POST', `returns/${returnId}/receive`, receiptData);
+      const response = await this.stateset.request(
+        'POST',
+        `returns/${returnId}/receive`,
+        receiptData
+      );
       return response.return as ReceivedReturnResponse;
     } catch (error: any) {
       this.logger.error('Error marking return as received', { error, returnId });
@@ -543,10 +553,10 @@ class Returns {
     refundDetails: RefundDetails
   ): Promise<CompletedReturnResponse> {
     try {
-      this.logger.debug('Processing refund for return', { 
-        returnId, 
-        method: refundDetails.method, 
-        amount: refundDetails.amount 
+      this.logger.debug('Processing refund for return', {
+        returnId,
+        method: refundDetails.method,
+        amount: refundDetails.amount,
       });
       const response = await this.stateset.request(
         'POST',
@@ -555,10 +565,10 @@ class Returns {
       );
       return response.return as CompletedReturnResponse;
     } catch (error: any) {
-      this.logger.error('Error processing refund', { 
-        error, 
-        returnId, 
-        method: refundDetails.method 
+      this.logger.error('Error processing refund', {
+        error,
+        returnId,
+        method: refundDetails.method,
       });
       this.handleStateTransitionError(error, returnId);
     }
@@ -579,7 +589,11 @@ class Returns {
   ): Promise<RejectedReturnResponse> {
     try {
       this.logger.debug('Rejecting return', { returnId, reason: rejectionData.reason });
-      const response = await this.stateset.request('POST', `returns/${returnId}/reject`, rejectionData);
+      const response = await this.stateset.request(
+        'POST',
+        `returns/${returnId}/reject`,
+        rejectionData
+      );
       return response.return as RejectedReturnResponse;
     } catch (error: any) {
       this.logger.error('Error rejecting return', { error, returnId });
@@ -603,8 +617,8 @@ class Returns {
     try {
       this.logger.debug('Cancelling return', { returnId });
       const response = await this.stateset.request(
-        'POST', 
-        `returns/${returnId}/cancel`, 
+        'POST',
+        `returns/${returnId}/cancel`,
         cancellationData
       );
       return response.return as CancelledReturnResponse;
@@ -629,7 +643,11 @@ class Returns {
   ): Promise<ClosedReturnResponse> {
     try {
       this.logger.debug('Closing return', { returnId });
-      const response = await this.stateset.request('POST', `returns/${returnId}/close`, closeData || {});
+      const response = await this.stateset.request(
+        'POST',
+        `returns/${returnId}/close`,
+        closeData || {}
+      );
       return response.return as ClosedReturnResponse;
     } catch (error: any) {
       this.logger.error('Error closing return', { error, returnId });
@@ -652,7 +670,11 @@ class Returns {
   ): Promise<ReopenedReturnResponse> {
     try {
       this.logger.debug('Reopening return', { returnId });
-      const response = await this.stateset.request('POST', `returns/${returnId}/reopen`, reopenData);
+      const response = await this.stateset.request(
+        'POST',
+        `returns/${returnId}/reopen`,
+        reopenData
+      );
       return response.return as ReopenedReturnResponse;
     } catch (error: any) {
       this.logger.error('Error reopening return', { error, returnId });
@@ -709,13 +731,16 @@ class Returns {
   async getMetrics(params?: ReturnMetricsParams): Promise<ReturnMetrics> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
       if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
       if (params?.org_id) queryParams.append('org_id', params.org_id);
-      if (params?.include_monthly_trends) queryParams.append('include_monthly_trends', params.include_monthly_trends.toString());
-      if (params?.include_top_products) queryParams.append('include_top_products', params.include_top_products.toString());
-      if (params?.product_limit) queryParams.append('product_limit', params.product_limit.toString());
+      if (params?.include_monthly_trends)
+        queryParams.append('include_monthly_trends', params.include_monthly_trends.toString());
+      if (params?.include_top_products)
+        queryParams.append('include_top_products', params.include_top_products.toString());
+      if (params?.product_limit)
+        queryParams.append('product_limit', params.product_limit.toString());
 
       this.logger.debug('Getting return metrics', { params });
       const response = await this.stateset.request(
@@ -761,14 +786,14 @@ class Returns {
   ): Promise<Buffer> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.status) queryParams.append('status', params.status);
       if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
       if (params?.order_id) queryParams.append('order_id', params.order_id);
       if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
       if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
       if (params?.org_id) queryParams.append('org_id', params.org_id);
-      
+
       queryParams.append('format', format);
 
       this.logger.debug('Exporting returns data', { params, format });
@@ -777,7 +802,7 @@ class Returns {
         `returns/export?${queryParams.toString()}`,
         { responseType: 'arraybuffer' }
       );
-      
+
       return Buffer.from(response);
     } catch (error: any) {
       this.logger.error('Error exporting data', { error });
@@ -814,17 +839,19 @@ class Returns {
    * @param returnId - Return ID
    * @returns Array of history events
    */
-  async getHistory(returnId: string): Promise<Array<{
-    id: string;
-    return_id: string;
-    action: string;
-    from_status?: ReturnStatus;
-    to_status?: ReturnStatus;
-    actor_id?: string;
-    actor_type?: 'user' | 'system' | 'customer';
-    metadata?: Record<string, any>;
-    created_at: string;
-  }>> {
+  async getHistory(returnId: string): Promise<
+    Array<{
+      id: string;
+      return_id: string;
+      action: string;
+      from_status?: ReturnStatus;
+      to_status?: ReturnStatus;
+      actor_id?: string;
+      actor_type?: 'user' | 'system' | 'customer';
+      metadata?: Record<string, any>;
+      created_at: string;
+    }>
+  > {
     try {
       this.logger.debug('Getting return history', { returnId });
       const response = await this.stateset.request('GET', `returns/${returnId}/history`);
@@ -841,11 +868,7 @@ class Returns {
   // Helper method to handle API errors
   private handleApiError(error: any): never {
     if (error.status && error.message) {
-      throw new ReturnApiError(
-        error.message,
-        error.status,
-        error.code
-      );
+      throw new ReturnApiError(error.message, error.status, error.code);
     }
     throw error;
   }
@@ -855,16 +878,16 @@ class Returns {
     if (error.status === 404) {
       throw new ReturnNotFoundError(returnId);
     }
-    
+
     if (error.status === 400 && error.message?.includes('Invalid state transition')) {
       const currentState = error.data?.current_state;
       const requiredState = error.data?.required_state;
-      
+
       if (currentState && requiredState) {
         throw new ReturnStateError(currentState, requiredState);
       }
     }
-    
+
     this.handleApiError(error);
   }
 }

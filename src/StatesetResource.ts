@@ -28,7 +28,7 @@ class StatesetResource {
       const method = this.getHttpMethod(operation);
       const path = this.getPath(operation, params);
       const data = this.getData(operation, params);
-      
+
       return this.stateset.request(method, path, data);
     };
   }

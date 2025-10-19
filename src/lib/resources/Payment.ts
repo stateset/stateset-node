@@ -10,7 +10,7 @@ export enum PaymentStatus {
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
   CANCELLED = 'CANCELLED',
-  REFUNDED = 'REFUNDED'
+  REFUNDED = 'REFUNDED',
 }
 
 export enum PaymentMethod {
@@ -19,7 +19,7 @@ export enum PaymentMethod {
   BANK_TRANSFER = 'BANK_TRANSFER',
   CASH = 'CASH',
   PAYPAL = 'PAYPAL',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 // Interfaces
@@ -49,7 +49,10 @@ export interface PaymentResponse {
 
 // Error Classes
 export class PaymentError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'PaymentError';
   }
@@ -62,7 +65,10 @@ export class PaymentNotFoundError extends PaymentError {
 }
 
 export class PaymentValidationError extends PaymentError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -159,7 +165,10 @@ export default class Payments {
     }
   }
 
-  async update(paymentId: NonEmptyString<string>, data: Partial<PaymentData>): Promise<PaymentResponse> {
+  async update(
+    paymentId: NonEmptyString<string>,
+    data: Partial<PaymentData>
+  ): Promise<PaymentResponse> {
     try {
       const response = await this.stateset.request('PUT', `payments/${paymentId}`, data);
       return this.mapResponse(response.payment);
@@ -176,9 +185,14 @@ export default class Payments {
     }
   }
 
-  async processPayment(paymentId: NonEmptyString<string>, transactionId: string): Promise<PaymentResponse> {
+  async processPayment(
+    paymentId: NonEmptyString<string>,
+    transactionId: string
+  ): Promise<PaymentResponse> {
     try {
-      const response = await this.stateset.request('POST', `payments/${paymentId}/process`, { transaction_id: transactionId });
+      const response = await this.stateset.request('POST', `payments/${paymentId}/process`, {
+        transaction_id: transactionId,
+      });
       return this.mapResponse(response.payment);
     } catch (error: any) {
       throw this.handleError(error, 'processPayment', paymentId);
@@ -188,9 +202,9 @@ export default class Payments {
   private handleError(error: any, operation: string, paymentId?: string): never {
     if (error.status === 404) throw new PaymentNotFoundError(paymentId || 'unknown');
     if (error.status === 400) throw new PaymentValidationError(error.message, error.errors);
-    throw new PaymentError(
-      `Failed to ${operation} payment: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new PaymentError(`Failed to ${operation} payment: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

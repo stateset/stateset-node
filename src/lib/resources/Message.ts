@@ -9,7 +9,7 @@ export enum MessageType {
   VOICE = 'voice',
   COMMERCE = 'commerce',
   SYSTEM = 'system',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 export enum MessageStatus {
@@ -17,20 +17,20 @@ export enum MessageStatus {
   SENT = 'sent',
   DELIVERED = 'delivered',
   READ = 'read',
-  FAILED = 'failed'
+  FAILED = 'failed',
 }
 
 export enum MessagePriority {
   HIGH = 'high',
   NORMAL = 'normal',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 export enum VoiceModelProvider {
   ELEVEN_LABS = 'eleven_labs',
   AMAZON_POLLY = 'amazon_polly',
   GOOGLE_CLOUD = 'google_cloud',
-  MICROSOFT_AZURE = 'microsoft_azure'
+  MICROSOFT_AZURE = 'microsoft_azure',
 }
 
 // Interfaces for message data structures
@@ -148,7 +148,10 @@ export class MessageValidationError extends Error {
 }
 
 export class MessageDeliveryError extends Error {
-  constructor(message: string, public readonly messageId: string) {
+  constructor(
+    message: string,
+    public readonly messageId: string
+  ) {
     super(message);
     this.name = 'MessageDeliveryError';
   }
@@ -176,7 +179,7 @@ class Messages {
     org_id?: string;
   }): Promise<MessageResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.type) queryParams.append('type', params.type);
     if (params?.from) queryParams.append('from', params.from);
     if (params?.to) queryParams.append('to', params.to);
@@ -184,8 +187,10 @@ class Messages {
     if (params?.channel_id) queryParams.append('channel_id', params.channel_id.toString());
     if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
     if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    if (params?.fromAgent !== undefined) queryParams.append('fromAgent', params.fromAgent.toString());
-    if (params?.is_public !== undefined) queryParams.append('is_public', params.is_public.toString());
+    if (params?.fromAgent !== undefined)
+      queryParams.append('fromAgent', params.fromAgent.toString());
+    if (params?.is_public !== undefined)
+      queryParams.append('is_public', params.is_public.toString());
     if (params?.org_id) queryParams.append('org_id', params.org_id);
 
     const response = await this.stateset.request('GET', `messages?${queryParams.toString()}`);
@@ -234,10 +239,7 @@ class Messages {
    * @param messageData - Partial<MessageData> object
    * @returns MessageResponse object
    */
-  async update(
-    messageId: string,
-    messageData: Partial<MessageData>
-  ): Promise<MessageResponse> {
+  async update(messageId: string, messageData: Partial<MessageData>): Promise<MessageResponse> {
     try {
       const response = await this.stateset.request('PUT', `messages/${messageId}`, messageData);
       return response.message;
@@ -310,16 +312,19 @@ class Messages {
    * @param params - Optional filtering parameters
    * @returns Array of MessageResponse objects
    */
-  async search(query: string, params?: {
-    type?: MessageType;
-    date_from?: Date;
-    date_to?: Date;
-    channel_id?: number;
-    chat_id?: string;
-    org_id?: string;
-  }): Promise<MessageResponse[]> {
+  async search(
+    query: string,
+    params?: {
+      type?: MessageType;
+      date_from?: Date;
+      date_to?: Date;
+      channel_id?: number;
+      chat_id?: string;
+      org_id?: string;
+    }
+  ): Promise<MessageResponse[]> {
     const queryParams = new URLSearchParams({ query });
-    
+
     if (params?.type) queryParams.append('type', params.type);
     if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
     if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
@@ -340,12 +345,15 @@ class Messages {
    * @param params - Optional filtering parameters
    * @returns Array of MessageResponse objects
    */
-  async getThread(messageId: string, params?: {
-    limit?: number;
-    include_context?: boolean;
-  }): Promise<MessageResponse[]> {
+  async getThread(
+    messageId: string,
+    params?: {
+      limit?: number;
+      include_context?: boolean;
+    }
+  ): Promise<MessageResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.include_context !== undefined) {
       queryParams.append('include_context', params.include_context.toString());

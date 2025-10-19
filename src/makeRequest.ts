@@ -10,10 +10,7 @@ interface MakeRequestOptions {
   args?: any[]; // Add args if necessary
 }
 
-const makeRequest = (
-  stateset: { _request: AxiosInstance },
-  options: MakeRequestOptions
-) => {
+const makeRequest = (stateset: { _request: AxiosInstance }, options: MakeRequestOptions) => {
   // Use options.spec and options.args if needed
   return stateset._request({
     method: options.method,

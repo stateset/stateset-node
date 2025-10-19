@@ -33,9 +33,12 @@ interface CancelledFulfillmentResponse extends BaseFulfillmentResponse {
   cancelled: true;
 }
 
-type FulfillmentResponse = PendingFulfillmentResponse | ProcessingFulfillmentResponse | ShippedFulfillmentResponse | DeliveredFulfillmentResponse | CancelledFulfillmentResponse;
-
-
+type FulfillmentResponse =
+  | PendingFulfillmentResponse
+  | ProcessingFulfillmentResponse
+  | ShippedFulfillmentResponse
+  | DeliveredFulfillmentResponse
+  | CancelledFulfillmentResponse;
 
 interface FulfillmentData {
   order_id: string;
@@ -141,7 +144,9 @@ export default class Fulfillment {
    */
   async list(params?: any): Promise<FulfillmentResponse[]> {
     const response = await this.client.request('GET', 'fulfillments', params);
-    return response.map((fulfillment: any) => this.handleCommandResponse({ update_fulfillments_by_pk: fulfillment }));
+    return response.map((fulfillment: any) =>
+      this.handleCommandResponse({ update_fulfillments_by_pk: fulfillment })
+    );
   }
 
   /**

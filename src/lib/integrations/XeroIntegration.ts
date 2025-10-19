@@ -36,7 +36,4 @@ export default class XeroIntegration extends BaseIntegration {
   public async createPayment(data: any) {
     return this.request('POST', 'payments', data);
   }
-  
-  
-  
 }

@@ -10,7 +10,7 @@ export enum ChannelType {
   WHATSAPP = 'whatsapp',
   MESSENGER = 'messenger',
   API = 'api',
-  WEBHOOK = 'webhook'
+  WEBHOOK = 'webhook',
 }
 
 export enum ChannelStatus {
@@ -18,7 +18,7 @@ export enum ChannelStatus {
   INACTIVE = 'inactive',
   MAINTENANCE = 'maintenance',
   ERROR = 'error',
-  RATE_LIMITED = 'rate_limited'
+  RATE_LIMITED = 'rate_limited',
 }
 
 export enum AIModel {
@@ -26,27 +26,27 @@ export enum AIModel {
   GPT_3_5_TURBO = 'gpt-3.5-turbo',
   CLAUDE_2 = 'claude-2',
   CLAUDE_INSTANT = 'claude-instant',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export enum VoiceModel {
   ELEVEN_LABS = 'eleven_labs',
   AMAZON_POLLY = 'amazon_polly',
   GOOGLE_CLOUD = 'google_cloud',
-  AZURE_COGNITIVE = 'azure_cognitive'
+  AZURE_COGNITIVE = 'azure_cognitive',
 }
 
 export enum ChannelPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 export enum ChannelRating {
   EXCELLENT = 'excellent',
   GOOD = 'good',
   FAIR = 'fair',
-  POOR = 'poor'
+  POOR = 'poor',
 }
 
 // Interfaces for channel data structures
@@ -169,7 +169,10 @@ export class ChannelValidationError extends Error {
 }
 
 export class ChannelOperationError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
     super(message);
     this.name = 'ChannelOperationError';
   }
@@ -192,7 +195,7 @@ class Channels {
     tags?: string[];
   }): Promise<ChannelResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.type) queryParams.append('type', params.type);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
@@ -245,10 +248,7 @@ class Channels {
    * @param channelData - Partial<ChannelData> object
    * @returns ChannelResponse object
    */
-  async update(
-    channelId: string,
-    channelData: Partial<ChannelData>
-  ): Promise<ChannelResponse> {
+  async update(channelId: string, channelData: Partial<ChannelData>): Promise<ChannelResponse> {
     try {
       const response = await this.stateset.request('PUT', `channels/${channelId}`, channelData);
       return response.channel;
@@ -287,11 +287,10 @@ class Channels {
     status: ChannelStatus,
     reason?: string
   ): Promise<ChannelResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `channels/${channelId}/status`,
-      { status, reason }
-    );
+    const response = await this.stateset.request('POST', `channels/${channelId}/status`, {
+      status,
+      reason,
+    });
     return response.channel;
   }
 
@@ -309,7 +308,7 @@ class Channels {
     }
   ): Promise<ChannelMetrics> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
 
@@ -337,11 +336,7 @@ class Channels {
     latency: number;
     error?: string;
   }> {
-    const response = await this.stateset.request(
-      'POST',
-      `channels/${channelId}/test`,
-      testData
-    );
+    const response = await this.stateset.request('POST', `channels/${channelId}/test`, testData);
     return response.result;
   }
 
@@ -351,10 +346,7 @@ class Channels {
    * @param voiceConfig - VoiceConfig object
    * @returns ChannelResponse object
    */
-  async updateVoiceConfig(
-    channelId: string,
-    voiceConfig: VoiceConfig
-  ): Promise<ChannelResponse> {
+  async updateVoiceConfig(channelId: string, voiceConfig: VoiceConfig): Promise<ChannelResponse> {
     const response = await this.stateset.request(
       'PUT',
       `channels/${channelId}/voice-config`,

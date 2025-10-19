@@ -15,7 +15,7 @@ test.skip('uses environment variables when options are omitted', () => {
 });
 
 test.skip('allows updating configuration after init', () => {
-  // This test is for the legacy API structure  
+  // This test is for the legacy API structure
 });
 
 test.skip('applies additional headers from options', () => {
@@ -49,19 +49,13 @@ test('new client has proper resources', () => {
 
 test('OpenAIIntegration sends chat completion request', async () => {
   const integration: any = new OpenAIIntegration('test-key', 'https://example.com');
-  const mockPost = jest
-    .spyOn(integration.client, 'post')
-    .mockResolvedValue({
-      data: {
-        choices: [
-          { index: 0, message: { role: 'assistant', content: 'hi' }, finish_reason: 'stop' }
-        ]
-      }
-    });
+  const mockPost = jest.spyOn(integration.client, 'post').mockResolvedValue({
+    data: {
+      choices: [{ index: 0, message: { role: 'assistant', content: 'hi' }, finish_reason: 'stop' }],
+    },
+  });
 
-  const res = await integration.createChatCompletion([
-    { role: 'user', content: 'hello' }
-  ]);
+  const res = await integration.createChatCompletion([{ role: 'user', content: 'hello' }]);
 
   expect(mockPost).toHaveBeenCalledWith('/chat/completions', expect.any(Object));
   expect(res.choices[0].message.content).toBe('hi');
@@ -81,9 +75,9 @@ test('request method throws typed Stateset errors', async () => {
   const error = new StatesetNotFoundError({
     type: 'not_found_error',
     message: 'Not found',
-    statusCode: 404
+    statusCode: 404,
   });
   jest.spyOn(client, 'request').mockRejectedValue(error);
-  
+
   await expect(client.request('GET', 'missing')).rejects.toBeInstanceOf(StatesetNotFoundError);
 });

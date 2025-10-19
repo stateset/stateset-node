@@ -27,14 +27,15 @@ export class PerformanceMonitor {
 
   recordMetric(metric: PerformanceMetrics): void {
     this.metrics.push(metric);
-    
+
     // Keep only the most recent metrics
     if (this.metrics.length > this.maxMetrics) {
       this.metrics.shift();
     }
 
     // Log slow operations
-    if (metric.duration > 5000) { // 5 seconds
+    if (metric.duration > 5000) {
+      // 5 seconds
       logger.warn('Slow operation detected', {
         operation: 'performance_warning',
         metadata: {
@@ -56,7 +57,7 @@ export class PerformanceMonitor {
   getAverageResponseTime(operation?: string): number {
     const relevantMetrics = this.getMetrics(operation).filter(m => m.success);
     if (relevantMetrics.length === 0) return 0;
-    
+
     const total = relevantMetrics.reduce((sum, m) => sum + m.duration, 0);
     return total / relevantMetrics.length;
   }
@@ -64,7 +65,7 @@ export class PerformanceMonitor {
   getSuccessRate(operation?: string): number {
     const relevantMetrics = this.getMetrics(operation);
     if (relevantMetrics.length === 0) return 0;
-    
+
     const successful = relevantMetrics.filter(m => m.success).length;
     return successful / relevantMetrics.length;
   }
@@ -78,7 +79,7 @@ export class PerformanceMonitor {
     p95ResponseTime: number;
   } {
     const metrics = this.getMetrics(operation).filter(m => m.success);
-    
+
     if (metrics.length === 0) {
       return {
         totalRequests: 0,
@@ -120,7 +121,7 @@ export class PerformanceTimer {
 
   end(success: boolean = true, error?: string, metadata?: Record<string, unknown>): void {
     const duration = Date.now() - this.startTime;
-    
+
     this.monitor.recordMetric({
       operation: this.operation,
       duration,
@@ -151,10 +152,10 @@ export function monitor(operation?: string) {
   ) {
     const originalMethod = descriptor.value!;
     const operationName = operation || `${target.constructor.name}.${propertyKey}`;
-    
+
     descriptor.value = async function (this: any, ...args: any[]) {
       const timer = PerformanceMonitor.getInstance().startTimer(operationName);
-      
+
       try {
         const result = await originalMethod.apply(this, args);
         timer.end(true);
@@ -164,7 +165,7 @@ export function monitor(operation?: string) {
         throw error;
       }
     } as T;
-    
+
     return descriptor;
   };
 }

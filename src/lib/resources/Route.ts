@@ -9,7 +9,7 @@ export enum RouteStatus {
   PLANNED = 'PLANNED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Interfaces
@@ -49,7 +49,10 @@ export interface RouteResponse {
 
 // Error Classes
 export class RouteError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'RouteError';
   }
@@ -62,7 +65,10 @@ export class RouteNotFoundError extends RouteError {
 }
 
 export class RouteValidationError extends RouteError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -72,11 +78,16 @@ export default class Routes {
 
   private validateRouteData(data: RouteData): void {
     if (!data.carrier_id) throw new RouteValidationError('Carrier ID is required');
-    if (!data.start_location.address.line1) throw new RouteValidationError('Start location address is required');
-    if (!data.end_location.address.line1) throw new RouteValidationError('End location address is required');
-    if (!data.shipment_ids?.length) throw new RouteValidationError('At least one shipment ID is required');
-    if (data.estimated_distance < 0) throw new RouteValidationError('Estimated distance cannot be negative');
-    if (data.estimated_duration < 0) throw new RouteValidationError('Estimated duration cannot be negative');
+    if (!data.start_location.address.line1)
+      throw new RouteValidationError('Start location address is required');
+    if (!data.end_location.address.line1)
+      throw new RouteValidationError('End location address is required');
+    if (!data.shipment_ids?.length)
+      throw new RouteValidationError('At least one shipment ID is required');
+    if (data.estimated_distance < 0)
+      throw new RouteValidationError('Estimated distance cannot be negative');
+    if (data.estimated_duration < 0)
+      throw new RouteValidationError('Estimated duration cannot be negative');
     if (data.cost_estimate < 0) throw new RouteValidationError('Cost estimate cannot be negative');
   }
 
@@ -194,9 +205,9 @@ export default class Routes {
   private handleError(error: any, operation: string, routeId?: string): never {
     if (error.status === 404) throw new RouteNotFoundError(routeId || 'unknown');
     if (error.status === 400) throw new RouteValidationError(error.message, error.errors);
-    throw new RouteError(
-      `Failed to ${operation} route: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new RouteError(`Failed to ${operation} route: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

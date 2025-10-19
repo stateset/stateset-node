@@ -11,7 +11,7 @@ export enum ManufactureOrderLineStatus {
   COMPLETED = 'COMPLETED',
   ON_HOLD = 'ON_HOLD',
   CANCELLED = 'CANCELLED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 export enum ManufactureOrderLineType {
@@ -19,7 +19,7 @@ export enum ManufactureOrderLineType {
   COMPONENT = 'COMPONENT',
   FINISHED_GOOD = 'FINISHED_GOOD',
   BYPRODUCT = 'BYPRODUCT',
-  SCRAP = 'SCRAP'
+  SCRAP = 'SCRAP',
 }
 
 // Interfaces for Manufacture Order Line Data Structures
@@ -93,7 +93,10 @@ export interface ManufactureOrderLineResponse {
 
 // Custom Error Classes
 export class ManufactureOrderLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'ManufactureOrderLineError';
   }
@@ -101,12 +104,17 @@ export class ManufactureOrderLineError extends Error {
 
 export class ManufactureOrderLineNotFoundError extends ManufactureOrderLineError {
   constructor(manufactureOrderLineId: string) {
-    super(`Manufacture order line with ID ${manufactureOrderLineId} not found`, { manufactureOrderLineId });
+    super(`Manufacture order line with ID ${manufactureOrderLineId} not found`, {
+      manufactureOrderLineId,
+    });
   }
 }
 
 export class ManufactureOrderLineValidationError extends ManufactureOrderLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -171,9 +179,10 @@ export default class ManufactureOrderLines {
     pagination: { total: number; limit: number; offset: number };
   }> {
     const queryParams = new URLSearchParams();
-    
+
     if (params) {
-      if (params.manufacture_order_id) queryParams.append('manufacture_order_id', params.manufacture_order_id);
+      if (params.manufacture_order_id)
+        queryParams.append('manufacture_order_id', params.manufacture_order_id);
       if (params.status) queryParams.append('status', params.status);
       if (params.type) queryParams.append('type', params.type);
       if (params.work_center_id) queryParams.append('work_center_id', params.work_center_id);
@@ -185,7 +194,10 @@ export default class ManufactureOrderLines {
     }
 
     try {
-      const response = await this.stateset.request('GET', `manufacture_order_line_items?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `manufacture_order_line_items?${queryParams.toString()}`
+      );
       return {
         manufacture_order_lines: response.manufacture_order_lines.map(this.mapResponse),
         pagination: {
@@ -201,7 +213,10 @@ export default class ManufactureOrderLines {
 
   async get(manufactureOrderLineId: NonEmptyString<string>): Promise<ManufactureOrderLineResponse> {
     try {
-      const response = await this.stateset.request('GET', `manufacture_order_line_items/${manufactureOrderLineId}`);
+      const response = await this.stateset.request(
+        'GET',
+        `manufacture_order_line_items/${manufactureOrderLineId}`
+      );
       return this.mapResponse(response.manufacture_order_line);
     } catch (error: any) {
       throw this.handleError(error, 'get', manufactureOrderLineId);
@@ -223,7 +238,11 @@ export default class ManufactureOrderLines {
     data: Partial<ManufactureOrderLineData>
   ): Promise<ManufactureOrderLineResponse> {
     try {
-      const response = await this.stateset.request('PUT', `manufacture_order_line_items/${manufactureOrderLineId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `manufacture_order_line_items/${manufactureOrderLineId}`,
+        data
+      );
       return this.mapResponse(response.manufacture_order_line);
     } catch (error: any) {
       throw this.handleError(error, 'update', manufactureOrderLineId);
@@ -232,7 +251,10 @@ export default class ManufactureOrderLines {
 
   async delete(manufactureOrderLineId: NonEmptyString<string>): Promise<void> {
     try {
-      await this.stateset.request('DELETE', `manufacture_order_line_items/${manufactureOrderLineId}`);
+      await this.stateset.request(
+        'DELETE',
+        `manufacture_order_line_items/${manufactureOrderLineId}`
+      );
     } catch (error: any) {
       throw this.handleError(error, 'delete', manufactureOrderLineId);
     }
@@ -301,16 +323,20 @@ export default class ManufactureOrderLines {
     quality_pass_rate: number;
   }> {
     const queryParams = new URLSearchParams();
-    
+
     if (params) {
-      if (params.manufacture_order_id) queryParams.append('manufacture_order_id', params.manufacture_order_id);
+      if (params.manufacture_order_id)
+        queryParams.append('manufacture_order_id', params.manufacture_order_id);
       if (params.org_id) queryParams.append('org_id', params.org_id);
       if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
       if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
     }
 
     try {
-      const response = await this.stateset.request('GET', `manufacture_order_line_items/metrics?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `manufacture_order_line_items/metrics?${queryParams.toString()}`
+      );
       return response.metrics;
     } catch (error: any) {
       throw this.handleError(error, 'getMetrics');
@@ -318,8 +344,10 @@ export default class ManufactureOrderLines {
   }
 
   private handleError(error: any, operation: string, manufactureOrderLineId?: string): never {
-    if (error.status === 404) throw new ManufactureOrderLineNotFoundError(manufactureOrderLineId || 'unknown');
-    if (error.status === 400) throw new ManufactureOrderLineValidationError(error.message, error.errors);
+    if (error.status === 404)
+      throw new ManufactureOrderLineNotFoundError(manufactureOrderLineId || 'unknown');
+    if (error.status === 400)
+      throw new ManufactureOrderLineValidationError(error.message, error.errors);
     throw new ManufactureOrderLineError(
       `Failed to ${operation} manufacture order line: ${error.message}`,
       { operation, originalError: error }

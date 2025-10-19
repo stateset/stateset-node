@@ -12,5 +12,4 @@ export default class ZendeskIntegration extends BaseIntegration {
   public async createTicket(data: any) {
     return this.request('POST', 'tickets', data);
   }
-
 }

@@ -6,7 +6,7 @@ export enum WorkflowType {
   PARALLEL = 'parallel',
   EVENT_DRIVEN = 'event_driven',
   CONDITIONAL = 'conditional',
-  STATE_MACHINE = 'state_machine'
+  STATE_MACHINE = 'state_machine',
 }
 
 export enum WorkflowStatus {
@@ -14,7 +14,7 @@ export enum WorkflowStatus {
   ACTIVE = 'active',
   PAUSED = 'paused',
   ARCHIVED = 'archived',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 export enum TaskType {
@@ -24,7 +24,7 @@ export enum TaskType {
   NOTIFICATION = 'notification',
   DECISION = 'decision',
   HUMAN_REVIEW = 'human_review',
-  WAIT = 'wait'
+  WAIT = 'wait',
 }
 
 export enum TriggerType {
@@ -32,7 +32,7 @@ export enum TriggerType {
   EVENT = 'event',
   API = 'api',
   CONDITION = 'condition',
-  MANUAL = 'manual'
+  MANUAL = 'manual',
 }
 
 // Interfaces for workflow data structures
@@ -200,7 +200,10 @@ export class WorkflowValidationError extends Error {
 }
 
 export class WorkflowExecutionError extends Error {
-  constructor(message: string, public readonly executionId: string) {
+  constructor(
+    message: string,
+    public readonly executionId: string
+  ) {
     super(message);
     this.name = 'WorkflowExecutionError';
   }
@@ -223,7 +226,7 @@ class Workflows {
     tags?: string[];
   }): Promise<WorkflowResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.type) queryParams.append('type', params.type);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
@@ -276,10 +279,7 @@ class Workflows {
    * @param workflowData - Partial<WorkflowData> object
    * @returns WorkflowResponse object
    */
-  async update(
-    workflowId: string,
-    workflowData: Partial<WorkflowData>
-  ): Promise<WorkflowResponse> {
+  async update(workflowId: string, workflowData: Partial<WorkflowData>): Promise<WorkflowResponse> {
     try {
       const response = await this.stateset.request('PUT', `workflows/${workflowId}`, workflowData);
       return response.workflow;
@@ -312,16 +312,11 @@ class Workflows {
    * @param input - Input data
    * @returns WorkflowExecution object
    */
-  async execute(
-    workflowId: string,
-    input: Record<string, any>
-  ): Promise<WorkflowExecution> {
+  async execute(workflowId: string, input: Record<string, any>): Promise<WorkflowExecution> {
     try {
-      const response = await this.stateset.request(
-        'POST',
-        `workflows/${workflowId}/execute`,
-        { input }
-      );
+      const response = await this.stateset.request('POST', `workflows/${workflowId}/execute`, {
+        input,
+      });
       return response.execution;
     } catch (error: any) {
       throw new WorkflowExecutionError(error.message, error.execution_id);
@@ -334,10 +329,7 @@ class Workflows {
    * @param executionId - Execution ID
    * @returns WorkflowExecution object
    */
-  async getExecutionStatus(
-    workflowId: string,
-    executionId: string
-  ): Promise<WorkflowExecution> {
+  async getExecutionStatus(workflowId: string, executionId: string): Promise<WorkflowExecution> {
     const response = await this.stateset.request(
       'GET',
       `workflows/${workflowId}/executions/${executionId}`
@@ -361,7 +353,7 @@ class Workflows {
     }
   ): Promise<WorkflowExecution[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
     if (params?.status) queryParams.append('status', params.status);
@@ -387,11 +379,7 @@ class Workflows {
       new_version?: string;
     }
   ): Promise<WorkflowResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `workflows/${workflowId}/clone`,
-      options
-    );
+    const response = await this.stateset.request('POST', `workflows/${workflowId}/clone`, options);
     return response.workflow;
   }
 

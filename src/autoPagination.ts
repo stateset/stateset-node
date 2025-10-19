@@ -31,7 +31,9 @@ export const makeAutoPaginationMethods = (
     return results.slice(0, limit);
   };
 
-  const autoPagingEach = async (callback: (item: any) => boolean | Promise<boolean>): Promise<void> => {
+  const autoPagingEach = async (
+    callback: (item: any) => boolean | Promise<boolean>
+  ): Promise<void> => {
     let hasMore = true;
     let page = 1;
 

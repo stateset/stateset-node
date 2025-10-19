@@ -10,7 +10,7 @@ export class HttpClient {
       timeout: 80000, // Default timeout, can be overridden in requests
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
   }

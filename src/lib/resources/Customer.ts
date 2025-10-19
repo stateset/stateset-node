@@ -9,14 +9,14 @@ export enum CustomerStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PROSPECT = 'PROSPECT',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum CustomerType {
   INDIVIDUAL = 'INDIVIDUAL',
   BUSINESS = 'BUSINESS',
   GOVERNMENT = 'GOVERNMENT',
-  NONPROFIT = 'NONPROFIT'
+  NONPROFIT = 'NONPROFIT',
 }
 
 // Core Interfaces
@@ -75,7 +75,10 @@ export interface CustomerResponse {
 
 // Error Classes
 export class CustomerError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -88,7 +91,10 @@ export class CustomerNotFoundError extends CustomerError {
 }
 
 export class CustomerValidationError extends CustomerError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -100,7 +106,8 @@ export class Customers {
   private validateCustomerData(data: CustomerData): void {
     if (!data.name) throw new CustomerValidationError('Customer name is required');
     if (!data.email) throw new CustomerValidationError('Email is required');
-    if (!data.addresses?.length) throw new CustomerValidationError('At least one address is required');
+    if (!data.addresses?.length)
+      throw new CustomerValidationError('At least one address is required');
     if (data.billing_info?.credit_limit && data.billing_info.credit_limit < 0) {
       throw new CustomerValidationError('Credit limit cannot be negative');
     }
@@ -131,15 +138,17 @@ export class Customers {
     };
   }
 
-  async list(params: {
-    status?: CustomerStatus;
-    type?: CustomerType;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: CustomerStatus;
+      type?: CustomerType;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+      search?: string;
+    } = {}
+  ): Promise<{
     customers: CustomerResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -158,7 +167,11 @@ export class Customers {
       const response = await this.client.request('GET', `customers?${query.toString()}`);
       return {
         customers: response.customers.map(this.mapResponse),
-        pagination: response.pagination || { total: response.customers.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.customers.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -209,7 +222,11 @@ export class Customers {
     address: CustomerAddress
   ): Promise<CustomerResponse> {
     try {
-      const response = await this.client.request('POST', `customers/${customerId}/addresses`, address);
+      const response = await this.client.request(
+        'POST',
+        `customers/${customerId}/addresses`,
+        address
+      );
       return this.mapResponse(response.customer);
     } catch (error: any) {
       throw this.handleError(error, 'addAddress', customerId);
@@ -221,18 +238,24 @@ export class Customers {
     contact: CustomerContact
   ): Promise<CustomerResponse> {
     try {
-      const response = await this.client.request('POST', `customers/${customerId}/contacts`, contact);
+      const response = await this.client.request(
+        'POST',
+        `customers/${customerId}/contacts`,
+        contact
+      );
       return this.mapResponse(response.customer);
     } catch (error: any) {
       throw this.handleError(error, 'addContact', customerId);
     }
   }
 
-  async getMetrics(params: {
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    type?: CustomerType;
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      type?: CustomerType;
+    } = {}
+  ): Promise<{
     total_customers: number;
     status_breakdown: Record<CustomerStatus, number>;
     type_breakdown: Record<CustomerType, number>;
@@ -257,10 +280,10 @@ export class Customers {
   private handleError(error: any, operation: string, customerId?: string): never {
     if (error.status === 404) throw new CustomerNotFoundError(customerId || 'unknown');
     if (error.status === 400) throw new CustomerValidationError(error.message, error.errors);
-    throw new CustomerError(
-      `Failed to ${operation} customer: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new CustomerError(`Failed to ${operation} customer: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

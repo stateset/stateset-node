@@ -6,7 +6,7 @@ export enum KnowledgeType {
   FAQ = 'faq',
   ARTICLE = 'article',
   CODE_SNIPPET = 'code_snippet',
-  LINK = 'link'
+  LINK = 'link',
 }
 
 // Interfaces for knowledge data structures
@@ -65,10 +65,7 @@ class Knowledge {
     if (params?.user_id) queryParams.append('user_id', params.user_id);
     if (params?.tag) queryParams.append('tag', params.tag);
 
-    const response = await this.stateset.request(
-      'GET',
-      `knowledge?${queryParams.toString()}`
-    );
+    const response = await this.stateset.request('GET', `knowledge?${queryParams.toString()}`);
     return response.knowledge;
   }
 

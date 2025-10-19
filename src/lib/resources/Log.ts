@@ -46,7 +46,6 @@ class Log {
   async delete(id: string) {
     return this.stateset.request('DELETE', `log/${id}`);
   }
-
 }
 
 export default Log;

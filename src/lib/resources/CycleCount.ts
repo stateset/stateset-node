@@ -1,5 +1,3 @@
-
-
 type CycleCountStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'RECONCILED';
 
 interface BaseCycleCountResponse {
@@ -28,9 +26,11 @@ interface ReconciledCycleCountResponse extends BaseCycleCountResponse {
   reconciled: true;
 }
 
-type CycleCountResponse = PendingCycleCountResponse | InProgressCycleCountResponse | CompletedCycleCountResponse | ReconciledCycleCountResponse;
-
-
+type CycleCountResponse =
+  | PendingCycleCountResponse
+  | InProgressCycleCountResponse
+  | CompletedCycleCountResponse
+  | ReconciledCycleCountResponse;
 
 interface CycleCountData {
   location: string;
@@ -121,7 +121,9 @@ export default class CycleCounts {
    */
   async list(params?: any): Promise<CycleCountResponse[]> {
     const response = await this.client.request('GET', 'cycle-counts', params);
-    return response.map((cycleCount: any) => this.handleCommandResponse({ update_cycle_counts_by_pk: cycleCount }));
+    return response.map((cycleCount: any) =>
+      this.handleCommandResponse({ update_cycle_counts_by_pk: cycleCount })
+    );
   }
 
   /**

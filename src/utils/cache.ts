@@ -22,7 +22,7 @@ export class MemoryCache<T = any> {
   constructor(options: CacheOptions = {}) {
     this.defaultTtl = options.ttl || 300000; // 5 minutes default
     this.maxSize = options.maxSize || 1000;
-    
+
     const checkInterval = options.checkInterval || 60000; // 1 minute default
     this.startCleanup(checkInterval);
   }
@@ -33,7 +33,7 @@ export class MemoryCache<T = any> {
   set(key: string, value: T, ttl?: number): void {
     const now = Date.now();
     const timeToLive = ttl || this.defaultTtl;
-    
+
     // Remove oldest entries if cache is full
     if (this.cache.size >= this.maxSize) {
       this.evictOldest();
@@ -57,7 +57,7 @@ export class MemoryCache<T = any> {
    */
   get(key: string): T | undefined {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       logger.debug('Cache miss', {
         operation: 'cache.get',
@@ -80,7 +80,7 @@ export class MemoryCache<T = any> {
       operation: 'cache.get',
       metadata: { key, hits: entry.hits },
     });
-    
+
     return entry.value;
   }
 
@@ -90,12 +90,12 @@ export class MemoryCache<T = any> {
   has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
-    
+
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -162,11 +162,7 @@ export class MemoryCache<T = any> {
   /**
    * Get or set a value (cache-aside pattern)
    */
-  async getOrSet<R = T>(
-    key: string,
-    factory: () => Promise<R>,
-    ttl?: number
-  ): Promise<R> {
+  async getOrSet<R = T>(key: string, factory: () => Promise<R>, ttl?: number): Promise<R> {
     const cached = this.get(key);
     if (cached !== undefined) {
       return cached as unknown as R;
@@ -177,10 +173,14 @@ export class MemoryCache<T = any> {
       this.set(key, value as unknown as T, ttl);
       return value;
     } catch (error) {
-      logger.error('Cache factory function failed', {
-        operation: 'cache.getOrSet',
-        metadata: { key },
-      }, error as Error);
+      logger.error(
+        'Cache factory function failed',
+        {
+          operation: 'cache.getOrSet',
+          metadata: { key },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -277,24 +277,20 @@ export interface RedisLikeCache<T = any> {
  */
 export function cached(options: { ttl?: number; keyGenerator?: (...args: any[]) => string } = {}) {
   const cache = new MemoryCache();
-  
+
   return function <T extends (...args: any[]) => Promise<any>>(
     target: any,
     propertyKey: string,
     descriptor: TypedPropertyDescriptor<T>
   ) {
     const originalMethod = descriptor.value!;
-    const defaultKeyGenerator = (...args: any[]) => 
+    const defaultKeyGenerator = (...args: any[]) =>
       `${target.constructor.name}.${propertyKey}:${JSON.stringify(args)}`;
-    
+
     const keyGenerator = options.keyGenerator || defaultKeyGenerator;
-    
-    descriptor.value = cache.wrap(
-      originalMethod.bind(target),
-      keyGenerator,
-      options.ttl
-    ) as T;
-    
+
+    descriptor.value = cache.wrap(originalMethod.bind(target), keyGenerator, options.ttl) as T;
+
     return descriptor;
   };
 }

@@ -5,14 +5,14 @@ export enum BOMStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
   OBSOLETE = 'OBSOLETE',
-  REVISION = 'REVISION'
+  REVISION = 'REVISION',
 }
 
 export enum ComponentType {
   RAW_MATERIAL = 'raw_material',
   SUB_ASSEMBLY = 'sub_assembly',
   FINISHED_GOOD = 'finished_good',
-  PACKAGING = 'packaging'
+  PACKAGING = 'packaging',
 }
 
 // Interfaces
@@ -62,15 +62,20 @@ interface BaseBOMResponse {
   data: BOMData;
 }
 
-export type BOMResponse = BaseBOMResponse & {
-  [K in BOMStatus]: {
-    status: K;
-  } & (K extends BOMStatus.REVISION ? { revision: true; previous_version_id: string }
-    : K extends BOMStatus.DRAFT ? { draft: true }
-    : K extends BOMStatus.ACTIVE ? { active: true }
-    : K extends BOMStatus.OBSOLETE ? { obsolete: true }
-    : {});
-}[BOMStatus];
+export type BOMResponse = BaseBOMResponse &
+  {
+    [K in BOMStatus]: {
+      status: K;
+    } & (K extends BOMStatus.REVISION
+      ? { revision: true; previous_version_id: string }
+      : K extends BOMStatus.DRAFT
+        ? { draft: true }
+        : K extends BOMStatus.ACTIVE
+          ? { active: true }
+          : K extends BOMStatus.OBSOLETE
+            ? { obsolete: true }
+            : {});
+  }[BOMStatus];
 
 // Error Classes
 export class BOMError extends Error {
@@ -126,28 +131,38 @@ export class BillOfMaterials {
 
   private validateComponent(component: Component): void {
     if (component.quantity <= 0) {
-      throw new BOMValidationError(`Invalid quantity ${component.quantity} for component ${component.item_id}`);
+      throw new BOMValidationError(
+        `Invalid quantity ${component.quantity} for component ${component.item_id}`
+      );
     }
     if (component.unit_cost && component.unit_cost < 0) {
-      throw new BOMValidationError(`Invalid unit cost ${component.unit_cost} for component ${component.item_id}`);
+      throw new BOMValidationError(
+        `Invalid unit cost ${component.unit_cost} for component ${component.item_id}`
+      );
     }
     if (component.minimum_order_quantity && component.minimum_order_quantity < 0) {
-      throw new BOMValidationError(`Invalid MOQ ${component.minimum_order_quantity} for component ${component.item_id}`);
+      throw new BOMValidationError(
+        `Invalid MOQ ${component.minimum_order_quantity} for component ${component.item_id}`
+      );
     }
     if (component.lead_time && component.lead_time < 0) {
-      throw new BOMValidationError(`Invalid lead time ${component.lead_time} for component ${component.item_id}`);
+      throw new BOMValidationError(
+        `Invalid lead time ${component.lead_time} for component ${component.item_id}`
+      );
     }
   }
 
-  async list(params: {
-    status?: BOMStatus;
-    product_id?: string;
-    org_id?: string;
-    effective_after?: Date;
-    effective_before?: Date;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ boms: BOMResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: BOMStatus;
+      product_id?: string;
+      org_id?: string;
+      effective_after?: Date;
+      effective_before?: Date;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ boms: BOMResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -194,11 +209,9 @@ export class BillOfMaterials {
   }
 
   async startRevision(bomId: string, revisionNotes?: string): Promise<BOMResponse> {
-    return this.request<BOMResponse>(
-      'POST',
-      `billofmaterials/${bomId}/start-revision`,
-      { revision_notes: revisionNotes }
-    );
+    return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/start-revision`, {
+      revision_notes: revisionNotes,
+    });
   }
 
   async completeRevision(bomId: string): Promise<BOMResponse> {
@@ -211,13 +224,30 @@ export class BillOfMaterials {
     return this.request<BOMResponse>('POST', `billofmaterials/${bomId}/add-component`, component);
   }
 
-  async updateComponent(bomId: string, componentId: string, updates: Partial<Component>): Promise<BOMResponse> {
-    this.validateComponent({ ...updates, id: componentId, item_id: 'temp', quantity: updates.quantity || 1, type: ComponentType.RAW_MATERIAL });
-    return this.request<BOMResponse>('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
+  async updateComponent(
+    bomId: string,
+    componentId: string,
+    updates: Partial<Component>
+  ): Promise<BOMResponse> {
+    this.validateComponent({
+      ...updates,
+      id: componentId,
+      item_id: 'temp',
+      quantity: updates.quantity || 1,
+      type: ComponentType.RAW_MATERIAL,
+    });
+    return this.request<BOMResponse>(
+      'PUT',
+      `billofmaterials/${bomId}/components/${componentId}`,
+      updates
+    );
   }
 
   async removeComponent(bomId: string, componentId: string): Promise<BOMResponse> {
-    return this.request<BOMResponse>('DELETE', `billofmaterials/${bomId}/components/${componentId}`);
+    return this.request<BOMResponse>(
+      'DELETE',
+      `billofmaterials/${bomId}/components/${componentId}`
+    );
   }
 
   // Cost Management
@@ -230,18 +260,23 @@ export class BillOfMaterials {
   }
 
   // Version Management
-  async getVersionHistory(bomId: string): Promise<Array<{
-    version: string;
-    status: BOMStatus;
-    changed_by: string;
-    timestamp: string;
-    changes: Record<string, { old: any; new: any }>;
-  }>> {
+  async getVersionHistory(bomId: string): Promise<
+    Array<{
+      version: string;
+      status: BOMStatus;
+      changed_by: string;
+      timestamp: string;
+      changes: Record<string, { old: any; new: any }>;
+    }>
+  > {
     return this.request('GET', `billofmaterials/${bomId}/versions`);
   }
 
   // Export
-  async export(bomId: string, format: 'pdf' | 'csv' | 'json'): Promise<{
+  async export(
+    bomId: string,
+    format: 'pdf' | 'csv' | 'json'
+  ): Promise<{
     url: string;
     generated_at: string;
     expires_at: string;

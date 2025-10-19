@@ -11,13 +11,13 @@ export enum WarrantyStatus {
   REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED',
   CLOSED = 'CLOSED',
-  REOPENED = 'REOPENED'
+  REOPENED = 'REOPENED',
 }
 
 export enum WarrantyType {
   MANUFACTURER = 'MANUFACTURER',
   EXTENDED = 'EXTENDED',
-  THIRD_PARTY = 'THIRD_PARTY'
+  THIRD_PARTY = 'THIRD_PARTY',
 }
 
 // Core Interfaces
@@ -85,7 +85,10 @@ export type WarrantyResponse = {
 
 // Error Classes
 export class WarrantyError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -98,13 +101,19 @@ export class WarrantyNotFoundError extends WarrantyError {
 }
 
 export class WarrantyValidationError extends WarrantyError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
 
 export class WarrantyOperationError extends WarrantyError {
-  constructor(message: string, public readonly operation?: string) {
+  constructor(
+    message: string,
+    public readonly operation?: string
+  ) {
     super(message);
   }
 }
@@ -142,31 +151,57 @@ export class Warranty {
 
     switch (data.status) {
       case WarrantyStatus.PENDING:
-        return { ...baseResponse, status: WarrantyStatus.PENDING, pending_details: { submitted_at: data.created_at } } as WarrantyResponse;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.PENDING,
+          pending_details: { submitted_at: data.created_at },
+        } as WarrantyResponse;
       case WarrantyStatus.APPROVED:
-        return { ...baseResponse, status: WarrantyStatus.APPROVED, approved_at: data.updated_at } as WarrantyResponse;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.APPROVED,
+          approved_at: data.updated_at,
+        } as WarrantyResponse;
       case WarrantyStatus.REJECTED:
-        return { ...baseResponse, status: WarrantyStatus.REJECTED, rejection_reason: data.rejection_reason || 'Not specified' } as WarrantyResponse;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.REJECTED,
+          rejection_reason: data.rejection_reason || 'Not specified',
+        } as WarrantyResponse;
       case WarrantyStatus.CANCELLED:
-        return { ...baseResponse, status: WarrantyStatus.CANCELLED, cancellation_reason: data.cancellation_reason } as WarrantyResponse;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.CANCELLED,
+          cancellation_reason: data.cancellation_reason,
+        } as WarrantyResponse;
       case WarrantyStatus.CLOSED:
-        return { ...baseResponse, status: WarrantyStatus.CLOSED, closed_at: data.updated_at } as WarrantyResponse;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.CLOSED,
+          closed_at: data.updated_at,
+        } as WarrantyResponse;
       case WarrantyStatus.REOPENED:
-        return { ...baseResponse, status: WarrantyStatus.REOPENED, reopened_reason: data.reopened_reason || 'Not specified' } as WarrantyResponse ;
+        return {
+          ...baseResponse,
+          status: WarrantyStatus.REOPENED,
+          reopened_reason: data.reopened_reason || 'Not specified',
+        } as WarrantyResponse;
       default:
         throw new WarrantyError(`Unexpected warranty status: ${data.status}`);
     }
   }
 
-  async list(params: {
-    status?: WarrantyStatus;
-    customer_id?: string;
-    order_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: WarrantyStatus;
+      customer_id?: string;
+      order_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     warranties: WarrantyResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -209,7 +244,9 @@ export class Warranty {
 
   async approve(warrantyId: NonEmptyString<string>, reason?: string): Promise<WarrantyResponse> {
     try {
-      const response = await this.client.request('POST', `warranties/approve/${warrantyId}`, { reason });
+      const response = await this.client.request('POST', `warranties/approve/${warrantyId}`, {
+        reason,
+      });
       return this.mapResponse(response.warranty);
     } catch (error: any) {
       throw this.handleError(error, 'approve', warrantyId);
@@ -218,7 +255,9 @@ export class Warranty {
 
   async reject(warrantyId: NonEmptyString<string>, reason: string): Promise<WarrantyResponse> {
     try {
-      const response = await this.client.request('POST', `warranties/reject/${warrantyId}`, { reason });
+      const response = await this.client.request('POST', `warranties/reject/${warrantyId}`, {
+        reason,
+      });
       return this.mapResponse(response.warranty);
     } catch (error: any) {
       throw this.handleError(error, 'reject', warrantyId);
@@ -227,7 +266,9 @@ export class Warranty {
 
   async cancel(warrantyId: NonEmptyString<string>, reason?: string): Promise<WarrantyResponse> {
     try {
-      const response = await this.client.request('POST', `warranties/cancel/${warrantyId}`, { reason });
+      const response = await this.client.request('POST', `warranties/cancel/${warrantyId}`, {
+        reason,
+      });
       return this.mapResponse(response.warranty);
     } catch (error: any) {
       throw this.handleError(error, 'cancel', warrantyId);
@@ -245,14 +286,19 @@ export class Warranty {
 
   async reopen(warrantyId: NonEmptyString<string>, reason: string): Promise<WarrantyResponse> {
     try {
-      const response = await this.client.request('POST', `warranties/reopen/${warrantyId}`, { reason });
+      const response = await this.client.request('POST', `warranties/reopen/${warrantyId}`, {
+        reason,
+      });
       return this.mapResponse(response.warranty);
     } catch (error: any) {
       throw this.handleError(error, 'reopen', warrantyId);
     }
   }
 
-  async update(warrantyId: NonEmptyString<string>, data: Partial<WarrantyData>): Promise<WarrantyResponse> {
+  async update(
+    warrantyId: NonEmptyString<string>,
+    data: Partial<WarrantyData>
+  ): Promise<WarrantyResponse> {
     try {
       const response = await this.client.request('PUT', `warranties/${warrantyId}`, data);
       return this.mapResponse(response.warranty);
@@ -274,17 +320,23 @@ export class Warranty {
     claimData: Omit<WarrantyClaim, 'claim_id' | 'status'>
   ): Promise<WarrantyResponse> {
     try {
-      const response = await this.client.request('POST', `warranties/${warrantyId}/claims`, claimData);
+      const response = await this.client.request(
+        'POST',
+        `warranties/${warrantyId}/claims`,
+        claimData
+      );
       return this.mapResponse(response.warranty);
     } catch (error: any) {
       throw this.handleError(error, 'addClaim', warrantyId);
     }
   }
 
-  async getMetrics(params: {
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_warranties: number;
     status_breakdown: Record<WarrantyStatus, number>;
     average_duration: number;

@@ -15,6 +15,5 @@ export default class TwilioIntegration extends BaseIntegration {
 
   public async getUser(userId: string) {
     return this.request('GET', `users/${userId}`);
-  }  
-  
+  }
 }

@@ -8,36 +8,36 @@ export enum ActivityType {
   AI_VALIDATION = 'ai_validation',
   PROMPT_GENERATION = 'prompt_generation',
   RESPONSE_PROCESSING = 'response_processing',
-  
+
   // Data Activities
   DATA_TRANSFORMATION = 'data_transformation',
   DATA_VALIDATION = 'data_validation',
   DATA_ENRICHMENT = 'data_enrichment',
   DATA_AGGREGATION = 'data_aggregation',
-  
+
   // Integration Activities
   API_CALL = 'api_call',
   WEBHOOK = 'webhook',
   EVENT_EMISSION = 'event_emission',
   MESSAGE_QUEUE = 'message_queue',
-  
+
   // Control Flow Activities
   CONDITION = 'condition',
   SWITCH = 'switch',
   LOOP = 'loop',
   PARALLEL = 'parallel',
   MAP = 'map',
-  
+
   // Human Activities
   HUMAN_REVIEW = 'human_review',
   APPROVAL = 'approval',
   MANUAL_TASK = 'manual_task',
-  
+
   // Utility Activities
   DELAY = 'delay',
   NOTIFICATION = 'notification',
   LOGGING = 'logging',
-  ERROR_HANDLING = 'error_handling'
+  ERROR_HANDLING = 'error_handling',
 }
 
 export enum ActivityStatus {
@@ -48,14 +48,14 @@ export enum ActivityStatus {
   FAILED = 'failed',
   CANCELLED = 'cancelled',
   SKIPPED = 'skipped',
-  WAITING = 'waiting'
+  WAITING = 'waiting',
 }
 
 export enum ActivityPriority {
   CRITICAL = 'critical',
   HIGH = 'high',
   NORMAL = 'normal',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 // Interfaces for activity data structures
@@ -214,7 +214,10 @@ export class ActivityValidationError extends Error {
 }
 
 export class ActivityExecutionError extends Error {
-  constructor(message: string, public readonly activityId: string) {
+  constructor(
+    message: string,
+    public readonly activityId: string
+  ) {
     super(message);
     this.name = 'ActivityExecutionError';
   }
@@ -238,7 +241,7 @@ class Activities {
     tags?: string[];
   }): Promise<ActivityResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.workflow_id) queryParams.append('workflow_id', params.workflow_id);
     if (params?.type) queryParams.append('type', params.type);
     if (params?.status) queryParams.append('status', params.status);
@@ -292,10 +295,7 @@ class Activities {
    * @param activityData - Partial<ActivityData> object
    * @returns ActivityResponse object
    */
-  async update(
-    activityId: string,
-    activityData: Partial<ActivityData>
-  ): Promise<ActivityResponse> {
+  async update(activityId: string, activityData: Partial<ActivityData>): Promise<ActivityResponse> {
     try {
       const response = await this.stateset.request('PUT', `activities/${activityId}`, activityData);
       return response.activity;
@@ -328,16 +328,11 @@ class Activities {
    * @param input - Optional input data
    * @returns ActivityResponse object
    */
-  async start(
-    activityId: string,
-    input?: Record<string, any>
-  ): Promise<ActivityResponse> {
+  async start(activityId: string, input?: Record<string, any>): Promise<ActivityResponse> {
     try {
-      const response = await this.stateset.request(
-        'POST',
-        `activities/${activityId}/start`,
-        { input }
-      );
+      const response = await this.stateset.request('POST', `activities/${activityId}/start`, {
+        input,
+      });
       return response.activity;
     } catch (error: any) {
       throw new ActivityExecutionError(error.message, activityId);
@@ -350,15 +345,10 @@ class Activities {
    * @param output - Output data
    * @returns ActivityResponse object
    */
-  async complete(
-    activityId: string,
-    output: Record<string, any>
-  ): Promise<ActivityResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `activities/${activityId}/complete`,
-      { output }
-    );
+  async complete(activityId: string, output: Record<string, any>): Promise<ActivityResponse> {
+    const response = await this.stateset.request('POST', `activities/${activityId}/complete`, {
+      output,
+    });
     return response.activity;
   }
 
@@ -376,11 +366,9 @@ class Activities {
       details?: any;
     }
   ): Promise<ActivityResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `activities/${activityId}/fail`,
-      { error }
-    );
+    const response = await this.stateset.request('POST', `activities/${activityId}/fail`, {
+      error,
+    });
     return response.activity;
   }
 
@@ -391,11 +379,9 @@ class Activities {
    * @returns ActivityResponse object
    */
   async cancel(activityId: string, reason?: string): Promise<ActivityResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `activities/${activityId}/cancel`,
-      { reason }
-    );
+    const response = await this.stateset.request('POST', `activities/${activityId}/cancel`, {
+      reason,
+    });
     return response.activity;
   }
 
@@ -405,10 +391,7 @@ class Activities {
    * @returns ActivityMetrics object
    */
   async getMetrics(activityId: string): Promise<ActivityMetrics> {
-    const response = await this.stateset.request(
-      'GET',
-      `activities/${activityId}/metrics`
-    );
+    const response = await this.stateset.request('GET', `activities/${activityId}/metrics`);
     return response.metrics;
   }
 
@@ -418,17 +401,14 @@ class Activities {
    * @returns ActivityResponse object
    */
   async retry(activityId: string): Promise<ActivityResponse> {
-    const response = await this.stateset.request(
-      'POST',
-      `activities/${activityId}/retry`
-    );
+    const response = await this.stateset.request('POST', `activities/${activityId}/retry`);
     return response.activity;
   }
 
   /**
    * Validate activity data
    * @param data - ActivityData object
-  */
+   */
   private validateActivityData(data: ActivityData): void {
     if (!data.name) {
       throw new ActivityValidationError('Activity name is required');

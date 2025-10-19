@@ -1,9 +1,22 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import * as https from 'https';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 import { withRetry, CircuitBreaker, RetryOptions } from '../utils/retry';
-import { StatesetError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetInvalidRequestError, StatesetNotFoundError } from '../StatesetError';
+import {
+  StatesetError,
+  StatesetAPIError,
+  StatesetAuthenticationError,
+  StatesetConnectionError,
+  StatesetInvalidRequestError,
+  StatesetNotFoundError,
+} from '../StatesetError';
 
 export interface HttpClientOptions {
   baseURL: string;
@@ -40,9 +53,15 @@ export interface ResponseMetadata extends RequestMetadata {
   responseSize: number;
 }
 
-export type RequestInterceptor = (config: InternalAxiosRequestConfig & { metadata?: RequestMetadata }) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
-export type ResponseInterceptor = (response: AxiosResponse & { metadata?: ResponseMetadata }) => AxiosResponse | Promise<AxiosResponse>;
-export type ErrorInterceptor = (error: AxiosError & { metadata?: RequestMetadata }) => void | AxiosError | Promise<void | AxiosError>;
+export type RequestInterceptor = (
+  config: InternalAxiosRequestConfig & { metadata?: RequestMetadata }
+) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
+export type ResponseInterceptor = (
+  response: AxiosResponse & { metadata?: ResponseMetadata }
+) => AxiosResponse | Promise<AxiosResponse>;
+export type ErrorInterceptor = (
+  error: AxiosError & { metadata?: RequestMetadata }
+) => void | AxiosError | Promise<void | AxiosError>;
 
 type InternalAxiosRequestConfigWithRetry = AxiosRequestConfig & {
   statesetRetryOptions?: Partial<RetryOptions>;
@@ -73,18 +92,20 @@ export class EnhancedHttpClient {
       timeout: options.timeout ?? 60000,
       httpsAgent,
       headers: {
-        'Authorization': `Bearer ${options.apiKey}`,
+        Authorization: `Bearer ${options.apiKey}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'User-Agent': options.userAgent || 'stateset-node-client/1.0.0',
         ...options.additionalHeaders,
       },
-      proxy: options.proxy ? {
-        protocol: options.proxy.protocol,
-        host: options.proxy.host,
-        port: options.proxy.port,
-        auth: options.proxy.auth,
-      } : false,
+      proxy: options.proxy
+        ? {
+            protocol: options.proxy.protocol,
+            host: options.proxy.host,
+            port: options.proxy.port,
+            auth: options.proxy.auth,
+          }
+        : false,
     });
 
     this.setupInterceptors();
@@ -125,18 +146,22 @@ export class EnhancedHttpClient {
         // Apply custom request interceptors
         return this.applyRequestInterceptors(config);
       },
-      (error) => {
-        logger.error('Request interceptor error', {
-          operation: 'http_request',
-          metadata: { error: error.message },
-        }, error);
+      error => {
+        logger.error(
+          'Request interceptor error',
+          {
+            operation: 'http_request',
+            metadata: { error: error.message },
+          },
+          error
+        );
         return Promise.reject(error);
       }
     );
 
     // Response interceptor
     this.axiosInstance.interceptors.response.use(
-      (response) => {
+      response => {
         const metadata = (response.config as any).metadata as RequestMetadata;
         const endTime = Date.now();
         const responseMetadata: ResponseMetadata = {
@@ -163,34 +188,40 @@ export class EnhancedHttpClient {
         // Apply custom response interceptors
         return this.applyResponseInterceptors(response);
       },
-      async (error) => {
+      async error => {
         const metadata = (error.config as any)?.metadata as RequestMetadata;
-        
+
         if (metadata) {
           const endTime = Date.now();
-          logger.error('HTTP request failed', {
-            requestId: metadata.requestId,
-            operation: 'http_error',
-            metadata: {
-              method: metadata.method,
-              url: metadata.url,
-              responseTime: endTime - metadata.startTime,
-              statusCode: error.response?.status,
-              errorMessage: error.message,
+          logger.error(
+            'HTTP request failed',
+            {
+              requestId: metadata.requestId,
+              operation: 'http_error',
+              metadata: {
+                method: metadata.method,
+                url: metadata.url,
+                responseTime: endTime - metadata.startTime,
+                statusCode: error.response?.status,
+                errorMessage: error.message,
+              },
             },
-          }, error);
+            error
+          );
         }
 
         // Apply custom error interceptors
         const processedError = await this.applyErrorInterceptors(error);
-        
+
         // Transform axios errors to Stateset errors
         throw this.transformError(processedError);
       }
     );
   }
 
-  private async applyRequestInterceptors(config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> {
+  private async applyRequestInterceptors(
+    config: InternalAxiosRequestConfig
+  ): Promise<InternalAxiosRequestConfig> {
     let result = config;
     for (const interceptor of this.requestInterceptors) {
       result = await interceptor(result);
@@ -290,15 +321,27 @@ export class EnhancedHttpClient {
     return this.request({ ...config, method: 'GET', url });
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
     return this.request({ ...config, method: 'POST', url, data });
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
     return this.request({ ...config, method: 'PUT', url, data });
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
     return this.request({ ...config, method: 'PATCH', url, data });
   }
 
@@ -313,12 +356,13 @@ export class EnhancedHttpClient {
       ...statesetRetryOptions,
     };
 
-    const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request<T>(axiosConfig));
-    
+    const operation = () =>
+      this.circuitBreaker.execute(() => this.axiosInstance.request<T>(axiosConfig));
+
     if (mergedRetryOptions.maxAttempts && mergedRetryOptions.maxAttempts > 1) {
       return withRetry(operation, mergedRetryOptions);
     }
-    
+
     return operation();
   }
 
@@ -385,7 +429,7 @@ export class EnhancedHttpClient {
     this.requestInterceptors.length = 0;
     this.responseInterceptors.length = 0;
     this.errorInterceptors.length = 0;
-    
+
     // Reset circuit breaker
     this.circuitBreaker.reset();
   }

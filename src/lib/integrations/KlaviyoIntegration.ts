@@ -11,7 +11,7 @@ export enum KlaviyoCampaignStatus {
   RUNNING = 'running',
   SENT = 'sent',
   CANCELLED = 'cancelled',
-  PAUSED = 'paused'
+  PAUSED = 'paused',
 }
 
 export enum KlaviyoEventType {
@@ -21,7 +21,7 @@ export enum KlaviyoEventType {
   ADDED_TO_CART = 'Added to Cart',
   CHECKOUT_STARTED = 'Checkout Started',
   SUBSCRIBED = 'Subscribed to List',
-  UNSUBSCRIBED = 'Unsubscribed from List'
+  UNSUBSCRIBED = 'Unsubscribed from List',
 }
 
 // Core Interfaces
@@ -64,7 +64,10 @@ export interface KlaviyoEvent {
 
 // Error Classes
 export class KlaviyoIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'KlaviyoIntegrationError';
   }
@@ -75,22 +78,28 @@ export default class KlaviyoIntegration extends BaseIntegration {
     super(apiKey, baseUrl);
   }
 
-  public async getMarketingCampaigns(params: {
-    status?: KlaviyoCampaignStatus;
-    channel?: KlaviyoCampaign['channel'];
-    date_range?: { since: Date; until: Date };
-    limit?: number; // Klaviyo caps at 100
-    page_cursor?: string; // For cursor-based pagination
-    fields?: string[]; // Specific fields to return
-  } = {}): Promise<{
+  public async getMarketingCampaigns(
+    params: {
+      status?: KlaviyoCampaignStatus;
+      channel?: KlaviyoCampaign['channel'];
+      date_range?: { since: Date; until: Date };
+      limit?: number; // Klaviyo caps at 100
+      page_cursor?: string; // For cursor-based pagination
+      fields?: string[]; // Specific fields to return
+    } = {}
+  ): Promise<{
     campaigns: KlaviyoCampaign[];
     pagination: { limit: number; next_cursor?: string; has_more: boolean };
   }> {
     const query = new URLSearchParams({
       ...(params.status && { filter: `equals(status,${params.status})` }),
       ...(params.channel && { filter: `equals(channel,${params.channel})` }),
-      ...(params.date_range?.since && { filter: `greater-than(updated_at,${params.date_range.since.toISOString()})` }),
-      ...(params.date_range?.until && { filter: `less-than(updated_at,${params.date_range.until.toISOString()})` }),
+      ...(params.date_range?.since && {
+        filter: `greater-than(updated_at,${params.date_range.since.toISOString()})`,
+      }),
+      ...(params.date_range?.until && {
+        filter: `less-than(updated_at,${params.date_range.until.toISOString()})`,
+      }),
       ...(params.limit && { 'page[size]': params.limit.toString() }),
       ...(params.page_cursor && { 'page[cursor]': params.page_cursor }),
       ...(params.fields && { fields: params.fields.join(',') }),
@@ -119,13 +128,20 @@ export default class KlaviyoIntegration extends BaseIntegration {
         },
       };
     } catch (error: any) {
-      throw new KlaviyoIntegrationError('Failed to fetch marketing campaigns', { originalError: error });
+      throw new KlaviyoIntegrationError('Failed to fetch marketing campaigns', {
+        originalError: error,
+      });
     }
   }
 
-  public async createCampaign(data: Omit<KlaviyoCampaign, 'id' | 'created_at' | 'updated_at' | 'sent_at'> & { message: { template_id: string } }): Promise<KlaviyoCampaign> {
+  public async createCampaign(
+    data: Omit<KlaviyoCampaign, 'id' | 'created_at' | 'updated_at' | 'sent_at'> & {
+      message: { template_id: string };
+    }
+  ): Promise<KlaviyoCampaign> {
     if (!data.name) throw new KlaviyoIntegrationError('Campaign name is required');
-    if (!data.message?.template_id) throw new KlaviyoIntegrationError('Message template ID is required');
+    if (!data.message?.template_id)
+      throw new KlaviyoIntegrationError('Message template ID is required');
 
     try {
       const payload = {
@@ -165,21 +181,27 @@ export default class KlaviyoIntegration extends BaseIntegration {
     }
   }
 
-  public async getMarketingEvents(params: {
-    type?: KlaviyoEventType | string;
-    profile_id?: string;
-    date_range?: { since: Date; until: Date };
-    limit?: number;
-    page_cursor?: string;
-  } = {}): Promise<{
+  public async getMarketingEvents(
+    params: {
+      type?: KlaviyoEventType | string;
+      profile_id?: string;
+      date_range?: { since: Date; until: Date };
+      limit?: number;
+      page_cursor?: string;
+    } = {}
+  ): Promise<{
     events: KlaviyoEvent[];
     pagination: { limit: number; next_cursor?: string; has_more: boolean };
   }> {
     const query = new URLSearchParams({
       ...(params.type && { filter: `equals(type,${params.type})` }),
       ...(params.profile_id && { filter: `equals(profile_id,${params.profile_id})` }),
-      ...(params.date_range?.since && { filter: `greater-than(timestamp,${params.date_range.since.toISOString()})` }),
-      ...(params.date_range?.until && { filter: `less-than(timestamp,${params.date_range.until.toISOString()})` }),
+      ...(params.date_range?.since && {
+        filter: `greater-than(timestamp,${params.date_range.since.toISOString()})`,
+      }),
+      ...(params.date_range?.until && {
+        filter: `less-than(timestamp,${params.date_range.until.toISOString()})`,
+      }),
       ...(params.limit && { page: params.limit.toString() }),
       ...(params.page_cursor && { page: params.page_cursor }),
     });
@@ -203,14 +225,18 @@ export default class KlaviyoIntegration extends BaseIntegration {
         },
       };
     } catch (error: any) {
-      throw new KlaviyoIntegrationError('Failed to fetch marketing events', { originalError: error });
+      throw new KlaviyoIntegrationError('Failed to fetch marketing events', {
+        originalError: error,
+      });
     }
   }
 
   public async createEvent(data: Omit<KlaviyoEvent, 'id'>): Promise<KlaviyoEvent> {
     if (!data.type) throw new KlaviyoIntegrationError('Event type is required');
     if (!data.profile?.id && !data.profile?.email && !data.profile?.phone_number) {
-      throw new KlaviyoIntegrationError('Profile identifier (id, email, or phone_number) is required');
+      throw new KlaviyoIntegrationError(
+        'Profile identifier (id, email, or phone_number) is required'
+      );
     }
 
     try {

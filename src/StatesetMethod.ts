@@ -5,7 +5,7 @@ import makeRequest from './makeRequest';
 import { makeAutoPaginationMethods } from './autoPagination';
 import { AxiosInstance } from 'axios';
 
-export interface StatesetMethodOptions  {
+export interface StatesetMethodOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   path?: string;
   fullPath?: string;
@@ -21,10 +21,7 @@ interface StatesetResource {
   [key: string]: any;
 }
 
-type StatesetMethodFunction = (
-  this: StatesetResource,
-  ...args: any[]
-) => Promise<any>;
+type StatesetMethodFunction = (this: StatesetResource, ...args: any[]) => Promise<any>;
 
 /**
  * Creates a method for interacting with the Stateset API.
@@ -48,17 +45,16 @@ function statesetMethod(spec: StatesetMethodOptions): StatesetMethodFunction {
     spec.urlParams = urlParams;
 
     const requestPromise = utils.callbackifyPromiseWithTimeout(
-      makeRequest(this, { method: spec.method || 'GET', path: spec.fullPath || this.createResourcePathWithSymbols(spec.path || ''), params: args }),
+      makeRequest(this, {
+        method: spec.method || 'GET',
+        path: spec.fullPath || this.createResourcePathWithSymbols(spec.path || ''),
+        params: args,
+      }),
       callback
     );
 
     if (spec.methodType === 'list' || spec.methodType === 'search') {
-      const autoPaginationMethods = makeAutoPaginationMethods(
-        this,
-        args,
-        spec,
-        requestPromise
-      );
+      const autoPaginationMethods = makeAutoPaginationMethods(this, args, spec, requestPromise);
       Object.assign(requestPromise, autoPaginationMethods);
     }
 

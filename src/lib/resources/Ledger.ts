@@ -12,7 +12,7 @@ export enum LedgerEventType {
   DEBIT = 'DEBIT',
   ADJUSTMENT = 'ADJUSTMENT',
   SALE = 'SALE',
-  PURCHASE = 'PURCHASE'
+  PURCHASE = 'PURCHASE',
 }
 
 // Interfaces
@@ -40,7 +40,10 @@ export interface LedgerResponse {
 
 // Error Classes
 export class LedgerError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'LedgerError';
   }
@@ -53,7 +56,10 @@ export class LedgerNotFoundError extends LedgerError {
 }
 
 export class LedgerValidationError extends LedgerError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -114,7 +120,10 @@ export default class Ledger {
     }
 
     try {
-      const response = await this.stateset.request('GET', `ledger_entries?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `ledger_entries?${queryParams.toString()}`
+      );
       return {
         ledger_entries: response.ledger_entries.map(this.mapResponse),
         pagination: {
@@ -147,7 +156,10 @@ export default class Ledger {
     }
   }
 
-  async update(ledgerId: NonEmptyString<string>, data: Partial<LedgerData>): Promise<LedgerResponse> {
+  async update(
+    ledgerId: NonEmptyString<string>,
+    data: Partial<LedgerData>
+  ): Promise<LedgerResponse> {
     try {
       const response = await this.stateset.request('PUT', `ledger_entries/${ledgerId}`, data);
       return this.mapResponse(response.ledger_entry);
@@ -184,7 +196,10 @@ export default class Ledger {
     }
 
     try {
-      const response = await this.stateset.request('GET', `ledger_entries/balance?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `ledger_entries/balance?${queryParams.toString()}`
+      );
       return response;
     } catch (error: any) {
       throw this.handleError(error, 'getBalance');
@@ -194,9 +209,9 @@ export default class Ledger {
   private handleError(error: any, operation: string, ledgerId?: string): never {
     if (error.status === 404) throw new LedgerNotFoundError(ledgerId || 'unknown');
     if (error.status === 400) throw new LedgerValidationError(error.message, error.errors);
-    throw new LedgerError(
-      `Failed to ${operation} ledger entry: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new LedgerError(`Failed to ${operation} ledger entry: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

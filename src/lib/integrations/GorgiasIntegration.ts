@@ -9,7 +9,7 @@ export enum GorgiasTicketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
   RESOLVED = 'resolved',
-  PENDING = 'pending'
+  PENDING = 'pending',
 }
 
 export enum GorgiasChannel {
@@ -17,13 +17,13 @@ export enum GorgiasChannel {
   PHONE = 'phone',
   CHAT = 'chat',
   SMS = 'sms',
-  SOCIAL = 'social'
+  SOCIAL = 'social',
 }
 
 export enum GorgiasMessageSource {
   AGENT = 'agent',
   CUSTOMER = 'customer',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
 }
 
 // Core Interfaces
@@ -71,7 +71,10 @@ export interface GorgiasMessage {
 
 // Error Classes
 export class GorgiasIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'GorgiasIntegrationError';
   }
@@ -84,19 +87,21 @@ export default class GorgiasIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new GorgiasIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getTickets(params: {
-    status?: GorgiasTicketStatus;
-    channel?: GorgiasChannel;
-    customer_id?: number;
-    limit?: number; // Gorgias typically caps at 100
-    cursor?: string; // For cursor-based pagination
-  } = {}): Promise<{
+  public async getTickets(
+    params: {
+      status?: GorgiasTicketStatus;
+      channel?: GorgiasChannel;
+      customer_id?: number;
+      limit?: number; // Gorgias typically caps at 100
+      cursor?: string; // For cursor-based pagination
+    } = {}
+  ): Promise<{
     tickets: GorgiasTicket[];
     pagination: { limit: number; cursor?: string; has_more: boolean };
   }> {
@@ -123,7 +128,9 @@ export default class GorgiasIntegration extends BaseIntegration {
     }
   }
 
-  public async createTicket(data: Omit<GorgiasTicket, 'id' | 'created_datetime' | 'updated_datetime'>): Promise<GorgiasTicket> {
+  public async createTicket(
+    data: Omit<GorgiasTicket, 'id' | 'created_datetime' | 'updated_datetime'>
+  ): Promise<GorgiasTicket> {
     this.validateRequestData(data, ['subject', 'customer']);
     try {
       const response = await this.request('POST', 'tickets', data);
@@ -161,7 +168,10 @@ export default class GorgiasIntegration extends BaseIntegration {
         },
       };
     } catch (error: any) {
-      throw new GorgiasIntegrationError('Failed to fetch ticket messages', { originalError: error, ticketId });
+      throw new GorgiasIntegrationError('Failed to fetch ticket messages', {
+        originalError: error,
+        ticketId,
+      });
     }
   }
 
@@ -174,7 +184,10 @@ export default class GorgiasIntegration extends BaseIntegration {
       const response = await this.request('POST', `tickets/${ticketId}/messages`, data);
       return response.data;
     } catch (error: any) {
-      throw new GorgiasIntegrationError('Failed to create ticket message', { originalError: error, ticketId });
+      throw new GorgiasIntegrationError('Failed to create ticket message', {
+        originalError: error,
+        ticketId,
+      });
     }
   }
 
@@ -186,11 +199,17 @@ export default class GorgiasIntegration extends BaseIntegration {
       const response = await this.request('PUT', `tickets/${ticketId}`, data);
       return response.data;
     } catch (error: any) {
-      throw new GorgiasIntegrationError('Failed to update ticket', { originalError: error, ticketId });
+      throw new GorgiasIntegrationError('Failed to update ticket', {
+        originalError: error,
+        ticketId,
+      });
     }
   }
 
-  public async closeTicket(ticketId: NonEmptyString<string>, reason?: string): Promise<GorgiasTicket> {
+  public async closeTicket(
+    ticketId: NonEmptyString<string>,
+    reason?: string
+  ): Promise<GorgiasTicket> {
     try {
       const response = await this.request('PUT', `tickets/${ticketId}`, {
         status: GorgiasTicketStatus.CLOSED,
@@ -198,7 +217,10 @@ export default class GorgiasIntegration extends BaseIntegration {
       });
       return response.data;
     } catch (error: any) {
-      throw new GorgiasIntegrationError('Failed to close ticket', { originalError: error, ticketId });
+      throw new GorgiasIntegrationError('Failed to close ticket', {
+        originalError: error,
+        ticketId,
+      });
     }
   }
 }

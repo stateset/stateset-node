@@ -27,7 +27,7 @@ describe('EnhancedHttpClient', () => {
     const originalAdapter = axiosInstance.defaults.adapter;
     axiosInstance.defaults.adapter = jest.fn().mockRejectedValue(axiosError);
 
-    client.addErrorInterceptor((error) => {
+    client.addErrorInterceptor(error => {
       error.response = {
         ...(error.response || {}),
         status: 404,
@@ -39,8 +39,10 @@ describe('EnhancedHttpClient', () => {
       return error;
     });
 
-    await expect(client.request({ url: '/resource', method: 'GET' }))
-      .rejects.toMatchObject({ name: 'StatesetNotFoundError', statusCode: 404 });
+    await expect(client.request({ url: '/resource', method: 'GET' })).rejects.toMatchObject({
+      name: 'StatesetNotFoundError',
+      statusCode: 404,
+    });
 
     axiosInstance.defaults.adapter = originalAdapter;
     client.destroy();

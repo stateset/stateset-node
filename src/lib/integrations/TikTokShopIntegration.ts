@@ -11,7 +11,7 @@ export enum TikTokOrderStatus {
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
-  RETURNED = 'RETURNED'
+  RETURNED = 'RETURNED',
 }
 
 export enum TikTokFulfillmentStatus {
@@ -19,7 +19,7 @@ export enum TikTokFulfillmentStatus {
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Core Interfaces
@@ -100,7 +100,10 @@ export interface TikTokFulfillment {
 
 // Error Classes
 export class TikTokShopIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'TikTokShopIntegrationError';
   }
@@ -113,18 +116,20 @@ export default class TikTokShopIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new TikTokShopIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    status?: TikTokProduct['status'];
-    category_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      status?: TikTokProduct['status'];
+      category_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     products: TikTokProduct[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -139,7 +144,11 @@ export default class TikTokShopIntegration extends BaseIntegration {
       const response = await this.request('GET', `products?${query}`);
       return {
         products: response.products,
-        pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.products.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new TikTokShopIntegrationError('Failed to fetch products', { originalError: error });
@@ -155,12 +164,14 @@ export default class TikTokShopIntegration extends BaseIntegration {
     }
   }
 
-  public async getOrders(params: {
-    status?: TikTokOrderStatus;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      status?: TikTokOrderStatus;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     orders: TikTokOrder[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -176,14 +187,20 @@ export default class TikTokShopIntegration extends BaseIntegration {
       const response = await this.request('GET', `orders?${query}`);
       return {
         orders: response.orders,
-        pagination: response.pagination || { total: response.orders.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.orders.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new TikTokShopIntegrationError('Failed to fetch orders', { originalError: error });
     }
   }
 
-  public async createOrder(data: Omit<TikTokOrder, 'order_id' | 'order_number' | 'created_at'>): Promise<TikTokOrder> {
+  public async createOrder(
+    data: Omit<TikTokOrder, 'order_id' | 'order_number' | 'created_at'>
+  ): Promise<TikTokOrder> {
     this.validateRequestData(data, ['items', 'shipping_address', 'total_amount']);
     try {
       return await this.request('POST', 'orders', data);
@@ -192,12 +209,14 @@ export default class TikTokShopIntegration extends BaseIntegration {
     }
   }
 
-  public async getCustomers(params: {
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}): Promise<{
+  public async getCustomers(
+    params: {
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+      search?: string;
+    } = {}
+  ): Promise<{
     customers: TikTokCustomer[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -213,14 +232,20 @@ export default class TikTokShopIntegration extends BaseIntegration {
       const response = await this.request('GET', `customers?${query}`);
       return {
         customers: response.customers,
-        pagination: response.pagination || { total: response.customers.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.customers.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new TikTokShopIntegrationError('Failed to fetch customers', { originalError: error });
     }
   }
 
-  public async createCustomer(data: Omit<TikTokCustomer, 'customer_id' | 'created_at'>): Promise<TikTokCustomer> {
+  public async createCustomer(
+    data: Omit<TikTokCustomer, 'customer_id' | 'created_at'>
+  ): Promise<TikTokCustomer> {
     this.validateRequestData(data, ['name']);
     try {
       return await this.request('POST', 'customers', data);
@@ -229,13 +254,15 @@ export default class TikTokShopIntegration extends BaseIntegration {
     }
   }
 
-  public async getReviews(params: {
-    product_id?: string;
-    rating?: 1 | 2 | 3 | 4 | 5;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getReviews(
+    params: {
+      product_id?: string;
+      rating?: 1 | 2 | 3 | 4 | 5;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     reviews: TikTokReview[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -252,14 +279,20 @@ export default class TikTokShopIntegration extends BaseIntegration {
       const response = await this.request('GET', `reviews?${query}`);
       return {
         reviews: response.reviews,
-        pagination: response.pagination || { total: response.reviews.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.reviews.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw new TikTokShopIntegrationError('Failed to fetch reviews', { originalError: error });
     }
   }
 
-  public async createReview(data: Omit<TikTokReview, 'review_id' | 'created_at'>): Promise<TikTokReview> {
+  public async createReview(
+    data: Omit<TikTokReview, 'review_id' | 'created_at'>
+  ): Promise<TikTokReview> {
     this.validateRequestData(data, ['product_id', 'order_id', 'rating', 'reviewer_id']);
     try {
       return await this.request('POST', 'reviews', data);
@@ -268,12 +301,14 @@ export default class TikTokShopIntegration extends BaseIntegration {
     }
   }
 
-  public async getFulfillments(params: {
-    status?: TikTokFulfillmentStatus;
-    order_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getFulfillments(
+    params: {
+      status?: TikTokFulfillmentStatus;
+      order_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     fulfillments: TikTokFulfillment[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -288,19 +323,29 @@ export default class TikTokShopIntegration extends BaseIntegration {
       const response = await this.request('GET', `fulfillments?${query}`);
       return {
         fulfillments: response.fulfillments,
-        pagination: response.pagination || { total: response.fulfillments.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.fulfillments.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
-      throw new TikTokShopIntegrationError('Failed to fetch fulfillments', { originalError: error });
+      throw new TikTokShopIntegrationError('Failed to fetch fulfillments', {
+        originalError: error,
+      });
     }
   }
 
-  public async createFulfillment(data: Omit<TikTokFulfillment, 'fulfillment_id'>): Promise<TikTokFulfillment> {
+  public async createFulfillment(
+    data: Omit<TikTokFulfillment, 'fulfillment_id'>
+  ): Promise<TikTokFulfillment> {
     this.validateRequestData(data, ['order_id', 'status']);
     try {
       return await this.request('POST', 'fulfillments', data);
     } catch (error: any) {
-      throw new TikTokShopIntegrationError('Failed to create fulfillment', { originalError: error });
+      throw new TikTokShopIntegrationError('Failed to create fulfillment', {
+        originalError: error,
+      });
     }
   }
 }

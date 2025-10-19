@@ -7,14 +7,14 @@ type Timestamp = string; // ISO 8601 format expected
 // Enums
 export enum CreditDebitType {
   CREDIT = 'CREDIT',
-  DEBIT = 'DEBIT'
+  DEBIT = 'DEBIT',
 }
 
 export enum CreditDebitStatus {
   PENDING = 'PENDING',
   APPLIED = 'APPLIED',
   EXPIRED = 'EXPIRED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Interfaces
@@ -45,7 +45,10 @@ export interface CreditsDebitsResponse {
 
 // Error Classes
 export class CreditsDebitsError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'CreditsDebitsError';
   }
@@ -58,7 +61,10 @@ export class CreditsDebitsNotFoundError extends CreditsDebitsError {
 }
 
 export class CreditsDebitsValidationError extends CreditsDebitsError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -123,7 +129,10 @@ export default class CreditsDebits {
     }
 
     try {
-      const response = await this.stateset.request('GET', `credits_debits?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `credits_debits?${queryParams.toString()}`
+      );
       return {
         credits_debits: response.credits_debits.map(this.mapResponse),
         pagination: {
@@ -156,9 +165,16 @@ export default class CreditsDebits {
     }
   }
 
-  async update(creditsDebitsId: NonEmptyString<string>, data: Partial<CreditsDebitsData>): Promise<CreditsDebitsResponse> {
+  async update(
+    creditsDebitsId: NonEmptyString<string>,
+    data: Partial<CreditsDebitsData>
+  ): Promise<CreditsDebitsResponse> {
     try {
-      const response = await this.stateset.request('PUT', `credits_debits/${creditsDebitsId}`, data);
+      const response = await this.stateset.request(
+        'PUT',
+        `credits_debits/${creditsDebitsId}`,
+        data
+      );
       return this.mapResponse(response.credit_debit);
     } catch (error: any) {
       throw this.handleError(error, 'update', creditsDebitsId);
@@ -173,9 +189,16 @@ export default class CreditsDebits {
     }
   }
 
-  async applyCreditDebit(creditsDebitsId: NonEmptyString<string>, appliedDate: Timestamp): Promise<CreditsDebitsResponse> {
+  async applyCreditDebit(
+    creditsDebitsId: NonEmptyString<string>,
+    appliedDate: Timestamp
+  ): Promise<CreditsDebitsResponse> {
     try {
-      const response = await this.stateset.request('POST', `credits_debits/${creditsDebitsId}/apply`, { applied_date: appliedDate });
+      const response = await this.stateset.request(
+        'POST',
+        `credits_debits/${creditsDebitsId}/apply`,
+        { applied_date: appliedDate }
+      );
       return this.mapResponse(response.credit_debit);
     } catch (error: any) {
       throw this.handleError(error, 'applyCreditDebit', creditsDebitsId);
@@ -185,9 +208,9 @@ export default class CreditsDebits {
   private handleError(error: any, operation: string, creditsDebitsId?: string): never {
     if (error.status === 404) throw new CreditsDebitsNotFoundError(creditsDebitsId || 'unknown');
     if (error.status === 400) throw new CreditsDebitsValidationError(error.message, error.errors);
-    throw new CreditsDebitsError(
-      `Failed to ${operation} credit/debit: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new CreditsDebitsError(`Failed to ${operation} credit/debit: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

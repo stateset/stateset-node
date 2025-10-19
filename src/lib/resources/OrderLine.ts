@@ -13,14 +13,14 @@ export enum OrderLineStatus {
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
   BACKORDERED = 'BACKORDERED',
-  RETURNED = 'RETURNED'
+  RETURNED = 'RETURNED',
 }
 
 export enum OrderLineType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
   DIGITAL = 'DIGITAL',
-  BUNDLE = 'BUNDLE'
+  BUNDLE = 'BUNDLE',
 }
 
 // Core Interfaces
@@ -82,7 +82,10 @@ export interface OrderLineResponse {
 
 // Error Classes
 export class OrderLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -95,7 +98,10 @@ export class OrderLineNotFoundError extends OrderLineError {
 }
 
 export class OrderLineValidationError extends OrderLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -143,15 +149,17 @@ export class OrderLines {
     };
   }
 
-  async list(params: {
-    order_id?: string;
-    status?: OrderLineStatus;
-    type?: OrderLineType;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      order_id?: string;
+      status?: OrderLineStatus;
+      type?: OrderLineType;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     order_lines: OrderLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -170,7 +178,11 @@ export class OrderLines {
       const response = await this.client.request('GET', `order_line_items?${query}`);
       return {
         order_lines: response.order_lines.map(this.mapResponse),
-        pagination: response.pagination || { total: response.order_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.order_lines.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -222,11 +234,10 @@ export class OrderLines {
     reason?: string
   ): Promise<OrderLineResponse> {
     try {
-      const response = await this.client.request(
-        'POST',
-        `order_line_items/${orderLineId}/status`,
-        { status, reason }
-      );
+      const response = await this.client.request('POST', `order_line_items/${orderLineId}/status`, {
+        status,
+        reason,
+      });
       return this.mapResponse(response.order_line);
     } catch (error: any) {
       throw this.handleError(error, 'updateStatus', orderLineId);
@@ -249,11 +260,13 @@ export class OrderLines {
     }
   }
 
-  async getMetrics(params: {
-    order_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      order_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_lines: number;
     status_breakdown: Record<OrderLineStatus, number>;
     type_breakdown: Record<OrderLineType, number>;
@@ -278,10 +291,10 @@ export class OrderLines {
   private handleError(error: any, operation: string, orderLineId?: string): never {
     if (error.status === 404) throw new OrderLineNotFoundError(orderLineId || 'unknown');
     if (error.status === 400) throw new OrderLineValidationError(error.message, error.errors);
-    throw new OrderLineError(
-      `Failed to ${operation} order line: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new OrderLineError(`Failed to ${operation} order line: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

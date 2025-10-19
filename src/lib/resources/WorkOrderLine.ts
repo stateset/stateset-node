@@ -11,7 +11,7 @@ export enum WorkOrderLineStatus {
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   ON_HOLD = 'ON_HOLD',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 export enum WorkOrderLineType {
@@ -19,7 +19,7 @@ export enum WorkOrderLineType {
   LABOR = 'LABOR',
   MATERIAL = 'MATERIAL',
   SERVICE = 'SERVICE',
-  TOOL = 'TOOL'
+  TOOL = 'TOOL',
 }
 
 // Core Interfaces
@@ -86,7 +86,10 @@ export interface WorkOrderLineResponse {
 
 // Error Classes
 export class WorkOrderLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -99,7 +102,10 @@ export class WorkOrderLineNotFoundError extends WorkOrderLineError {
 }
 
 export class WorkOrderLineValidationError extends WorkOrderLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -150,17 +156,19 @@ export class WorkOrderLines {
     };
   }
 
-  async list(params: {
-    work_order_id?: string;
-    status?: WorkOrderLineStatus;
-    type?: WorkOrderLineType;
-    task_id?: string;
-    resource_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      work_order_id?: string;
+      status?: WorkOrderLineStatus;
+      type?: WorkOrderLineType;
+      task_id?: string;
+      resource_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     work_order_lines: WorkOrderLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -181,7 +189,11 @@ export class WorkOrderLines {
       const response = await this.client.request('GET', `work_order_line_items?${query}`);
       return {
         work_order_lines: response.work_order_lines.map(this.mapResponse),
-        pagination: response.pagination || { total: response.work_order_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.work_order_lines.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -212,7 +224,11 @@ export class WorkOrderLines {
     data: Partial<WorkOrderLineData>
   ): Promise<WorkOrderLineResponse> {
     try {
-      const response = await this.client.request('PUT', `work_order_line_items/${workOrderLineId}`, data);
+      const response = await this.client.request(
+        'PUT',
+        `work_order_line_items/${workOrderLineId}`,
+        data
+      );
       return this.mapResponse(response.work_order_line);
     } catch (error: any) {
       throw this.handleError(error, 'update', workOrderLineId);
@@ -276,11 +292,13 @@ export class WorkOrderLines {
     }
   }
 
-  async getMetrics(params: {
-    work_order_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      work_order_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_lines: number;
     status_breakdown: Record<WorkOrderLineStatus, number>;
     type_breakdown: Record<WorkOrderLineType, number>;
@@ -306,10 +324,10 @@ export class WorkOrderLines {
   private handleError(error: any, operation: string, workOrderLineId?: string): never {
     if (error.status === 404) throw new WorkOrderLineNotFoundError(workOrderLineId || 'unknown');
     if (error.status === 400) throw new WorkOrderLineValidationError(error.message, error.errors);
-    throw new WorkOrderLineError(
-      `Failed to ${operation} work order line: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new WorkOrderLineError(`Failed to ${operation} work order line: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

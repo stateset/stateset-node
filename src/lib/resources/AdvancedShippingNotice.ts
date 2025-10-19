@@ -6,7 +6,7 @@ export enum ASNStatus {
   SUBMITTED = 'SUBMITTED',
   IN_TRANSIT = 'IN_TRANSIT',
   DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Interfaces
@@ -45,16 +45,22 @@ interface BaseASNResponse {
   data: ASNData;
 }
 
-export type ASNResponse = BaseASNResponse & {
-  [K in ASNStatus]: {
-    status: K;
-  } & (K extends ASNStatus.DRAFT ? { draft: true }
-    : K extends ASNStatus.SUBMITTED ? { submitted: true }
-    : K extends ASNStatus.IN_TRANSIT ? { in_transit: true }
-    : K extends ASNStatus.DELIVERED ? { delivered: true }
-    : K extends ASNStatus.CANCELLED ? { cancelled: true; cancellation_reason?: string }
-    : {});
-}[ASNStatus];
+export type ASNResponse = BaseASNResponse &
+  {
+    [K in ASNStatus]: {
+      status: K;
+    } & (K extends ASNStatus.DRAFT
+      ? { draft: true }
+      : K extends ASNStatus.SUBMITTED
+        ? { submitted: true }
+        : K extends ASNStatus.IN_TRANSIT
+          ? { in_transit: true }
+          : K extends ASNStatus.DELIVERED
+            ? { delivered: true }
+            : K extends ASNStatus.CANCELLED
+              ? { cancelled: true; cancellation_reason?: string }
+              : {});
+  }[ASNStatus];
 
 // Error Classes
 export class ASNError extends Error {
@@ -112,12 +118,14 @@ export class ASN {
     return asnData;
   }
 
-  async list(params: {
-    status?: ASNStatus;
-    purchase_order_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ asns: ASNResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: ASNStatus;
+      purchase_order_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ asns: ASNResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -163,11 +171,7 @@ export class ASN {
       carrier_status_updates?: string;
     } = {}
   ): Promise<ASNResponse> {
-    return this.request<ASNResponse>(
-      'POST',
-      `asns/${asnId}/in-transit`,
-      transitDetails
-    );
+    return this.request<ASNResponse>('POST', `asns/${asnId}/in-transit`, transitDetails);
   }
 
   async markDelivered(
@@ -178,11 +182,7 @@ export class ASN {
       delivery_notes?: string;
     }
   ): Promise<ASNResponse> {
-    return this.request<ASNResponse>(
-      'POST',
-      `asns/${asnId}/deliver`,
-      deliveryDetails
-    );
+    return this.request<ASNResponse>('POST', `asns/${asnId}/deliver`, deliveryDetails);
   }
 
   async cancel(
@@ -191,11 +191,7 @@ export class ASN {
       reason?: string;
     } = {}
   ): Promise<ASNResponse> {
-    return this.request<ASNResponse>(
-      'POST',
-      `asns/${asnId}/cancel`,
-      cancellationDetails
-    );
+    return this.request<ASNResponse>('POST', `asns/${asnId}/cancel`, cancellationDetails);
   }
 
   async addItem(asnId: string, item: ASNItem): Promise<ASNResponse> {
@@ -206,10 +202,7 @@ export class ASN {
   }
 
   async removeItem(asnId: string, purchaseOrderItemId: string): Promise<ASNResponse> {
-    return this.request<ASNResponse>(
-      'DELETE',
-      `asns/${asnId}/items/${purchaseOrderItemId}`
-    );
+    return this.request<ASNResponse>('DELETE', `asns/${asnId}/items/${purchaseOrderItemId}`);
   }
 
   async updateShippingInfo(
@@ -220,11 +213,7 @@ export class ASN {
       expected_delivery_date?: string;
     }
   ): Promise<ASNResponse> {
-    return this.request<ASNResponse>(
-      'PUT',
-      `asns/${asnId}/shipping-info`,
-      shippingInfo
-    );
+    return this.request<ASNResponse>('PUT', `asns/${asnId}/shipping-info`, shippingInfo);
   }
 
   async getTracking(asnId: string): Promise<{

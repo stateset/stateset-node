@@ -10,14 +10,14 @@ export enum ShipStationOrderStatus {
   AWAITING_SHIPMENT = 'awaiting_shipment',
   SHIPPED = 'shipped',
   ON_HOLD = 'on_hold',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 export enum ShipStationShipmentStatus {
   SHIPPED = 'shipped',
   IN_TRANSIT = 'in_transit',
   DELIVERED = 'delivered',
-  EXCEPTION = 'exception'
+  EXCEPTION = 'exception',
 }
 
 // Core Interfaces
@@ -108,7 +108,10 @@ export interface ShipStationRate {
 
 // Error Classes
 export class ShipStationIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'ShipStationIntegrationError';
   }
@@ -121,17 +124,19 @@ export default class ShipStationIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new ShipStationIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    sku?: string;
-    page?: number;
-    pageSize?: number; // ShipStation caps at 500
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      sku?: string;
+      page?: number;
+      pageSize?: number; // ShipStation caps at 500
+    } = {}
+  ): Promise<{
     products: ShipStationProduct[];
     pagination: { total: number; page: number; pages: number; pageSize: number };
   }> {
@@ -157,7 +162,9 @@ export default class ShipStationIntegration extends BaseIntegration {
     }
   }
 
-  public async createProduct(data: Omit<ShipStationProduct, 'productId' | 'createdDate' | 'modifiedDate'>): Promise<ShipStationProduct> {
+  public async createProduct(
+    data: Omit<ShipStationProduct, 'productId' | 'createdDate' | 'modifiedDate'>
+  ): Promise<ShipStationProduct> {
     this.validateRequestData(data, ['sku', 'name']);
     try {
       const response = await this.request('POST', 'products', data);
@@ -167,13 +174,15 @@ export default class ShipStationIntegration extends BaseIntegration {
     }
   }
 
-  public async getOrders(params: {
-    orderStatus?: ShipStationOrderStatus;
-    orderDateStart?: Date;
-    orderDateEnd?: Date;
-    page?: number;
-    pageSize?: number;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      orderStatus?: ShipStationOrderStatus;
+      orderDateStart?: Date;
+      orderDateEnd?: Date;
+      page?: number;
+      pageSize?: number;
+    } = {}
+  ): Promise<{
     orders: ShipStationOrder[];
     pagination: { total: number; page: number; pages: number; pageSize: number };
   }> {
@@ -201,7 +210,9 @@ export default class ShipStationIntegration extends BaseIntegration {
     }
   }
 
-  public async createOrder(data: Omit<ShipStationOrder, 'orderId' | 'createDate' | 'modifyDate'>): Promise<ShipStationOrder> {
+  public async createOrder(
+    data: Omit<ShipStationOrder, 'orderId' | 'createDate' | 'modifyDate'>
+  ): Promise<ShipStationOrder> {
     this.validateRequestData(data, ['orderNumber', 'shipTo', 'items']);
     try {
       const response = await this.request('POST', 'orders/createorder', data);
@@ -211,14 +222,16 @@ export default class ShipStationIntegration extends BaseIntegration {
     }
   }
 
-  public async getShipments(params: {
-    orderId?: number;
-    shipmentStatus?: ShipStationShipmentStatus;
-    shipDateStart?: Date;
-    shipDateEnd?: Date;
-    page?: number;
-    pageSize?: number;
-  } = {}): Promise<{
+  public async getShipments(
+    params: {
+      orderId?: number;
+      shipmentStatus?: ShipStationShipmentStatus;
+      shipDateStart?: Date;
+      shipDateEnd?: Date;
+      page?: number;
+      pageSize?: number;
+    } = {}
+  ): Promise<{
     shipments: ShipStationShipment[];
     pagination: { total: number; page: number; pages: number; pageSize: number };
   }> {
@@ -247,8 +260,16 @@ export default class ShipStationIntegration extends BaseIntegration {
     }
   }
 
-  public async createShipment(data: Omit<ShipStationShipment, 'shipmentId' | 'createdDate'>): Promise<ShipStationShipment> {
-    this.validateRequestData(data, ['orderId', 'trackingNumber', 'carrierCode', 'serviceCode', 'shipDate']);
+  public async createShipment(
+    data: Omit<ShipStationShipment, 'shipmentId' | 'createdDate'>
+  ): Promise<ShipStationShipment> {
+    this.validateRequestData(data, [
+      'orderId',
+      'trackingNumber',
+      'carrierCode',
+      'serviceCode',
+      'shipDate',
+    ]);
     try {
       const response = await this.request('POST', 'shipments/createshipment', data);
       return response;

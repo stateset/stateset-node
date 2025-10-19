@@ -7,7 +7,7 @@ export enum MachineStatus {
   OFFLINE = 'OFFLINE',
   MALFUNCTION = 'MALFUNCTION',
   STANDBY = 'STANDBY',
-  SETUP = 'SETUP'
+  SETUP = 'SETUP',
 }
 
 export enum MaintenanceType {
@@ -15,14 +15,14 @@ export enum MaintenanceType {
   CORRECTIVE = 'corrective',
   PREDICTIVE = 'predictive',
   CONDITION_BASED = 'condition_based',
-  EMERGENCY = 'emergency'
+  EMERGENCY = 'emergency',
 }
 
 export enum MalfunctionSeverity {
   CRITICAL = 'critical',
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 // Interfaces
@@ -127,17 +127,24 @@ interface BaseMachineResponse {
   data: MachineData;
 }
 
-export type MachineResponse = BaseMachineResponse & {
-  [K in MachineStatus]: {
-    status: K;
-  } & (K extends MachineStatus.OPERATIONAL ? { operational: true; current_runtime?: RuntimeData }
-    : K extends MachineStatus.MAINTENANCE ? { maintenance: true; maintenance_data: MaintenanceData }
-    : K extends MachineStatus.OFFLINE ? { offline: true; last_runtime?: RuntimeData }
-    : K extends MachineStatus.MALFUNCTION ? { malfunction: true; malfunction_report: MalfunctionReport }
-    : K extends MachineStatus.STANDBY ? { standby: true }
-    : K extends MachineStatus.SETUP ? { setup: true }
-    : {});
-}[MachineStatus];
+export type MachineResponse = BaseMachineResponse &
+  {
+    [K in MachineStatus]: {
+      status: K;
+    } & (K extends MachineStatus.OPERATIONAL
+      ? { operational: true; current_runtime?: RuntimeData }
+      : K extends MachineStatus.MAINTENANCE
+        ? { maintenance: true; maintenance_data: MaintenanceData }
+        : K extends MachineStatus.OFFLINE
+          ? { offline: true; last_runtime?: RuntimeData }
+          : K extends MachineStatus.MALFUNCTION
+            ? { malfunction: true; malfunction_report: MalfunctionReport }
+            : K extends MachineStatus.STANDBY
+              ? { standby: true }
+              : K extends MachineStatus.SETUP
+                ? { setup: true }
+                : {});
+  }[MachineStatus];
 
 // Error Classes
 export class MachineError extends Error {
@@ -200,15 +207,17 @@ export class Machines {
     }
   }
 
-  async list(params: {
-    status?: MachineStatus;
-    facility_id?: string;
-    manufacturer?: string;
-    maintenance_due?: boolean;
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ machines: MachineResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: MachineStatus;
+      facility_id?: string;
+      manufacturer?: string;
+      maintenance_due?: boolean;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ machines: MachineResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -277,18 +286,21 @@ export class Machines {
       operator_id?: string;
     } = {}
   ): Promise<MachineResponse> {
-    return this.request<MachineResponse>(
-      'POST',
-      `machines/${machineId}/set-status`,
-      { status, ...details }
-    );
+    return this.request<MachineResponse>('POST', `machines/${machineId}/set-status`, {
+      status,
+      ...details,
+    });
   }
 
   async reportMalfunction(machineId: string, report: MalfunctionReport): Promise<MachineResponse> {
     if (!report.symptoms.length) {
       throw new MachineValidationError('At least one symptom must be reported');
     }
-    return this.request<MachineResponse>('POST', `machines/${machineId}/report-malfunction`, report);
+    return this.request<MachineResponse>(
+      'POST',
+      `machines/${machineId}/report-malfunction`,
+      report
+    );
   }
 
   async getMaintenanceHistory(
@@ -300,7 +312,10 @@ export class Machines {
       limit?: number;
       offset?: number;
     } = {}
-  ): Promise<{ history: Array<MaintenanceData & { completed_at?: string; actual_cost?: number }>; total: number }> {
+  ): Promise<{
+    history: Array<MaintenanceData & { completed_at?: string; actual_cost?: number }>;
+    total: number;
+  }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -308,7 +323,10 @@ export class Machines {
       }
     });
 
-    return this.request('GET', `machines/${machineId}/maintenance-history?${queryParams.toString()}`);
+    return this.request(
+      'GET',
+      `machines/${machineId}/maintenance-history?${queryParams.toString()}`
+    );
   }
 
   async getAlerts(
@@ -319,15 +337,17 @@ export class Machines {
       resolved?: boolean;
       limit?: number;
     } = {}
-  ): Promise<Array<{
-    id: string;
-    type: string;
-    severity: MalfunctionSeverity;
-    message: string;
-    created_at: string;
-    resolved_at?: string;
-    resolution_notes?: string;
-  }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      type: string;
+      severity: MalfunctionSeverity;
+      message: string;
+      created_at: string;
+      resolved_at?: string;
+      resolution_notes?: string;
+    }>
+  > {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {

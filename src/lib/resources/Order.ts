@@ -16,7 +16,7 @@ export enum OrderStatus {
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
   RETURNED = 'RETURNED',
-  REFUNDED = 'REFUNDED'
+  REFUNDED = 'REFUNDED',
 }
 
 export enum PaymentStatus {
@@ -25,14 +25,14 @@ export enum PaymentStatus {
   PAID = 'paid',
   PARTIALLY_REFUNDED = 'partially_refunded',
   REFUNDED = 'refunded',
-  FAILED = 'failed'
+  FAILED = 'failed',
 }
 
 export enum FulfillmentPriority {
   URGENT = 'urgent',
   HIGH = 'high',
   NORMAL = 'normal',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 // Base Interfaces
@@ -150,30 +150,45 @@ interface BaseOrderResponse {
   data: OrderData;
 }
 
-export type OrderResponse = BaseOrderResponse & {
-  [K in OrderStatus]: {
-    status: K;
-  } & (K extends OrderStatus.SHIPPED ? { shipping_details: ShippingDetails }
-    : K extends OrderStatus.DELIVERED ? { delivered: true; delivery_confirmation?: {
-        timestamp: string;
-        signature?: string;
-        photo?: string;
-      } }
-    : K extends OrderStatus.CANCELLED ? { cancelled: true; cancellation_reason: string; cancelled_at: string }
-    : K extends OrderStatus.RETURNED ? { returned: true; return_details: {
-        rma_number: string;
-        reason: string;
-        received_at: string;
-        condition: string;
-      } }
-    : K extends OrderStatus.REFUNDED ? { refunded: true; refund_details: {
-        amount: number;
-        reason: string;
-        processed_at: string;
-        transaction_id: string;
-      } }
-    : {});
-}[OrderStatus];
+export type OrderResponse = BaseOrderResponse &
+  {
+    [K in OrderStatus]: {
+      status: K;
+    } & (K extends OrderStatus.SHIPPED
+      ? { shipping_details: ShippingDetails }
+      : K extends OrderStatus.DELIVERED
+        ? {
+            delivered: true;
+            delivery_confirmation?: {
+              timestamp: string;
+              signature?: string;
+              photo?: string;
+            };
+          }
+        : K extends OrderStatus.CANCELLED
+          ? { cancelled: true; cancellation_reason: string; cancelled_at: string }
+          : K extends OrderStatus.RETURNED
+            ? {
+                returned: true;
+                return_details: {
+                  rma_number: string;
+                  reason: string;
+                  received_at: string;
+                  condition: string;
+                };
+              }
+            : K extends OrderStatus.REFUNDED
+              ? {
+                  refunded: true;
+                  refund_details: {
+                    amount: number;
+                    reason: string;
+                    processed_at: string;
+                    transaction_id: string;
+                  };
+                }
+              : {});
+  }[OrderStatus];
 
 // Custom Error Classes
 export class OrderError extends Error {
@@ -231,17 +246,19 @@ export class Orders {
     }
   }
 
-  async list(params: {
-    status?: OrderStatus;
-    customer_id?: string;
-    date_from?: Date;
-    date_to?: Date;
-    priority?: FulfillmentPriority;
-    payment_status?: PaymentStatus;
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ orders: OrderResponse[]; total: number }> {
+  async list(
+    params: {
+      status?: OrderStatus;
+      customer_id?: string;
+      date_from?: Date;
+      date_to?: Date;
+      priority?: FulfillmentPriority;
+      payment_status?: PaymentStatus;
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ orders: OrderResponse[]; total: number }> {
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -357,11 +374,7 @@ export class Orders {
   }
 
   async addFulfillmentEvent(orderId: string, event: FulfillmentEvent): Promise<OrderResponse> {
-    return this.request<OrderResponse>(
-      'POST',
-      `orders/${orderId}/fulfillment-events`,
-      event
-    );
+    return this.request<OrderResponse>('POST', `orders/${orderId}/fulfillment-events`, event);
   }
 
   async getFulfillmentHistory(
@@ -389,11 +402,13 @@ export class Orders {
     return this.request('GET', `orders/${orderId}/tracking`);
   }
 
-  async getMetrics(params: {
-    start_date?: Date;
-    end_date?: Date;
-    org_id?: string;
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      start_date?: Date;
+      end_date?: Date;
+      org_id?: string;
+    } = {}
+  ): Promise<{
     total_orders: number;
     total_revenue: number;
     average_order_value: number;

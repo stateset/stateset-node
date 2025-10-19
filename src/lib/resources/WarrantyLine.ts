@@ -11,14 +11,14 @@ export enum WarrantyLineStatus {
   REJECTED = 'REJECTED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export enum WarrantyLineType {
   REPAIR = 'REPAIR',
   REPLACEMENT = 'REPLACEMENT',
   REFUND = 'REFUND',
-  SERVICE = 'SERVICE'
+  SERVICE = 'SERVICE',
 }
 
 // Core Interfaces
@@ -68,7 +68,10 @@ export interface WarrantyLineResponse {
 
 // Error Classes
 export class WarrantyLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -81,7 +84,10 @@ export class WarrantyLineNotFoundError extends WarrantyLineError {
 }
 
 export class WarrantyLineValidationError extends WarrantyLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -129,15 +135,17 @@ export class WarrantyLines {
     };
   }
 
-  async list(params: {
-    warranty_id?: string;
-    status?: WarrantyLineStatus;
-    type?: WarrantyLineType;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      warranty_id?: string;
+      status?: WarrantyLineStatus;
+      type?: WarrantyLineType;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     warranty_lines: WarrantyLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -156,7 +164,11 @@ export class WarrantyLines {
       const response = await this.client.request('GET', `warranty_line_items?${query}`);
       return {
         warranty_lines: response.warranty_lines.map(this.mapResponse),
-        pagination: response.pagination || { total: response.warranty_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.warranty_lines.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -187,7 +199,11 @@ export class WarrantyLines {
     data: Partial<WarrantyLineData>
   ): Promise<WarrantyLineResponse> {
     try {
-      const response = await this.client.request('PUT', `warranty_line_items/${warrantyLineId}`, data);
+      const response = await this.client.request(
+        'PUT',
+        `warranty_line_items/${warrantyLineId}`,
+        data
+      );
       return this.mapResponse(response.warranty_line);
     } catch (error: any) {
       throw this.handleError(error, 'update', warrantyLineId);
@@ -219,11 +235,13 @@ export class WarrantyLines {
     }
   }
 
-  async getMetrics(params: {
-    warranty_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      warranty_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_lines: number;
     status_breakdown: Record<WarrantyLineStatus, number>;
     type_breakdown: Record<WarrantyLineType, number>;
@@ -247,10 +265,10 @@ export class WarrantyLines {
   private handleError(error: any, operation: string, warrantyLineId?: string): never {
     if (error.status === 404) throw new WarrantyLineNotFoundError(warrantyLineId || 'unknown');
     if (error.status === 400) throw new WarrantyLineValidationError(error.message, error.errors);
-    throw new WarrantyLineError(
-      `Failed to ${operation} warranty line: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new WarrantyLineError(`Failed to ${operation} warranty line: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

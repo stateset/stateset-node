@@ -10,7 +10,7 @@ export enum QuickbooksInvoiceStatus {
   OPEN = 'Open',
   OVERDUE = 'Overdue',
   PAID = 'Paid',
-  VOID = 'Void'
+  VOID = 'Void',
 }
 
 export enum QuickbooksAccountType {
@@ -18,7 +18,7 @@ export enum QuickbooksAccountType {
   LIABILITY = 'Liability',
   EQUITY = 'Equity',
   INCOME = 'Income',
-  EXPENSE = 'Expense'
+  EXPENSE = 'Expense',
 }
 
 // Core Interfaces
@@ -112,30 +112,38 @@ export interface QuickbooksPayment {
 
 // Error Classes
 export class QuickbooksIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'QuickbooksIntegrationError';
   }
 }
 
 export default class QuickbooksIntegration extends BaseIntegration {
-  constructor(apiKey: NonEmptyString<string>, baseUrl: string = 'https://quickbooks.api.intuit.com') {
+  constructor(
+    apiKey: NonEmptyString<string>,
+    baseUrl: string = 'https://quickbooks.api.intuit.com'
+  ) {
     super(apiKey, baseUrl);
   }
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new QuickbooksIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getInvoices(params: {
-    query?: string; // SQL-like query, e.g., "SELECT * FROM Invoice WHERE Metadata.LastUpdatedTime > '2023-01-01'"
-    limit?: number; // QuickBooks caps at 1000
-    offset?: number;
-  } = {}): Promise<{
+  public async getInvoices(
+    params: {
+      query?: string; // SQL-like query, e.g., "SELECT * FROM Invoice WHERE Metadata.LastUpdatedTime > '2023-01-01'"
+      limit?: number; // QuickBooks caps at 1000
+      offset?: number;
+    } = {}
+  ): Promise<{
     invoices: QuickbooksInvoice[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -160,21 +168,27 @@ export default class QuickbooksIntegration extends BaseIntegration {
     }
   }
 
-  public async createInvoice(data: Omit<QuickbooksInvoice, 'Id' | 'SyncToken' | 'MetaData'>): Promise<QuickbooksInvoice> {
+  public async createInvoice(
+    data: Omit<QuickbooksInvoice, 'Id' | 'SyncToken' | 'MetaData'>
+  ): Promise<QuickbooksInvoice> {
     this.validateRequestData(data, ['CustomerRef', 'Line', 'TotalAmt']);
     try {
-      const response = await this.request('POST', 'v3/company/{companyId}/invoice', { Invoice: data });
+      const response = await this.request('POST', 'v3/company/{companyId}/invoice', {
+        Invoice: data,
+      });
       return response.Invoice;
     } catch (error: any) {
       throw new QuickbooksIntegrationError('Failed to create invoice', { originalError: error });
     }
   }
 
-  public async getAccounts(params: {
-    query?: string; // e.g., "SELECT * FROM Account WHERE AccountType = 'Income'"
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getAccounts(
+    params: {
+      query?: string; // e.g., "SELECT * FROM Account WHERE AccountType = 'Income'"
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     accounts: QuickbooksAccount[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -199,21 +213,27 @@ export default class QuickbooksIntegration extends BaseIntegration {
     }
   }
 
-  public async createAccount(data: Omit<QuickbooksAccount, 'Id' | 'SyncToken' | 'MetaData'>): Promise<QuickbooksAccount> {
+  public async createAccount(
+    data: Omit<QuickbooksAccount, 'Id' | 'SyncToken' | 'MetaData'>
+  ): Promise<QuickbooksAccount> {
     this.validateRequestData(data, ['Name', 'AccountType']);
     try {
-      const response = await this.request('POST', 'v3/company/{companyId}/account', { Account: data });
+      const response = await this.request('POST', 'v3/company/{companyId}/account', {
+        Account: data,
+      });
       return response.Account;
     } catch (error: any) {
       throw new QuickbooksIntegrationError('Failed to create account', { originalError: error });
     }
   }
 
-  public async getContacts(params: {
-    query?: string; // e.g., "SELECT * FROM Customer WHERE Active = true"
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getContacts(
+    params: {
+      query?: string; // e.g., "SELECT * FROM Customer WHERE Active = true"
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     contacts: QuickbooksContact[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -228,7 +248,10 @@ export default class QuickbooksIntegration extends BaseIntegration {
       return {
         contacts: response.QueryResponse.Customer || response.QueryResponse.Vendor || [],
         pagination: {
-          total: response.QueryResponse.totalCount || (response.QueryResponse.Customer || response.QueryResponse.Vendor)?.length || 0,
+          total:
+            response.QueryResponse.totalCount ||
+            (response.QueryResponse.Customer || response.QueryResponse.Vendor)?.length ||
+            0,
           limit: params.limit || 100,
           offset: params.offset || 0,
         },
@@ -238,22 +261,28 @@ export default class QuickbooksIntegration extends BaseIntegration {
     }
   }
 
-  public async createContact(data: Omit<QuickbooksContact, 'Id' | 'SyncToken' | 'MetaData'>): Promise<QuickbooksContact> {
+  public async createContact(
+    data: Omit<QuickbooksContact, 'Id' | 'SyncToken' | 'MetaData'>
+  ): Promise<QuickbooksContact> {
     this.validateRequestData(data, ['DisplayName', 'ContactType']);
     try {
       const endpoint = data.ContactType === 'Customer' ? 'customer' : 'vendor';
-      const response = await this.request('POST', `v3/company/{companyId}/${endpoint}`, { [data.ContactType]: data });
+      const response = await this.request('POST', `v3/company/{companyId}/${endpoint}`, {
+        [data.ContactType]: data,
+      });
       return response[data.ContactType];
     } catch (error: any) {
       throw new QuickbooksIntegrationError('Failed to create contact', { originalError: error });
     }
   }
 
-  public async getPayments(params: {
-    query?: string; // e.g., "SELECT * FROM Payment WHERE TotalAmt > 100"
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  public async getPayments(
+    params: {
+      query?: string; // e.g., "SELECT * FROM Payment WHERE TotalAmt > 100"
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     payments: QuickbooksPayment[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -278,10 +307,14 @@ export default class QuickbooksIntegration extends BaseIntegration {
     }
   }
 
-  public async createPayment(data: Omit<QuickbooksPayment, 'Id' | 'SyncToken' | 'MetaData'>): Promise<QuickbooksPayment> {
+  public async createPayment(
+    data: Omit<QuickbooksPayment, 'Id' | 'SyncToken' | 'MetaData'>
+  ): Promise<QuickbooksPayment> {
     this.validateRequestData(data, ['CustomerRef', 'TotalAmt']);
     try {
-      const response = await this.request('POST', 'v3/company/{companyId}/payment', { Payment: data });
+      const response = await this.request('POST', 'v3/company/{companyId}/payment', {
+        Payment: data,
+      });
       return response.Payment;
     } catch (error: any) {
       throw new QuickbooksIntegrationError('Failed to create payment', { originalError: error });

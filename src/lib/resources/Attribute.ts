@@ -6,7 +6,7 @@ export enum AttributeType {
   TONE = 'tone',
   SKILL = 'skill',
   KNOWLEDGE = 'knowledge',
-  STYLE = 'style'
+  STYLE = 'style',
 }
 
 export enum AttributeCategory {
@@ -14,13 +14,13 @@ export enum AttributeCategory {
   BEHAVIOR = 'behavior',
   EXPERTISE = 'expertise',
   LANGUAGE = 'language',
-  PERFORMANCE = 'performance'
+  PERFORMANCE = 'performance',
 }
 
 export enum AttributeImpact {
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 
 // Response Interfaces
@@ -94,7 +94,10 @@ export class AttributeValidationError extends Error {
 }
 
 export class AttributeOperationError extends Error {
-  constructor(message: string, public readonly code: string) {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
     super(message);
     this.name = 'AttributeOperationError';
   }
@@ -109,17 +112,13 @@ class Attributes {
    */
   private validateAttributeValue(value?: number, min?: number, max?: number): void {
     if (value === undefined) return;
-    
+
     if (min !== undefined && value < min) {
-      throw new AttributeValidationError(
-        `Value ${value} is below minimum allowed value of ${min}`
-      );
+      throw new AttributeValidationError(`Value ${value} is below minimum allowed value of ${min}`);
     }
-    
+
     if (max !== undefined && value > max) {
-      throw new AttributeValidationError(
-        `Value ${value} exceeds maximum allowed value of ${max}`
-      );
+      throw new AttributeValidationError(`Value ${value} exceeds maximum allowed value of ${max}`);
     }
   }
 
@@ -134,12 +133,13 @@ class Attributes {
     activated?: boolean;
   }): Promise<AttributeData[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.attribute_type) queryParams.append('attribute_type', params.attribute_type);
     if (params?.category) queryParams.append('category', params.category);
     if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
     if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.activated !== undefined) queryParams.append('activated', params.activated.toString());
+    if (params?.activated !== undefined)
+      queryParams.append('activated', params.activated.toString());
 
     const response = await this.stateset.request('GET', `attributes?${queryParams.toString()}`);
     return response.attributes;
@@ -185,11 +185,11 @@ class Attributes {
     try {
       // Get current attribute to validate against existing constraints
       const currentAttribute = await this.get(attributeId);
-      
+
       // Determine final min/max values for validation
       const minValue = params.min_value ?? currentAttribute.min_value;
       const maxValue = params.max_value ?? currentAttribute.max_value;
-      
+
       // Validate new value against constraints
       this.validateAttributeValue(params.value, minValue, maxValue);
 
@@ -239,7 +239,7 @@ class Attributes {
   async copyAttributes(sourceAgentId: string, targetAgentId: string): Promise<AttributeData[]> {
     const response = await this.stateset.request('POST', 'attributes/copy', {
       source_agent_id: sourceAgentId,
-      target_agent_id: targetAgentId
+      target_agent_id: targetAgentId,
     });
     return response.attributes;
   }
@@ -247,13 +247,16 @@ class Attributes {
   /**
    * Get attribute history for an agent
    */
-  async getHistory(attributeId: string, params?: {
-    start_date?: Date;
-    end_date?: Date;
-    limit?: number;
-  }): Promise<Array<AttributeData & { timestamp: string }>> {
+  async getHistory(
+    attributeId: string,
+    params?: {
+      start_date?: Date;
+      end_date?: Date;
+      limit?: number;
+    }
+  ): Promise<Array<AttributeData & { timestamp: string }>> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
     if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());

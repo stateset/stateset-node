@@ -9,7 +9,7 @@ import {
   StatesetInvalidRequestError,
   StatesetNotFoundError,
   StatesetRateLimitError,
-  StatesetPermissionError
+  StatesetPermissionError,
 } from './StatesetError';
 
 // Export new client as default
@@ -30,7 +30,7 @@ export {
   StatesetInvalidRequestError,
   StatesetNotFoundError,
   StatesetRateLimitError,
-  StatesetPermissionError
+  StatesetPermissionError,
 };
 
 // Export types

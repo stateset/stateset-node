@@ -136,5 +136,5 @@ export {
   StatesetAuthenticationError,
   StatesetConnectionError,
   StatesetPermissionError,
-  StatesetRateLimitError
+  StatesetRateLimitError,
 };

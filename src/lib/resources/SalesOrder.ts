@@ -47,8 +47,6 @@ export type SalesOrderResponse =
   | PaidSalesOrderResponse
   | CancelledSalesOrderResponse;
 
-
-
 export interface SalesOrderItem {
   item_id: string;
   quantity: number;
@@ -103,9 +101,7 @@ class SalesOrders {
 
   async list(): Promise<SalesOrderResponse[]> {
     const response = await this.stateset.request('GET', 'salesorders');
-    return response.map((so: any) =>
-      this.handleCommandResponse({ update_salesorders_by_pk: so })
-    );
+    return response.map((so: any) => this.handleCommandResponse({ update_salesorders_by_pk: so }));
   }
 
   async get(id: string): Promise<SalesOrderResponse> {

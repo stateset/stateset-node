@@ -9,13 +9,13 @@ export enum VendorStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum VendorType {
   SUPPLIER = 'SUPPLIER',
   SERVICE_PROVIDER = 'SERVICE_PROVIDER',
-  CONTRACTOR = 'CONTRACTOR'
+  CONTRACTOR = 'CONTRACTOR',
 }
 
 // Interfaces
@@ -77,7 +77,10 @@ export interface VendorResponse {
 
 // Error Classes
 export class VendorError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'VendorError';
   }
@@ -90,7 +93,10 @@ export class VendorNotFoundError extends VendorError {
 }
 
 export class VendorValidationError extends VendorError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -101,7 +107,8 @@ export default class Vendors {
   private validateVendorData(data: VendorData): void {
     if (!data.name) throw new VendorValidationError('Vendor name is required');
     if (!data.vendor_code) throw new VendorValidationError('Vendor code is required');
-    if (!data.addresses?.length) throw new VendorValidationError('At least one address is required');
+    if (!data.addresses?.length)
+      throw new VendorValidationError('At least one address is required');
     if (!data.contacts?.length) throw new VendorValidationError('At least one contact is required');
     if (!data.payment_terms?.terms) throw new VendorValidationError('Payment terms are required');
     if (data.payment_terms?.credit_limit && data.payment_terms.credit_limit < 0) {
@@ -184,7 +191,10 @@ export default class Vendors {
     }
   }
 
-  async update(vendorId: NonEmptyString<string>, data: Partial<VendorData>): Promise<VendorResponse> {
+  async update(
+    vendorId: NonEmptyString<string>,
+    data: Partial<VendorData>
+  ): Promise<VendorResponse> {
     try {
       const response = await this.client.request('PUT', `vendors/${vendorId}`, data);
       return this.mapResponse(response.vendor);
@@ -240,11 +250,7 @@ export default class Vendors {
     }
   }
 
-  async getVendorMetrics(params?: {
-    org_id?: string;
-    date_from?: Date;
-    date_to?: Date;
-  }): Promise<{
+  async getVendorMetrics(params?: { org_id?: string; date_from?: Date; date_to?: Date }): Promise<{
     total_vendors: number;
     status_breakdown: Record<VendorStatus, number>;
     type_breakdown: Record<VendorType, number>;
@@ -261,7 +267,10 @@ export default class Vendors {
     }
 
     try {
-      const response = await this.client.request('GET', `vendors/metrics?${queryParams.toString()}`);
+      const response = await this.client.request(
+        'GET',
+        `vendors/metrics?${queryParams.toString()}`
+      );
       return response.metrics;
     } catch (error: any) {
       throw this.handleError(error, 'getVendorMetrics');
@@ -271,9 +280,9 @@ export default class Vendors {
   private handleError(error: any, operation: string, vendorId?: string): never {
     if (error.status === 404) throw new VendorNotFoundError(vendorId || 'unknown');
     if (error.status === 400) throw new VendorValidationError(error.message, error.errors);
-    throw new VendorError(
-      `Failed to ${operation} vendor: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new VendorError(`Failed to ${operation} vendor: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

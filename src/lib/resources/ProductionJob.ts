@@ -6,14 +6,14 @@ export enum JobStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
 }
 
 export enum JobPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  URGENT = 'URGENT'
+  URGENT = 'URGENT',
 }
 
 // Interfaces for ProductionJob data structures
@@ -106,7 +106,7 @@ interface OnHoldJobResponse extends BaseJobResponse {
   on_hold: true;
 }
 
-export type JobResponse = 
+export type JobResponse =
   | PlannedJobResponse
   | InProgressJobResponse
   | CompletedJobResponse
@@ -178,7 +178,7 @@ class ProductionJob {
       created_at: jobData.created_at,
       updated_at: jobData.updated_at,
       status: jobData.status,
-      data: jobData.data
+      data: jobData.data,
     };
 
     switch (jobData.status) {
@@ -209,7 +209,7 @@ class ProductionJob {
     start_before?: Date;
   }): Promise<JobResponse[]> {
     const queryParams = new URLSearchParams();
-    
+
     if (params?.status) queryParams.append('status', params.status);
     if (params?.priority) queryParams.append('priority', params.priority);
     if (params?.bom_id) queryParams.append('bom_id', params.bom_id);
@@ -218,7 +218,9 @@ class ProductionJob {
     if (params?.start_before) queryParams.append('start_before', params.start_before.toISOString());
 
     const response = await this.stateset.request('GET', `productionjob?${queryParams.toString()}`);
-    return response.map((job: any) => this.handleCommandResponse({ update_productionjob_by_pk: job }));
+    return response.map((job: any) =>
+      this.handleCommandResponse({ update_productionjob_by_pk: job })
+    );
   }
 
   /**
@@ -298,12 +300,19 @@ class ProductionJob {
    * @param results - Results object
    * @returns CompletedJobResponse object
    */
-  async complete(jobId: string, results: { 
-    yield_quantity: number;
-    scrap_quantity?: number;
-    labor_hours?: number;
-  }): Promise<CompletedJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/complete`, results);
+  async complete(
+    jobId: string,
+    results: {
+      yield_quantity: number;
+      scrap_quantity?: number;
+      labor_hours?: number;
+    }
+  ): Promise<CompletedJobResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `productionjob/${jobId}/complete`,
+      results
+    );
     return this.handleCommandResponse(response) as CompletedJobResponse;
   }
 
@@ -314,7 +323,9 @@ class ProductionJob {
    * @returns CancelledJobResponse object
    */
   async cancel(jobId: string, reason: string): Promise<CancelledJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, { reason });
+    const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, {
+      reason,
+    });
     return this.handleCommandResponse(response) as CancelledJobResponse;
   }
 
@@ -342,24 +353,40 @@ class ProductionJob {
   /**
    * Material management methods
    */
-  async allocateMaterial(jobId: string, materialId: string, allocation: {
-    quantity: number;
-    warehouse_location?: string;
-    batch_number?: string;
-  }): Promise<JobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/materials/${materialId}/allocate`, allocation);
+  async allocateMaterial(
+    jobId: string,
+    materialId: string,
+    allocation: {
+      quantity: number;
+      warehouse_location?: string;
+      batch_number?: string;
+    }
+  ): Promise<JobResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `productionjob/${jobId}/materials/${materialId}/allocate`,
+      allocation
+    );
     return this.handleCommandResponse(response);
   }
 
   /**
    * Record material usage
    */
-  async recordMaterialUsage(jobId: string, materialId: string, usage: {
-    quantity_used: number;
-    scrap_quantity?: number;
-    notes?: string;
-  }): Promise<JobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/materials/${materialId}/usage`, usage);
+  async recordMaterialUsage(
+    jobId: string,
+    materialId: string,
+    usage: {
+      quantity_used: number;
+      scrap_quantity?: number;
+      notes?: string;
+    }
+  ): Promise<JobResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `productionjob/${jobId}/materials/${materialId}/usage`,
+      usage
+    );
     return this.handleCommandResponse(response);
   }
 
@@ -367,43 +394,68 @@ class ProductionJob {
    * Quality management methods
    */
   async addQualityCheck(jobId: string, check: QualityCheck): Promise<JobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/quality-checks`, check);
+    const response = await this.stateset.request(
+      'POST',
+      `productionjob/${jobId}/quality-checks`,
+      check
+    );
     return this.handleCommandResponse(response);
   }
 
   /**
    * Update a quality check
    */
-  async updateQualityCheck(jobId: string, checkId: string, result: {
-    result: 'PASS' | 'FAIL';
-    inspector: string;
-    notes?: string;
-  }): Promise<JobResponse> {
-    const response = await this.stateset.request('PUT', `productionjob/${jobId}/quality-checks/${checkId}`, result);
+  async updateQualityCheck(
+    jobId: string,
+    checkId: string,
+    result: {
+      result: 'PASS' | 'FAIL';
+      inspector: string;
+      notes?: string;
+    }
+  ): Promise<JobResponse> {
+    const response = await this.stateset.request(
+      'PUT',
+      `productionjob/${jobId}/quality-checks/${checkId}`,
+      result
+    );
     return this.handleCommandResponse(response);
   }
 
   /**
    * Progress tracking methods
    */
-  async updateProgress(jobId: string, progress: {
-    completed_quantity: number;
-    remaining_time_estimate?: number;
-    notes?: string;
-  }): Promise<JobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/progress`, progress);
+  async updateProgress(
+    jobId: string,
+    progress: {
+      completed_quantity: number;
+      remaining_time_estimate?: number;
+      notes?: string;
+    }
+  ): Promise<JobResponse> {
+    const response = await this.stateset.request(
+      'POST',
+      `productionjob/${jobId}/progress`,
+      progress
+    );
     return this.handleCommandResponse(response);
   }
 
   /**
    * Report generation methods
    */
-  async generateReport(jobId: string, type: 'summary' | 'detailed' | 'quality' | 'materials'): Promise<{
+  async generateReport(
+    jobId: string,
+    type: 'summary' | 'detailed' | 'quality' | 'materials'
+  ): Promise<{
     url: string;
     generated_at: string;
     expires_at: string;
   }> {
-    const response = await this.stateset.request('GET', `productionjob/${jobId}/report?type=${type}`);
+    const response = await this.stateset.request(
+      'GET',
+      `productionjob/${jobId}/report?type=${type}`
+    );
     return response;
   }
 }

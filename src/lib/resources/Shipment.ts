@@ -19,7 +19,7 @@ export enum ShipmentStatus {
   ATTEMPTED_DELIVERY = 'attempted_delivery',
   DELIVERED = 'delivered',
   EXCEPTION = 'exception',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 export enum ShippingCarrier {
@@ -27,7 +27,7 @@ export enum ShippingCarrier {
   UPS = 'UPS',
   USPS = 'USPS',
   DHL = 'DHL',
-  ONTRAC = 'ONTRAC'
+  ONTRAC = 'ONTRAC',
 }
 
 export enum ServiceLevel {
@@ -35,7 +35,7 @@ export enum ServiceLevel {
   TWO_DAY = 'TWO_DAY',
   OVERNIGHT = 'OVERNIGHT',
   INTERNATIONAL = 'INTERNATIONAL',
-  ECONOMY = 'ECONOMY'
+  ECONOMY = 'ECONOMY',
 }
 
 export enum PackageType {
@@ -46,7 +46,7 @@ export enum PackageType {
   BOX_SMALL = 'BOX_SMALL',
   BOX_MEDIUM = 'BOX_MEDIUM',
   BOX_LARGE = 'BOX_LARGE',
-  PALLET = 'PALLET'
+  PALLET = 'PALLET',
 }
 
 // Common Measurement Types
@@ -206,16 +206,34 @@ export type ShipmentResponse = {
   data: ShipmentData;
 } & (
   | { status: ShipmentStatus.PENDING; pending_details: { created_at: string } }
-  | { status: ShipmentStatus.LABEL_CREATED; label_info: { tracking_number: string; label_url: string; created_at: string } }
-  | { status: ShipmentStatus.SHIPPED; shipping_info: { carrier: ShippingCarrier; tracking_numbers: string[]; shipped_at: string } }
-  | { status: ShipmentStatus.IN_TRANSIT; transit_info: { events: TrackingEvent[]; last_update: string } }
-  | { status: ShipmentStatus.DELIVERED; delivery_info: { delivered_at: string; signed_by?: string; proof_of_delivery?: string } }
-  | { status: ShipmentStatus.EXCEPTION; exception_info: { code: string; message: string; timestamp: string; resolution?: string } }
+  | {
+      status: ShipmentStatus.LABEL_CREATED;
+      label_info: { tracking_number: string; label_url: string; created_at: string };
+    }
+  | {
+      status: ShipmentStatus.SHIPPED;
+      shipping_info: { carrier: ShippingCarrier; tracking_numbers: string[]; shipped_at: string };
+    }
+  | {
+      status: ShipmentStatus.IN_TRANSIT;
+      transit_info: { events: TrackingEvent[]; last_update: string };
+    }
+  | {
+      status: ShipmentStatus.DELIVERED;
+      delivery_info: { delivered_at: string; signed_by?: string; proof_of_delivery?: string };
+    }
+  | {
+      status: ShipmentStatus.EXCEPTION;
+      exception_info: { code: string; message: string; timestamp: string; resolution?: string };
+    }
 );
 
 // Error Classes with additional context
 export class ShipmentError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -228,13 +246,20 @@ export class ShipmentNotFoundError extends ShipmentError {
 }
 
 export class ShipmentValidationError extends ShipmentError {
-  constructor(message: string, public readonly validationErrors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly validationErrors?: Record<string, string>
+  ) {
     super(message);
   }
 }
 
 export class CarrierApiError extends ShipmentError {
-  constructor(message: string, public readonly carrier: ShippingCarrier, public readonly code: string) {
+  constructor(
+    message: string,
+    public readonly carrier: ShippingCarrier,
+    public readonly code: string
+  ) {
     super(message, { carrier, code });
   }
 }
@@ -249,16 +274,18 @@ export class Shipments {
     if (!data.shipping_address) throw new ShipmentValidationError('Shipping address is required');
   }
 
-  async list(params: {
-    status?: ShipmentStatus;
-    carrier?: ShippingCarrier;
-    order_id?: string;
-    customer_id?: string;
-    date_range?: { from: Date; to: Date };
-    org_id?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      status?: ShipmentStatus;
+      carrier?: ShippingCarrier;
+      order_id?: string;
+      customer_id?: string;
+      date_range?: { from: Date; to: Date };
+      org_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     shipments: ShipmentResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -303,8 +330,15 @@ export class Shipments {
     }
   }
 
-  async addPackage(shipmentId: string, packageData: Omit<Package, 'id'>): Promise<ShipmentResponse> {
-    const response = await this.client.request('POST', `shipments/${shipmentId}/packages`, packageData);
+  async addPackage(
+    shipmentId: string,
+    packageData: Omit<Package, 'id'>
+  ): Promise<ShipmentResponse> {
+    const response = await this.client.request(
+      'POST',
+      `shipments/${shipmentId}/packages`,
+      packageData
+    );
     return response.shipment;
   }
 
@@ -321,7 +355,11 @@ export class Shipments {
     carrier: ShippingCarrier;
     expires_at: string;
   }> {
-    const response = await this.client.request('POST', `shipments/${shipmentId}/return-label`, options);
+    const response = await this.client.request(
+      'POST',
+      `shipments/${shipmentId}/return-label`,
+      options
+    );
     return response.label;
   }
 
@@ -354,12 +392,14 @@ export class Shipments {
     return response.tracking;
   }
 
-  async getMetrics(params: {
-    date_range?: { start: Date; end: Date };
-    carrier?: ShippingCarrier;
-    org_id?: string;
-    group_by?: 'day' | 'week' | 'month';
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      date_range?: { start: Date; end: Date };
+      carrier?: ShippingCarrier;
+      org_id?: string;
+      group_by?: 'day' | 'week' | 'month';
+    } = {}
+  ): Promise<{
     total_shipments: number;
     average_delivery_time: number;
     on_time_delivery_rate: number;

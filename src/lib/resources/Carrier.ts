@@ -8,13 +8,13 @@ type Timestamp = string; // ISO 8601 format expected
 export enum CarrierStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 export enum CarrierType {
   FREIGHT = 'FREIGHT',
   PARCEL = 'PARCEL',
-  COURIER = 'COURIER'
+  COURIER = 'COURIER',
 }
 
 // Interfaces
@@ -51,7 +51,10 @@ export interface CarrierResponse {
 
 // Error Classes
 export class CarrierError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'CarrierError';
   }
@@ -64,7 +67,10 @@ export class CarrierNotFoundError extends CarrierError {
 }
 
 export class CarrierValidationError extends CarrierError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -155,7 +161,10 @@ export default class Carriers {
     }
   }
 
-  async update(carrierId: NonEmptyString<string>, data: Partial<CarrierData>): Promise<CarrierResponse> {
+  async update(
+    carrierId: NonEmptyString<string>,
+    data: Partial<CarrierData>
+  ): Promise<CarrierResponse> {
     try {
       const response = await this.stateset.request('PUT', `carriers/${carrierId}`, data);
       return this.mapResponse(response.carrier);
@@ -177,7 +186,9 @@ export default class Carriers {
     performance: CarrierData['performance']
   ): Promise<CarrierResponse> {
     try {
-      const response = await this.stateset.request('POST', `carriers/${carrierId}/performance`, { performance });
+      const response = await this.stateset.request('POST', `carriers/${carrierId}/performance`, {
+        performance,
+      });
       return this.mapResponse(response.carrier);
     } catch (error: any) {
       throw this.handleError(error, 'updatePerformance', carrierId);
@@ -187,9 +198,9 @@ export default class Carriers {
   private handleError(error: any, operation: string, carrierId?: string): never {
     if (error.status === 404) throw new CarrierNotFoundError(carrierId || 'unknown');
     if (error.status === 400) throw new CarrierValidationError(error.message, error.errors);
-    throw new CarrierError(
-      `Failed to ${operation} carrier: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new CarrierError(`Failed to ${operation} carrier: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

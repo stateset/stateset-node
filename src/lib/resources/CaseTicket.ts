@@ -10,21 +10,21 @@ export enum CaseTicketStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   RESOLVED = 'RESOLVED',
   CLOSED = 'CLOSED',
-  ON_HOLD = 'ON_HOLD'
+  ON_HOLD = 'ON_HOLD',
 }
 
 export enum CaseTicketPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  URGENT = 'URGENT'
+  URGENT = 'URGENT',
 }
 
 export enum EscalationLevel {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL'
+  CRITICAL = 'CRITICAL',
 }
 
 // Interfaces
@@ -54,7 +54,10 @@ export interface CaseTicketResponse {
 
 // Error Classes
 export class CaseTicketError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'CaseTicketError';
   }
@@ -67,7 +70,10 @@ export class CaseTicketNotFoundError extends CaseTicketError {
 }
 
 export class CaseTicketValidationError extends CaseTicketError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -133,7 +139,10 @@ export default class CasesTickets {
     }
 
     try {
-      const response = await this.stateset.request('GET', `cases_tickets?${queryParams.toString()}`);
+      const response = await this.stateset.request(
+        'GET',
+        `cases_tickets?${queryParams.toString()}`
+      );
       return {
         cases_tickets: response.cases_tickets.map(this.mapResponse),
         pagination: {
@@ -204,7 +213,10 @@ export default class CasesTickets {
     }
   }
 
-  async update(caseTicketId: NonEmptyString<string>, data: Partial<CaseTicketData>): Promise<CaseTicketResponse> {
+  async update(
+    caseTicketId: NonEmptyString<string>,
+    data: Partial<CaseTicketData>
+  ): Promise<CaseTicketResponse> {
     try {
       const response = await this.stateset.request('PUT', `cases_tickets/${caseTicketId}`, data);
       return this.mapResponse(response.case_ticket);
@@ -221,18 +233,30 @@ export default class CasesTickets {
     }
   }
 
-  async resolve(caseTicketId: NonEmptyString<string>, resolutionNotes: string): Promise<CaseTicketResponse> {
+  async resolve(
+    caseTicketId: NonEmptyString<string>,
+    resolutionNotes: string
+  ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/resolve`, { notes: resolutionNotes });
+      const response = await this.stateset.request(
+        'POST',
+        `cases_tickets/${caseTicketId}/resolve`,
+        { notes: resolutionNotes }
+      );
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'resolve', caseTicketId);
     }
   }
 
-  async assign(caseTicketId: NonEmptyString<string>, agentId: NonEmptyString<string>): Promise<CaseTicketResponse> {
+  async assign(
+    caseTicketId: NonEmptyString<string>,
+    agentId: NonEmptyString<string>
+  ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, { agent_id: agentId });
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, {
+        agent_id: agentId,
+      });
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'assign', caseTicketId);
@@ -241,7 +265,9 @@ export default class CasesTickets {
 
   async addNote(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, { note });
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, {
+        note,
+      });
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'addNote', caseTicketId);
@@ -257,9 +283,16 @@ export default class CasesTickets {
     }
   }
 
-  async escalate(caseTicketId: NonEmptyString<string>, level: EscalationLevel): Promise<CaseTicketResponse> {
+  async escalate(
+    caseTicketId: NonEmptyString<string>,
+    level: EscalationLevel
+  ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/escalate`, { level });
+      const response = await this.stateset.request(
+        'POST',
+        `cases_tickets/${caseTicketId}/escalate`,
+        { level }
+      );
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'escalate', caseTicketId);
@@ -277,7 +310,9 @@ export default class CasesTickets {
 
   async reopen(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, { note });
+      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, {
+        note,
+      });
       return this.mapResponse(response.case_ticket);
     } catch (error: any) {
       throw this.handleError(error, 'reopen', caseTicketId);
@@ -287,9 +322,9 @@ export default class CasesTickets {
   private handleError(error: any, operation: string, caseTicketId?: string): never {
     if (error.status === 404) throw new CaseTicketNotFoundError(caseTicketId || 'unknown');
     if (error.status === 400) throw new CaseTicketValidationError(error.message, error.errors);
-    throw new CaseTicketError(
-      `Failed to ${operation} case/ticket: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new CaseTicketError(`Failed to ${operation} case/ticket: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

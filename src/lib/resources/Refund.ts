@@ -10,14 +10,14 @@ export enum RefundStatus {
   APPROVED = 'APPROVED',
   PROCESSED = 'PROCESSED',
   REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export enum RefundReason {
   RETURN = 'RETURN',
   CANCELLATION = 'CANCELLATION',
   DEFECTIVE = 'DEFECTIVE',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 // Interfaces
@@ -46,7 +46,10 @@ export interface RefundResponse {
 
 // Error Classes
 export class RefundError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'RefundError';
   }
@@ -59,7 +62,10 @@ export class RefundNotFoundError extends RefundError {
 }
 
 export class RefundValidationError extends RefundError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -154,7 +160,10 @@ export default class Refunds {
     }
   }
 
-  async update(refundId: NonEmptyString<string>, data: Partial<RefundData>): Promise<RefundResponse> {
+  async update(
+    refundId: NonEmptyString<string>,
+    data: Partial<RefundData>
+  ): Promise<RefundResponse> {
     try {
       const response = await this.stateset.request('PUT', `refunds/${refundId}`, data);
       return this.mapResponse(response.refund);
@@ -171,9 +180,14 @@ export default class Refunds {
     }
   }
 
-  async processRefund(refundId: NonEmptyString<string>, refundDate: Timestamp): Promise<RefundResponse> {
+  async processRefund(
+    refundId: NonEmptyString<string>,
+    refundDate: Timestamp
+  ): Promise<RefundResponse> {
     try {
-      const response = await this.stateset.request('POST', `refunds/${refundId}/process`, { refund_date: refundDate });
+      const response = await this.stateset.request('POST', `refunds/${refundId}/process`, {
+        refund_date: refundDate,
+      });
       return this.mapResponse(response.refund);
     } catch (error: any) {
       throw this.handleError(error, 'processRefund', refundId);
@@ -183,9 +197,9 @@ export default class Refunds {
   private handleError(error: any, operation: string, refundId?: string): never {
     if (error.status === 404) throw new RefundNotFoundError(refundId || 'unknown');
     if (error.status === 400) throw new RefundValidationError(error.message, error.errors);
-    throw new RefundError(
-      `Failed to ${operation} refund: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new RefundError(`Failed to ${operation} refund: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }

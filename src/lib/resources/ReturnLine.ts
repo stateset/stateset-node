@@ -12,7 +12,7 @@ export enum ReturnLineStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   PROCESSED = 'PROCESSED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export enum ReturnReason {
@@ -21,7 +21,7 @@ export enum ReturnReason {
   NOT_AS_DESCRIBED = 'NOT_AS_DESCRIBED',
   CHANGED_MIND = 'CHANGED_MIND',
   DAMAGED = 'DAMAGED',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 // Core Interfaces
@@ -78,7 +78,10 @@ export interface ReturnLineResponse {
 
 // Error Classes
 export class ReturnLineError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = this.constructor.name;
   }
@@ -91,7 +94,10 @@ export class ReturnLineNotFoundError extends ReturnLineError {
 }
 
 export class ReturnLineValidationError extends ReturnLineError {
-  constructor(message: string, public readonly errors?: Record<string, string>) {
+  constructor(
+    message: string,
+    public readonly errors?: Record<string, string>
+  ) {
     super(message);
   }
 }
@@ -145,16 +151,18 @@ export class ReturnLines {
     };
   }
 
-  async list(params: {
-    return_id?: string;
-    order_id?: string;
-    status?: ReturnLineStatus;
-    reason?: ReturnReason;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{
+  async list(
+    params: {
+      return_id?: string;
+      order_id?: string;
+      status?: ReturnLineStatus;
+      reason?: ReturnReason;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{
     return_lines: ReturnLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
@@ -174,7 +182,11 @@ export class ReturnLines {
       const response = await this.client.request('GET', `return_line_items?${query}`);
       return {
         return_lines: response.return_lines.map(this.mapResponse),
-        pagination: response.pagination || { total: response.return_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+        pagination: response.pagination || {
+          total: response.return_lines.length,
+          limit: params.limit || 100,
+          offset: params.offset || 0,
+        },
       };
     } catch (error: any) {
       throw this.handleError(error, 'list');
@@ -253,11 +265,13 @@ export class ReturnLines {
     }
   }
 
-  async getMetrics(params: {
-    return_id?: string;
-    org_id?: string;
-    date_range?: { from: Date; to: Date };
-  } = {}): Promise<{
+  async getMetrics(
+    params: {
+      return_id?: string;
+      org_id?: string;
+      date_range?: { from: Date; to: Date };
+    } = {}
+  ): Promise<{
     total_lines: number;
     status_breakdown: Record<ReturnLineStatus, number>;
     reason_breakdown: Record<ReturnReason, number>;
@@ -282,10 +296,10 @@ export class ReturnLines {
   private handleError(error: any, operation: string, returnLineId?: string): never {
     if (error.status === 404) throw new ReturnLineNotFoundError(returnLineId || 'unknown');
     if (error.status === 400) throw new ReturnLineValidationError(error.message, error.errors);
-    throw new ReturnLineError(
-      `Failed to ${operation} return line: ${error.message}`,
-      { operation, originalError: error }
-    );
+    throw new ReturnLineError(`Failed to ${operation} return line: ${error.message}`, {
+      operation,
+      originalError: error,
+    });
   }
 }
 

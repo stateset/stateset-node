@@ -1,4 +1,10 @@
-import { EnhancedHttpClient, HttpClientOptions, RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './core/http-client';
+import {
+  EnhancedHttpClient,
+  HttpClientOptions,
+  RequestInterceptor,
+  ResponseInterceptor,
+  ErrorInterceptor,
+} from './core/http-client';
 import { logger } from './utils/logger';
 import { performanceMonitor } from './utils/performance';
 import { MemoryCache } from './utils/cache';
@@ -279,7 +285,9 @@ export class StatesetClient {
 
   private validateConfig(config: StatesetClientConfig): void {
     if (!config.apiKey && !process.env.STATESET_API_KEY) {
-      throw new Error('Stateset API key is required. Provide it in config.apiKey or STATESET_API_KEY environment variable.');
+      throw new Error(
+        'Stateset API key is required. Provide it in config.apiKey or STATESET_API_KEY environment variable.'
+      );
     }
 
     if (config.baseUrl && !this.isValidUrl(config.baseUrl)) {
@@ -322,19 +330,26 @@ export class StatesetClient {
     const normalizedRetryOptions = this.normalizeRetryOptions(
       combinedRetryOptions,
       Math.max(1, baseRetryCount + 1),
-      baseRetryDelay,
+      baseRetryDelay
     );
 
     return {
       apiKey: config.apiKey || process.env.STATESET_API_KEY || '',
-      baseUrl: config.baseUrl || process.env.STATESET_BASE_URL || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
+      baseUrl:
+        config.baseUrl ||
+        process.env.STATESET_BASE_URL ||
+        'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
       timeout: config.timeout ?? 60000,
       retry: Math.max(0, (normalizedRetryOptions.maxAttempts ?? 1) - 1),
       retryDelayMs: normalizedRetryOptions.baseDelay ?? baseRetryDelay,
       retryOptions: normalizedRetryOptions,
       userAgent: config.userAgent || this.buildUserAgent(config.appInfo),
       additionalHeaders: config.additionalHeaders || {},
-      proxy: config.proxy || process.env.STATESET_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+      proxy:
+        config.proxy ||
+        process.env.STATESET_PROXY ||
+        process.env.HTTPS_PROXY ||
+        process.env.HTTP_PROXY,
       appInfo: config.appInfo,
       maxSockets: config.maxSockets ?? 10,
       keepAlive: config.keepAlive ?? true,
@@ -374,7 +389,7 @@ export class StatesetClient {
   private normalizeRetryOptions(
     options: Partial<RetryOptions> | undefined,
     fallbackAttempts: number,
-    fallbackDelay: number,
+    fallbackDelay: number
   ): RetryOptions {
     const normalized: Partial<RetryOptions> = { ...(options ?? {}) };
     const attempts = Math.max(1, normalized.maxAttempts ?? fallbackAttempts);
@@ -413,10 +428,13 @@ export class StatesetClient {
         protocol: parsed.protocol.replace(':', ''),
         host: parsed.hostname,
         port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80),
-        auth: parsed.username || parsed.password ? {
-          username: decodeURIComponent(parsed.username),
-          password: decodeURIComponent(parsed.password),
-        } : undefined,
+        auth:
+          parsed.username || parsed.password
+            ? {
+                username: decodeURIComponent(parsed.username),
+                password: decodeURIComponent(parsed.password),
+              }
+            : undefined,
       };
     } catch {
       logger.warn('Invalid proxy URL provided', {
@@ -550,10 +568,10 @@ export class StatesetClient {
     if (!apiKey) {
       throw new Error('API key cannot be empty');
     }
-    
+
     this.config.apiKey = apiKey;
     this.httpClient.updateApiKey(apiKey);
-    
+
     logger.info('API key updated successfully', {
       operation: 'client.update_api_key',
     });
@@ -570,10 +588,10 @@ export class StatesetClient {
     if (!this.isValidUrl(baseURL)) {
       throw new Error('Invalid base URL provided');
     }
-    
+
     this.config.baseUrl = baseURL;
     this.httpClient.updateBaseURL(baseURL);
-    
+
     logger.info('Base URL updated successfully', {
       operation: 'client.update_base_url',
       metadata: { baseURL },
@@ -591,10 +609,10 @@ export class StatesetClient {
     if (timeout < 1000 || timeout > 600000) {
       throw new Error('Timeout must be between 1000ms and 600000ms (10 minutes)');
     }
-    
+
     this.config.timeout = timeout;
     this.httpClient.updateTimeout(timeout);
-    
+
     logger.info('Timeout updated successfully', {
       operation: 'client.update_timeout',
       metadata: { timeout },
@@ -610,24 +628,24 @@ export class StatesetClient {
    */
   updateRetryOptions(retry: number, retryDelayMs?: number): void {
     const delay = retryDelayMs ?? this.config.retryDelayMs ?? 1000;
-    
+
     if (retry < 0 || retry > 10) {
       throw new Error('Retry count must be between 0 and 10');
     }
-    
+
     if (delay < 100 || delay > 30000) {
       throw new Error('Retry delay must be between 100ms and 30000ms');
     }
-    
+
     this.config.retry = retry;
     this.config.retryDelayMs = delay;
     this.config.retryOptions = this.normalizeRetryOptions(
       { ...this.config.retryOptions, maxAttempts: retry + 1, baseDelay: delay },
       Math.max(1, retry + 1),
-      delay,
+      delay
     );
     this.httpClient.updateRetryOptions(this.config.retryOptions);
-    
+
     logger.info('Retry options updated successfully', {
       operation: 'client.update_retry_options',
       metadata: { retry, retryDelayMs: delay, maxAttempts: this.config.retryOptions.maxAttempts },
@@ -645,7 +663,7 @@ export class StatesetClient {
     this.config.retryOptions = this.normalizeRetryOptions(
       { ...this.config.retryOptions, ...options },
       fallbackAttempts,
-      fallbackDelay,
+      fallbackDelay
     );
     this.config.retry = Math.max(0, this.config.retryOptions.maxAttempts - 1);
     this.config.retryDelayMs = this.config.retryOptions.baseDelay ?? fallbackDelay;
@@ -667,7 +685,7 @@ export class StatesetClient {
   updateHeaders(headers: Record<string, string>): void {
     this.config.additionalHeaders = { ...this.config.additionalHeaders, ...headers };
     this.httpClient.updateHeaders(headers);
-    
+
     logger.info('Headers updated successfully', {
       operation: 'client.update_headers',
       metadata: { headerCount: Object.keys(headers).length },
@@ -718,7 +736,7 @@ export class StatesetClient {
     const userAgent = this.buildUserAgent();
     this.config.userAgent = userAgent;
     this.httpClient.updateHeaders({ 'User-Agent': userAgent });
-    
+
     logger.info('App info updated successfully', {
       operation: 'client.update_app_info',
       metadata: { appName: info.name, appVersion: info.version },
@@ -760,17 +778,21 @@ export class StatesetClient {
 
     try {
       const result = await this.httpClient.healthCheck();
-      
+
       logger.info('Health check completed', {
         operation: 'client.health_check',
         metadata: { status: result.status },
       });
-      
+
       return result;
     } catch (error) {
-      logger.error('Health check failed', {
-        operation: 'client.health_check',
-      }, error as Error);
+      logger.error(
+        'Health check failed',
+        {
+          operation: 'client.health_check',
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -787,7 +809,7 @@ export class StatesetClient {
    */
   resetCircuitBreaker(): void {
     this.httpClient.resetCircuitBreaker();
-    
+
     logger.info('Circuit breaker reset', {
       operation: 'client.reset_circuit_breaker',
     });
@@ -796,9 +818,13 @@ export class StatesetClient {
   /**
    * Get current configuration (sanitized)
    */
-  getConfig(): Omit<StatesetClientConfigInternal, 'apiKey' | 'requestInterceptors' | 'responseInterceptors' | 'errorInterceptors'> {
+  getConfig(): Omit<
+    StatesetClientConfigInternal,
+    'apiKey' | 'requestInterceptors' | 'responseInterceptors' | 'errorInterceptors'
+  > {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } = this.config;
+    const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } =
+      this.config;
     return safeConfig;
   }
 
@@ -808,7 +834,7 @@ export class StatesetClient {
     params: Record<string, unknown> | undefined,
     cacheOption: CacheDirectiveOption | undefined,
     explicitCacheKey?: string,
-    ttlOverride?: number,
+    ttlOverride?: number
   ): { key: string; ttl?: number } | null {
     if (method !== 'GET') {
       return null;
@@ -822,9 +848,10 @@ export class StatesetClient {
       return null;
     }
 
-    const derivedKey = explicitCacheKey
-      || (typeof cacheOption === 'object' ? cacheOption.key : undefined)
-      || this.generateCacheKey(path, params || {});
+    const derivedKey =
+      explicitCacheKey ||
+      (typeof cacheOption === 'object' ? cacheOption.key : undefined) ||
+      this.generateCacheKey(path, params || {});
 
     if (!derivedKey) {
       return null;
@@ -839,7 +866,7 @@ export class StatesetClient {
     method: string,
     normalizedPath: string,
     cacheOption: CacheDirectiveOption | undefined,
-    overridePaths?: string | string[],
+    overridePaths?: string | string[]
   ): Set<string> {
     const targets = new Set<string>();
 
@@ -871,9 +898,7 @@ export class StatesetClient {
   }
 
   private generateCacheKey(path: string, params: Record<string, unknown>): string {
-    const serializedParams = params && Object.keys(params).length > 0
-      ? JSON.stringify(params)
-      : '';
+    const serializedParams = params && Object.keys(params).length > 0 ? JSON.stringify(params) : '';
     return `${path}:${serializedParams}`;
   }
 
@@ -940,7 +965,12 @@ export class StatesetClient {
   /**
    * Enhanced request method with caching and performance monitoring
    */
-  async request(method: string, path: string, data?: any, options: RequestOptionsInternal = {}): Promise<any> {
+  async request(
+    method: string,
+    path: string,
+    data?: any,
+    options: RequestOptionsInternal = {}
+  ): Promise<any> {
     const methodUpper = method.toUpperCase();
     const timer = this.config.performance.enabled
       ? performanceMonitor.startTimer(`client.request.${methodUpper}.${path}`)
@@ -966,7 +996,7 @@ export class StatesetClient {
         axiosOptions.params as Record<string, unknown> | undefined,
         cacheOption,
         explicitCacheKey,
-        cacheTTL,
+        cacheTTL
       );
 
       // Check cache for GET requests
@@ -987,10 +1017,9 @@ export class StatesetClient {
         metadata: { method, path },
       });
 
-      const {
-        headers: providedHeaders,
-        ...restAxiosOptions
-      } = axiosOptions as { headers?: Record<string, string> };
+      const { headers: providedHeaders, ...restAxiosOptions } = axiosOptions as {
+        headers?: Record<string, string>;
+      };
 
       const headers = providedHeaders ? { ...providedHeaders } : {};
       if (idempotencyKey) {
@@ -1024,7 +1053,7 @@ export class StatesetClient {
           methodUpper,
           normalizedPath,
           cacheOption,
-          invalidateCachePaths,
+          invalidateCachePaths
         );
 
         if (methodUpper === 'GET' && cacheDirective) {
@@ -1041,14 +1070,18 @@ export class StatesetClient {
       }
 
       timer?.end(true);
-      
+
       return result;
     } catch (error) {
       timer?.end(false, (error as Error).message);
-      logger.error('Request failed', {
-        operation: 'client.request',
-        metadata: { method, path },
-      }, error as Error);
+      logger.error(
+        'Request failed',
+        {
+          operation: 'client.request',
+          metadata: { method, path },
+        },
+        error as Error
+      );
       throw error;
     }
   }
@@ -1110,7 +1143,7 @@ export class StatesetClient {
   async bulk<T>(operations: (() => Promise<T>)[], concurrency: number = 5): Promise<T[]> {
     const results: T[] = [];
     const batches: (() => Promise<T>)[][] = [];
-    
+
     // Split operations into batches
     for (let i = 0; i < operations.length; i += concurrency) {
       batches.push(operations.slice(i, i + concurrency));
@@ -1132,7 +1165,7 @@ export class StatesetClient {
     this.httpClient.destroy();
     this.cache.destroy();
     this.cacheKeyIndex.clear();
-    
+
     logger.info('StatesetClient destroyed', {
       operation: 'client.destroy',
     });

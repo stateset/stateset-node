@@ -5,8 +5,7 @@ import qs from 'qs';
 import crypto from 'crypto';
 import { exec as childProcessExec } from 'child_process';
 
-const hasOwn = (obj: any, prop: string): boolean =>
-  Object.prototype.hasOwnProperty.call(obj, prop);
+const hasOwn = (obj: any, prop: string): boolean => Object.prototype.hasOwnProperty.call(obj, prop);
 
 const OPTIONS_KEYS = [
   'apiKey',
@@ -44,7 +43,10 @@ interface Utils {
   normalizeHeaders(obj: { [key: string]: string }): { [key: string]: string };
   normalizeHeader(header: string): string;
   checkForStream(obj: any): boolean;
-  callbackifyPromiseWithTimeout(promise: Promise<any>, callback?: (error: Error | null, response?: any) => void): Promise<any>;
+  callbackifyPromiseWithTimeout(
+    promise: Promise<any>,
+    callback?: (error: Error | null, response?: any) => void
+  ): Promise<any>;
   pascalToCamelCase(name: string): string;
   emitWarning(warning: string): void;
   safeExec(cmd: string, cb: (error: Error | null, result: string | null) => void): void;
@@ -60,22 +62,22 @@ const utils: Utils = {
     return (
       o &&
       typeof o === 'object' &&
-      (OPTIONS_KEYS.some((prop) => hasOwn(o, prop)) ||
-        DEPRECATED_OPTIONS_KEYS.some((prop) => hasOwn(o, prop)))
+      (OPTIONS_KEYS.some(prop => hasOwn(o, prop)) ||
+        DEPRECATED_OPTIONS_KEYS.some(prop => hasOwn(o, prop)))
     );
   },
 
   protoExtend(sub: any): any {
     const Super = this.constructor as Function;
-    
-    const Constructor = function(this: any, ...args: any[]) {
-      Super.apply(this, args);  // Apply parent constructor
+
+    const Constructor = function (this: any, ...args: any[]) {
+      Super.apply(this, args); // Apply parent constructor
     };
-  
+
     Object.assign(Constructor, Super);
     Constructor.prototype = Object.create(Super.prototype); // Inherit prototype
     Object.assign(Constructor.prototype, sub);
-  
+
     return Constructor;
   },
 
@@ -95,7 +97,7 @@ const utils: Utils = {
       '\u2028': '\\u2028',
       '\u2029': '\\u2029',
     };
-    const cleanString = str.replace(/["\n\r\u2028\u2029]/g, ($0) => rc[$0]);
+    const cleanString = str.replace(/["\n\r\u2028\u2029]/g, $0 => rc[$0]);
     return (outputs: { [key: string]: string }) => {
       return cleanString.replace(/\{([\s\S]+?)\}/g, ($0, $1) =>
         encodeURIComponent(outputs[$1] || '')
@@ -105,7 +107,7 @@ const utils: Utils = {
 
   extractUrlParams(path: string): string[] {
     const params = path.match(/\{\w+\}/g);
-    return params ? params.map((param) => param.replace(/[{}]/g, '')) : [];
+    return params ? params.map(param => param.replace(/[{}]/g, '')) : [];
   },
 
   getDataFromArgs(args: any[]): any {
@@ -118,7 +120,7 @@ const utils: Utils = {
     }
 
     const argKeys = Object.keys(args[0]);
-    const optionKeysInArgs = argKeys.filter((key) => OPTIONS_KEYS.includes(key));
+    const optionKeysInArgs = argKeys.filter(key => OPTIONS_KEYS.includes(key));
 
     if (optionKeysInArgs.length > 0 && optionKeysInArgs.length !== argKeys.length) {
       utils.emitWarning(
@@ -145,8 +147,8 @@ const utils: Utils = {
       },
       host: '',
     };
-    
-    opts.headers['Idempotency-Key'] = ''
+
+    opts.headers['Idempotency-Key'] = '';
     opts.headers['Stateset-Account'] = '';
     opts.headers['Stateset-Version'] = '';
 
@@ -157,10 +159,10 @@ const utils: Utils = {
       } else if (utils.isOptionsHash(arg)) {
         const params = { ...args.pop() };
 
-        const extraKeys = Object.keys(params).filter((key) => !OPTIONS_KEYS.includes(key));
+        const extraKeys = Object.keys(params).filter(key => !OPTIONS_KEYS.includes(key));
 
         if (extraKeys.length) {
-          const nonDeprecated = extraKeys.filter((key) => {
+          const nonDeprecated = extraKeys.filter(key => {
             if (!DEPRECATED_OPTIONS[key]) {
               return true;
             }
@@ -175,9 +177,7 @@ const utils: Utils = {
             return false;
           });
           if (nonDeprecated.length) {
-            utils.emitWarning(
-              `Invalid options found (${extraKeys.join(', ')}); ignoring.`
-            );
+            utils.emitWarning(`Invalid options found (${extraKeys.join(', ')}); ignoring.`);
           }
         }
 
@@ -253,9 +253,7 @@ const utils: Utils = {
   normalizeHeader(header: string): string {
     return header
       .split('-')
-      .map(
-        (text) => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase()
-      )
+      .map(text => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())
       .join('-');
   },
 
@@ -269,12 +267,12 @@ const utils: Utils = {
   ): Promise<any> {
     if (callback) {
       return promise.then(
-        (res) => {
+        res => {
           setTimeout(() => {
             callback(null, res);
           }, 0);
         },
-        (err) => {
+        err => {
           setTimeout(() => {
             callback(err, null);
           }, 0);
@@ -319,7 +317,7 @@ const utils: Utils = {
     const result: { [key: string]: string } = {};
 
     const step = (obj: any, prevKey: string) => {
-      Object.keys(obj).forEach((key) => {
+      Object.keys(obj).forEach(key => {
         const value = obj[key];
         const newKey = prevKey ? `${prevKey}[${key}]` : key;
 
@@ -341,7 +339,7 @@ const utils: Utils = {
   },
 
   uuid4(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
       const r = (Math.random() * 16) | 0;
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);

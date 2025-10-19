@@ -8,7 +8,7 @@ type Timestamp = string; // ISO 8601 format expected
 export enum BigCommerceProductStatus {
   ACTIVE = 0,
   DISABLED = 1,
-  DRAFT = 2
+  DRAFT = 2,
 }
 
 export enum BigCommerceOrderStatus {
@@ -19,7 +19,7 @@ export enum BigCommerceOrderStatus {
   PARTIALLY_SHIPPED = 7,
   SHIPPED = 9,
   COMPLETED = 10,
-  CANCELLED = 11
+  CANCELLED = 11,
 }
 
 // Core Interfaces
@@ -116,7 +116,10 @@ export interface BigCommerceRate {
 
 // Error Classes
 export class BigCommerceIntegrationError extends Error {
-  constructor(message: string, public readonly details?: Record<string, unknown>) {
+  constructor(
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
     super(message);
     this.name = 'BigCommerceIntegrationError';
   }
@@ -129,18 +132,20 @@ export default class BigCommerceIntegration extends BaseIntegration {
 
   private validateRequestData<T>(data: T, requiredFields: string[]): void {
     requiredFields.forEach(field => {
-      if (!(field) || !data[field as keyof T]) {
+      if (!field || !data[field as keyof T]) {
         throw new BigCommerceIntegrationError(`Missing required field: ${field}`);
       }
     });
   }
 
-  public async getProducts(params: {
-    status?: BigCommerceProductStatus;
-    limit?: number; // BigCommerce typically caps at 250
-    page?: number;
-    include?: 'variants' | 'images' | 'custom_fields';
-  } = {}): Promise<{
+  public async getProducts(
+    params: {
+      status?: BigCommerceProductStatus;
+      limit?: number; // BigCommerce typically caps at 250
+      page?: number;
+      include?: 'variants' | 'images' | 'custom_fields';
+    } = {}
+  ): Promise<{
     products: BigCommerceProduct[];
     pagination: { total: number; page: number; limit: number; total_pages: number };
   }> {
@@ -167,7 +172,9 @@ export default class BigCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async createProduct(data: Omit<BigCommerceProduct, 'id' | 'created_at' | 'updated_at'>): Promise<BigCommerceProduct> {
+  public async createProduct(
+    data: Omit<BigCommerceProduct, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<BigCommerceProduct> {
     this.validateRequestData(data, ['name', 'type', 'price', 'weight']);
     try {
       const response = await this.request('POST', 'catalog/products', data);
@@ -177,19 +184,25 @@ export default class BigCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async getOrders(params: {
-    status_id?: BigCommerceOrderStatus;
-    date_range?: { min_date: Date; max_date: Date };
-    limit?: number;
-    page?: number;
-  } = {}): Promise<{
+  public async getOrders(
+    params: {
+      status_id?: BigCommerceOrderStatus;
+      date_range?: { min_date: Date; max_date: Date };
+      limit?: number;
+      page?: number;
+    } = {}
+  ): Promise<{
     orders: BigCommerceOrder[];
     pagination: { total: number; page: number; limit: number; total_pages: number };
   }> {
     const query = new URLSearchParams({
       ...(params.status_id && { status_id: params.status_id.toString() }),
-      ...(params.date_range?.min_date && { min_date_created: params.date_range.min_date.toISOString() }),
-      ...(params.date_range?.max_date && { max_date_created: params.date_range.max_date.toISOString() }),
+      ...(params.date_range?.min_date && {
+        min_date_created: params.date_range.min_date.toISOString(),
+      }),
+      ...(params.date_range?.max_date && {
+        max_date_created: params.date_range.max_date.toISOString(),
+      }),
       ...(params.limit && { limit: params.limit.toString() }),
       ...(params.page && { page: params.page.toString() }),
     });
@@ -210,7 +223,9 @@ export default class BigCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async createOrder(data: Omit<BigCommerceOrder, 'id' | 'date_created'>): Promise<BigCommerceOrder> {
+  public async createOrder(
+    data: Omit<BigCommerceOrder, 'id' | 'date_created'>
+  ): Promise<BigCommerceOrder> {
     this.validateRequestData(data, ['products', 'billing_address']);
     try {
       const response = await this.request('POST', 'orders', data);
@@ -220,11 +235,13 @@ export default class BigCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async getShipments(params: {
-    order_id?: number;
-    limit?: number;
-    page?: number;
-  } = {}): Promise<{
+  public async getShipments(
+    params: {
+      order_id?: number;
+      limit?: number;
+      page?: number;
+    } = {}
+  ): Promise<{
     shipments: BigCommerceShipment[];
     pagination: { total: number; page: number; limit: number; total_pages: number };
   }> {
@@ -250,7 +267,9 @@ export default class BigCommerceIntegration extends BaseIntegration {
     }
   }
 
-  public async createShipment(data: Omit<BigCommerceShipment, 'id' | 'date_created'>): Promise<BigCommerceShipment> {
+  public async createShipment(
+    data: Omit<BigCommerceShipment, 'id' | 'date_created'>
+  ): Promise<BigCommerceShipment> {
     this.validateRequestData(data, ['order_id', 'tracking_number', 'items']);
     try {
       const response = await this.request('POST', `orders/${data.order_id}/shipments`, data);
@@ -280,7 +299,9 @@ export default class BigCommerceIntegration extends BaseIntegration {
       });
       return response.data;
     } catch (error: any) {
-      throw new BigCommerceIntegrationError('Failed to fetch shipping rates', { originalError: error });
+      throw new BigCommerceIntegrationError('Failed to fetch shipping rates', {
+        originalError: error,
+      });
     }
   }
 }
