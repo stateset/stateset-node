@@ -1,6 +1,6 @@
 {
   "name": "stateset-node",
-  "version": "0.0.94",
+  "version": "0.0.95",
   "description": "TypeScript/Node.js library for the Stateset API",
   "keywords": [
     "stateset",
@@ -13,7 +13,7 @@
   "scripts": {
     "build": "npm run clean && tsc",
     "build:watch": "tsc --watch",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --runInBand --watchAll=false",

@@ -3,6 +3,10 @@ module.exports = {
   extends: [
     'eslint:recommended'
   ],
+  ignorePatterns: [
+    'dist/**',
+    'coverage/**'
+  ],
   plugins: [
     '@typescript-eslint'
   ],

@@ -29,8 +29,8 @@ const utils = {
     isOptionsHash(o) {
         return (o &&
             typeof o === 'object' &&
-            (OPTIONS_KEYS.some((prop) => hasOwn(o, prop)) ||
-                DEPRECATED_OPTIONS_KEYS.some((prop) => hasOwn(o, prop))));
+            (OPTIONS_KEYS.some(prop => hasOwn(o, prop)) ||
+                DEPRECATED_OPTIONS_KEYS.some(prop => hasOwn(o, prop))));
     },
     protoExtend(sub) {
         const Super = this.constructor;
@@ -57,14 +57,14 @@ const utils = {
             '\u2028': '\\u2028',
             '\u2029': '\\u2029',
         };
-        const cleanString = str.replace(/["\n\r\u2028\u2029]/g, ($0) => rc[$0]);
+        const cleanString = str.replace(/["\n\r\u2028\u2029]/g, $0 => rc[$0]);
         return (outputs) => {
             return cleanString.replace(/\{([\s\S]+?)\}/g, ($0, $1) => encodeURIComponent(outputs[$1] || ''));
         };
     },
     extractUrlParams(path) {
         const params = path.match(/\{\w+\}/g);
-        return params ? params.map((param) => param.replace(/[{}]/g, '')) : [];
+        return params ? params.map(param => param.replace(/[{}]/g, '')) : [];
     },
     getDataFromArgs(args) {
         if (!Array.isArray(args) || !args[0] || typeof args[0] !== 'object') {
@@ -74,7 +74,7 @@ const utils = {
             return args.shift();
         }
         const argKeys = Object.keys(args[0]);
-        const optionKeysInArgs = argKeys.filter((key) => OPTIONS_KEYS.includes(key));
+        const optionKeysInArgs = argKeys.filter(key => OPTIONS_KEYS.includes(key));
         if (optionKeysInArgs.length > 0 && optionKeysInArgs.length !== argKeys.length) {
             utils.emitWarning(`Options found in arguments (${optionKeysInArgs.join(', ')}). Did you mean to pass an options object? See https://github.com/stateset/stateset-node/wiki/Passing-Options.`);
         }
@@ -100,9 +100,9 @@ const utils = {
             }
             else if (utils.isOptionsHash(arg)) {
                 const params = { ...args.pop() };
-                const extraKeys = Object.keys(params).filter((key) => !OPTIONS_KEYS.includes(key));
+                const extraKeys = Object.keys(params).filter(key => !OPTIONS_KEYS.includes(key));
                 if (extraKeys.length) {
-                    const nonDeprecated = extraKeys.filter((key) => {
+                    const nonDeprecated = extraKeys.filter(key => {
                         if (!DEPRECATED_OPTIONS[key]) {
                             return true;
                         }
@@ -181,7 +181,7 @@ const utils = {
     normalizeHeader(header) {
         return header
             .split('-')
-            .map((text) => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())
+            .map(text => text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())
             .join('-');
     },
     checkForStream(obj) {
@@ -189,11 +189,11 @@ const utils = {
     },
     callbackifyPromiseWithTimeout(promise, callback) {
         if (callback) {
-            return promise.then((res) => {
+            return promise.then(res => {
                 setTimeout(() => {
                     callback(null, res);
                 }, 0);
-            }, (err) => {
+            }, err => {
                 setTimeout(() => {
                     callback(err, null);
                 }, 0);
@@ -231,7 +231,7 @@ const utils = {
     flattenAndStringify(data) {
         const result = {};
         const step = (obj, prevKey) => {
-            Object.keys(obj).forEach((key) => {
+            Object.keys(obj).forEach(key => {
                 const value = obj[key];
                 const newKey = prevKey ? `${prevKey}[${key}]` : key;
                 if (utils.isObject(value)) {
@@ -251,7 +251,7 @@ const utils = {
         return result;
     },
     uuid4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
             const r = (Math.random() * 16) | 0;
             const v = c === 'x' ? r : (r & 0x3) | 0x8;
             return v.toString(16);

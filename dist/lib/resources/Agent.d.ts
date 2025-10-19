@@ -162,7 +162,7 @@ declare class Agents {
     setOffline(agentId: string): Promise<OfflineAgentResponse>;
     setOnBreak(agentId: string): Promise<OnBreakAgentResponse>;
     /**
-    * Task management methods
+     * Task management methods
      */
     assignTask(agentId: string, taskData: TaskData): Promise<BusyAgentResponse>;
     completeTask(agentId: string, taskId: string): Promise<AvailableAgentResponse>;

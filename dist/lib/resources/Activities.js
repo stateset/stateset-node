@@ -182,7 +182,9 @@ class Activities {
      */
     async start(activityId, input) {
         try {
-            const response = await this.stateset.request('POST', `activities/${activityId}/start`, { input });
+            const response = await this.stateset.request('POST', `activities/${activityId}/start`, {
+                input,
+            });
             return response.activity;
         }
         catch (error) {
@@ -196,7 +198,9 @@ class Activities {
      * @returns ActivityResponse object
      */
     async complete(activityId, output) {
-        const response = await this.stateset.request('POST', `activities/${activityId}/complete`, { output });
+        const response = await this.stateset.request('POST', `activities/${activityId}/complete`, {
+            output,
+        });
         return response.activity;
     }
     /**
@@ -206,7 +210,9 @@ class Activities {
      * @returns ActivityResponse object
      */
     async fail(activityId, error) {
-        const response = await this.stateset.request('POST', `activities/${activityId}/fail`, { error });
+        const response = await this.stateset.request('POST', `activities/${activityId}/fail`, {
+            error,
+        });
         return response.activity;
     }
     /**
@@ -216,7 +222,9 @@ class Activities {
      * @returns ActivityResponse object
      */
     async cancel(activityId, reason) {
-        const response = await this.stateset.request('POST', `activities/${activityId}/cancel`, { reason });
+        const response = await this.stateset.request('POST', `activities/${activityId}/cancel`, {
+            reason,
+        });
         return response.activity;
     }
     /**
@@ -240,7 +248,7 @@ class Activities {
     /**
      * Validate activity data
      * @param data - ActivityData object
-    */
+     */
     validateActivityData(data) {
         if (!data.name) {
             throw new ActivityValidationError('Activity name is required');

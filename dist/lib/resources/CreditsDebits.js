@@ -161,7 +161,10 @@ class CreditsDebits {
             throw new CreditsDebitsNotFoundError(creditsDebitsId || 'unknown');
         if (error.status === 400)
             throw new CreditsDebitsValidationError(error.message, error.errors);
-        throw new CreditsDebitsError(`Failed to ${operation} credit/debit: ${error.message}`, { operation, originalError: error });
+        throw new CreditsDebitsError(`Failed to ${operation} credit/debit: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = CreditsDebits;

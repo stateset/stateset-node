@@ -466,14 +466,7 @@
 <a name='L401'></a><a href='#L401'>401</a>
 <a name='L402'></a><a href='#L402'>402</a>
 <a name='L403'></a><a href='#L403'>403</a>
-<a name='L404'></a><a href='#L404'>404</a>
-<a name='L405'></a><a href='#L405'>405</a>
-<a name='L406'></a><a href='#L406'>406</a>
-<a name='L407'></a><a href='#L407'>407</a>
-<a name='L408'></a><a href='#L408'>408</a>
-<a name='L409'></a><a href='#L409'>409</a>
-<a name='L410'></a><a href='#L410'>410</a>
-<a name='L411'></a><a href='#L411'>411</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L404'></a><a href='#L404'>404</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -644,7 +637,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -721,9 +717,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -763,7 +756,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -813,14 +805,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -883,7 +868,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
 &nbsp;
 // Enums for channel management
 export enum ChannelType {
@@ -895,7 +881,7 @@ export enum ChannelType {
   WHATSAPP = 'whatsapp',
   MESSENGER = 'messenger',
   API = 'api',
-  WEBHOOK = 'webhook'
+  WEBHOOK = 'webhook',
 }
 &nbsp;
 export enum ChannelStatus {
@@ -903,7 +889,7 @@ export enum ChannelStatus {
   INACTIVE = 'inactive',
   MAINTENANCE = 'maintenance',
   ERROR = 'error',
-  RATE_LIMITED = 'rate_limited'
+  RATE_LIMITED = 'rate_limited',
 }
 &nbsp;
 export enum AIModel {
@@ -911,27 +897,27 @@ export enum AIModel {
   GPT_3_5_TURBO = 'gpt-3.5-turbo',
   CLAUDE_2 = 'claude-2',
   CLAUDE_INSTANT = 'claude-instant',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 &nbsp;
 export enum VoiceModel {
   ELEVEN_LABS = 'eleven_labs',
   AMAZON_POLLY = 'amazon_polly',
   GOOGLE_CLOUD = 'google_cloud',
-  AZURE_COGNITIVE = 'azure_cognitive'
+  AZURE_COGNITIVE = 'azure_cognitive',
 }
 &nbsp;
 export enum ChannelPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 &nbsp;
 export enum ChannelRating {
   EXCELLENT = 'excellent',
   GOOD = 'good',
   FAIR = 'fair',
-  POOR = 'poor'
+  POOR = 'poor',
 }
 &nbsp;
 // Interfaces for channel data structures
@@ -1054,7 +1040,10 @@ export class ChannelValidationError extends Error {
 }
 &nbsp;
 export class ChannelOperationError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >code: string)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >code: string</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'ChannelOperationError';</span>
   }
@@ -1077,7 +1066,7 @@ class Channels {
     tags?: string[];
   }): Promise&lt;ChannelResponse[]&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.type) <span class="cstat-no" title="statement not covered" >queryParams.append('type', params.type);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.status) <span class="cstat-no" title="statement not covered" >queryParams.append('status', params.status);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.agent_id) <span class="cstat-no" title="statement not covered" >queryParams.append('agent_id', params.agent_id);</span></span>
@@ -1130,10 +1119,7 @@ class Channels {
    * @param channelData - Partial&lt;ChannelData&gt; object
    * @returns ChannelResponse object
    */
-<span class="fstat-no" title="function not covered" >  async </span>update(
-    channelId: string,
-    channelData: Partial&lt;ChannelData&gt;
-  ): Promise&lt;ChannelResponse&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>update(channelId: string, channelData: Partial&lt;ChannelData&gt;): Promise&lt;ChannelResponse&gt; {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('PUT', `channels/${channelId}`, channelData);</span>
 <span class="cstat-no" title="statement not covered" >      return response.channel;</span>
@@ -1172,11 +1158,10 @@ class Channels {
     status: ChannelStatus,
     reason?: string
   ): Promise&lt;ChannelResponse&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request(</span>
-      'POST',
-      `channels/${channelId}/status`,
-      { status, reason }
-    );
+    const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('POST', `channels/${channelId}/status`, {</span>
+      status,
+      reason,
+    });
 <span class="cstat-no" title="statement not covered" >    return response.channel;</span>
   }
 &nbsp;
@@ -1194,7 +1179,7 @@ class Channels {
     }
   ): Promise&lt;ChannelMetrics&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.start_date) <span class="cstat-no" title="statement not covered" >queryParams.append('start_date', params.start_date.toISOString());</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.end_date) <span class="cstat-no" title="statement not covered" >queryParams.append('end_date', params.end_date.toISOString());</span></span>
 &nbsp;
@@ -1222,11 +1207,7 @@ class Channels {
     latency: number;
     error?: string;
   }&gt; {
-    const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request(</span>
-      'POST',
-      `channels/${channelId}/test`,
-      testData
-    );
+    const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('POST', `channels/${channelId}/test`, testData);</span>
 <span class="cstat-no" title="statement not covered" >    return response.result;</span>
   }
 &nbsp;
@@ -1236,10 +1217,7 @@ class Channels {
    * @param voiceConfig - VoiceConfig object
    * @returns ChannelResponse object
    */
-<span class="fstat-no" title="function not covered" >  async </span>updateVoiceConfig(
-    channelId: string,
-    voiceConfig: VoiceConfig
-  ): Promise&lt;ChannelResponse&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>updateVoiceConfig(channelId: string, voiceConfig: VoiceConfig): Promise&lt;ChannelResponse&gt; {
     const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request(</span>
       'PUT',
       `channels/${channelId}/voice-config`,
@@ -1293,14 +1271,15 @@ class Channels {
   }
 }
 &nbsp;
-export default Channels;</pre></td></tr></table></pre>
+export default Channels;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

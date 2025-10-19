@@ -169,7 +169,10 @@ class Opportunities {
             throw new OpportunityNotFoundError(opportunityId || 'unknown');
         if (error.status === 400)
             throw new OpportunityValidationError(error.message, error.errors);
-        throw new OpportunityError(`Failed to ${operation} opportunity: ${error.message}`, { operation, originalError: error });
+        throw new OpportunityError(`Failed to ${operation} opportunity: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Opportunities;

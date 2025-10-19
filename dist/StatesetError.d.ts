@@ -55,5 +55,5 @@ declare class StatesetPermissionError extends StatesetError {
 declare class StatesetRateLimitError extends StatesetError {
     constructor(message: string);
 }
-export { StatesetBaseError, StatesetError, StatesetNotFoundError, StatesetInvalidRequestError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetPermissionError, StatesetRateLimitError };
+export { StatesetBaseError, StatesetError, StatesetNotFoundError, StatesetInvalidRequestError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetPermissionError, StatesetRateLimitError, };
 //# sourceMappingURL=StatesetError.d.ts.map

@@ -109,7 +109,11 @@ class ReturnLines {
             const response = await this.client.request('GET', `return_line_items?${query}`);
             return {
                 return_lines: response.return_lines.map(this.mapResponse),
-                pagination: response.pagination || { total: response.return_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.return_lines.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -190,7 +194,10 @@ class ReturnLines {
             throw new ReturnLineNotFoundError(returnLineId || 'unknown');
         if (error.status === 400)
             throw new ReturnLineValidationError(error.message, error.errors);
-        throw new ReturnLineError(`Failed to ${operation} return line: ${error.message}`, { operation, originalError: error });
+        throw new ReturnLineError(`Failed to ${operation} return line: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.ReturnLines = ReturnLines;

@@ -161,7 +161,9 @@ class Users {
             throw new UserValidationError('New password must be at least 8 characters long');
         }
         try {
-            await this.stateset.request('POST', `users/${userId}/reset-password`, { password: newPassword });
+            await this.stateset.request('POST', `users/${userId}/reset-password`, {
+                password: newPassword,
+            });
         }
         catch (error) {
             throw this.handleError(error, 'resetPassword', userId);
@@ -190,7 +192,10 @@ class Users {
             throw new UserNotFoundError(userId || 'unknown');
         if (error.status === 400)
             throw new UserValidationError(error.message, error.errors);
-        throw new UserError(`Failed to ${operation} user: ${error.message}`, { operation, originalError: error });
+        throw new UserError(`Failed to ${operation} user: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Users;

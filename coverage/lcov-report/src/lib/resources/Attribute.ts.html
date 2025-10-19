@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.58% </span>
+                <span class="strong">26.25% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>21/79</span>
+                <span class='fraction'>21/80</span>
             </div>
         
             
@@ -331,7 +331,11 @@
 <a name='L266'></a><a href='#L266'>266</a>
 <a name='L267'></a><a href='#L267'>267</a>
 <a name='L268'></a><a href='#L268'>268</a>
-<a name='L269'></a><a href='#L269'>269</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -427,7 +431,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -447,8 +454,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -464,10 +469,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -585,21 +589,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
 &nbsp;
 // Enums for attribute types and categories
 export enum AttributeType {
@@ -607,7 +615,7 @@ export enum AttributeType {
   TONE = 'tone',
   SKILL = 'skill',
   KNOWLEDGE = 'knowledge',
-  STYLE = 'style'
+  STYLE = 'style',
 }
 &nbsp;
 export enum AttributeCategory {
@@ -615,13 +623,13 @@ export enum AttributeCategory {
   BEHAVIOR = 'behavior',
   EXPERTISE = 'expertise',
   LANGUAGE = 'language',
-  PERFORMANCE = 'performance'
+  PERFORMANCE = 'performance',
 }
 &nbsp;
 export enum AttributeImpact {
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 &nbsp;
 // Response Interfaces
@@ -695,7 +703,10 @@ export class AttributeValidationError extends Error {
 }
 &nbsp;
 export class AttributeOperationError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >code: string)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >code: string</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'AttributeOperationError';</span>
   }
@@ -710,17 +721,13 @@ class Attributes {
    */
   private <span class="fstat-no" title="function not covered" >validateAttributeValue(</span>value?: number, min?: number, max?: number): void {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (value === undefined) <span class="cstat-no" title="statement not covered" >return;</span></span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (min !== undefined &amp;&amp; value &lt; min) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new AttributeValidationError(</span>
-        `Value ${value} is below minimum allowed value of ${min}`
-      );
+<span class="cstat-no" title="statement not covered" >      throw new AttributeValidationError(`Value ${value} is below minimum allowed value of ${min}`);</span>
     }
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (max !== undefined &amp;&amp; value &gt; max) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new AttributeValidationError(</span>
-        `Value ${value} exceeds maximum allowed value of ${max}`
-      );
+<span class="cstat-no" title="statement not covered" >      throw new AttributeValidationError(`Value ${value} exceeds maximum allowed value of ${max}`);</span>
     }
   }
 &nbsp;
@@ -735,12 +742,13 @@ class Attributes {
     activated?: boolean;
   }): Promise&lt;AttributeData[]&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.attribute_type) <span class="cstat-no" title="statement not covered" >queryParams.append('attribute_type', params.attribute_type);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.category) <span class="cstat-no" title="statement not covered" >queryParams.append('category', params.category);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.agent_id) <span class="cstat-no" title="statement not covered" >queryParams.append('agent_id', params.agent_id);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.org_id) <span class="cstat-no" title="statement not covered" >queryParams.append('org_id', params.org_id);</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.activated !== undefined) <span class="cstat-no" title="statement not covered" >queryParams.append('activated', params.activated.toString());</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.activated !== undefined)</span>
+<span class="cstat-no" title="statement not covered" >      queryParams.append('activated', params.activated.toString());</span>
 &nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('GET', `attributes?${queryParams.toString()}`);</span>
 <span class="cstat-no" title="statement not covered" >    return response.attributes;</span>
@@ -786,11 +794,11 @@ class Attributes {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       // Get current attribute to validate against existing constraints
       const currentAttribute = <span class="cstat-no" title="statement not covered" >await this.get(attributeId);</span>
-      
+&nbsp;
       // Determine final min/max values for validation
       const minValue = <span class="cstat-no" title="statement not covered" >params.min_value ?? currentAttribute.min_value;</span>
       const maxValue = <span class="cstat-no" title="statement not covered" >params.max_value ?? currentAttribute.max_value;</span>
-      
+&nbsp;
       // Validate new value against constraints
 <span class="cstat-no" title="statement not covered" >      this.validateAttributeValue(params.value, minValue, maxValue);</span>
 &nbsp;
@@ -840,7 +848,7 @@ class Attributes {
 <span class="fstat-no" title="function not covered" >  async </span>copyAttributes(sourceAgentId: string, targetAgentId: string): Promise&lt;AttributeData[]&gt; {
     const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('POST', 'attributes/copy', {</span>
       source_agent_id: sourceAgentId,
-      target_agent_id: targetAgentId
+      target_agent_id: targetAgentId,
     });
 <span class="cstat-no" title="statement not covered" >    return response.attributes;</span>
   }
@@ -848,13 +856,16 @@ class Attributes {
   /**
    * Get attribute history for an agent
    */
-<span class="fstat-no" title="function not covered" >  async </span>getHistory(attributeId: string, params?: {
-    start_date?: Date;
-    end_date?: Date;
-    limit?: number;
-  }): Promise&lt;Array&lt;AttributeData &amp; { timestamp: string }&gt;&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>getHistory(
+    attributeId: string,
+    params?: {
+      start_date?: Date;
+      end_date?: Date;
+      limit?: number;
+    }
+  ): Promise&lt;Array&lt;AttributeData &amp; { timestamp: string }&gt;&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.start_date) <span class="cstat-no" title="statement not covered" >queryParams.append('start_date', params.start_date.toISOString());</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.end_date) <span class="cstat-no" title="statement not covered" >queryParams.append('end_date', params.end_date.toISOString());</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.limit) <span class="cstat-no" title="statement not covered" >queryParams.append('limit', params.limit.toString());</span></span>
@@ -867,14 +878,15 @@ class Attributes {
   }
 }
 &nbsp;
-export default Attributes;</pre></td></tr></table></pre>
+export default Attributes;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:42.883Z
+                at 2025-10-19T21:30:50.018Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -246,6 +246,14 @@ const label = await client.shipments.generateLabel('ship_123', { format: 'PDF' }
 console.log(label.label_url);
 ```
 
+## Development Workflow
+
+Keep the repo healthy by running the standard toolchain before opening a pull request:
+
+- `npm run validate` – lint, type-check, and formatting gate
+- `npm test` – deterministic Jest run (forced `--runInBand`)
+- `npm run build` – emit the ESM/CJS bundles and type declarations
+
 ## Try out a sample app
 
 This repository contains sample Node and web apps demonstrating how the SDK can access and utilize the Stateset API for various use cases.

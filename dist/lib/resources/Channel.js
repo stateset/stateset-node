@@ -176,7 +176,10 @@ class Channels {
      * @returns ChannelResponse object
      */
     async updateStatus(channelId, status, reason) {
-        const response = await this.stateset.request('POST', `channels/${channelId}/status`, { status, reason });
+        const response = await this.stateset.request('POST', `channels/${channelId}/status`, {
+            status,
+            reason,
+        });
         return response.channel;
     }
     /**

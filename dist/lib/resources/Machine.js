@@ -126,7 +126,10 @@ class Machines {
         return this.request('GET', `machines/${machineId}/performance?${queryParams.toString()}`);
     }
     async setStatus(machineId, status, details = {}) {
-        return this.request('POST', `machines/${machineId}/set-status`, { status, ...details });
+        return this.request('POST', `machines/${machineId}/set-status`, {
+            status,
+            ...details,
+        });
     }
     async reportMalfunction(machineId, report) {
         if (!report.symptoms.length) {

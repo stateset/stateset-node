@@ -20,8 +20,8 @@ class BaseIntegration {
             data,
             headers: {
                 Authorization: `Bearer ${this.apiKey}`,
-                'Content-Type': 'application/json'
-            }
+                'Content-Type': 'application/json',
+            },
         });
         return response.data;
     }

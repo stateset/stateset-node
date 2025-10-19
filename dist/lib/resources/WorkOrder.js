@@ -103,15 +103,31 @@ class Workorders {
         };
         switch (data.status) {
             case WorkorderStatus.DRAFT:
-                return { ...baseResponse, status: WorkorderStatus.DRAFT, draft_details: { created_by: data.created_by || 'unknown' } };
+                return {
+                    ...baseResponse,
+                    status: WorkorderStatus.DRAFT,
+                    draft_details: { created_by: data.created_by || 'unknown' },
+                };
             case WorkorderStatus.SCHEDULED:
-                return { ...baseResponse, status: WorkorderStatus.SCHEDULED, schedule_details: data.schedule_details };
+                return {
+                    ...baseResponse,
+                    status: WorkorderStatus.SCHEDULED,
+                    schedule_details: data.schedule_details,
+                };
             case WorkorderStatus.IN_PROGRESS:
                 return { ...baseResponse, status: WorkorderStatus.IN_PROGRESS, progress: data.progress };
             case WorkorderStatus.COMPLETED:
-                return { ...baseResponse, status: WorkorderStatus.COMPLETED, completion_details: data.completion_details };
+                return {
+                    ...baseResponse,
+                    status: WorkorderStatus.COMPLETED,
+                    completion_details: data.completion_details,
+                };
             case WorkorderStatus.FAILED:
-                return { ...baseResponse, status: WorkorderStatus.FAILED, failure_details: data.failure_details };
+                return {
+                    ...baseResponse,
+                    status: WorkorderStatus.FAILED,
+                    failure_details: data.failure_details,
+                };
             default:
                 return baseResponse;
         }
@@ -133,7 +149,11 @@ class Workorders {
         const response = await this.client.request('GET', `workorders?${query}`);
         return {
             workorders: response.workorders.map(this.mapResponse),
-            pagination: response.pagination || { total: response.workorders.length, limit: params.limit || 100, offset: params.offset || 0 },
+            pagination: response.pagination || {
+                total: response.workorders.length,
+                limit: params.limit || 100,
+                offset: params.offset || 0,
+            },
         };
     }
     async get(workorderId) {
@@ -219,7 +239,9 @@ class Workorders {
     }
     async assignWorker(workorderId, workerId) {
         try {
-            const response = await this.client.request('POST', `workorders/${workorderId}/assign`, { worker_id: workerId });
+            const response = await this.client.request('POST', `workorders/${workorderId}/assign`, {
+                worker_id: workerId,
+            });
             return this.mapResponse(response.workorder);
         }
         catch (error) {
@@ -228,7 +250,9 @@ class Workorders {
     }
     async addNote(workorderId, note) {
         try {
-            const response = await this.client.request('POST', `workorders/${workorderId}/notes`, { note });
+            const response = await this.client.request('POST', `workorders/${workorderId}/notes`, {
+                note,
+            });
             return this.mapResponse(response.workorder);
         }
         catch (error) {
@@ -295,7 +319,10 @@ class Workorders {
             throw new WorkorderNotFoundError(workorderId || 'unknown');
         if (error.status === 400)
             throw new WorkorderValidationError(error.message, error.errors);
-        throw new WorkorderError(`Failed to ${operation} work order: ${error.message}`, { operation, originalError: error });
+        throw new WorkorderError(`Failed to ${operation} work order: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.Workorders = Workorders;

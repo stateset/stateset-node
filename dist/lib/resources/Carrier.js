@@ -141,7 +141,9 @@ class Carriers {
     }
     async updatePerformance(carrierId, performance) {
         try {
-            const response = await this.stateset.request('POST', `carriers/${carrierId}/performance`, { performance });
+            const response = await this.stateset.request('POST', `carriers/${carrierId}/performance`, {
+                performance,
+            });
             return this.mapResponse(response.carrier);
         }
         catch (error) {
@@ -153,7 +155,10 @@ class Carriers {
             throw new CarrierNotFoundError(carrierId || 'unknown');
         if (error.status === 400)
             throw new CarrierValidationError(error.message, error.errors);
-        throw new CarrierError(`Failed to ${operation} carrier: ${error.message}`, { operation, originalError: error });
+        throw new CarrierError(`Failed to ${operation} carrier: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Carriers;

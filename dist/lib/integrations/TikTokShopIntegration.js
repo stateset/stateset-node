@@ -39,7 +39,7 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new TikTokShopIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -55,7 +55,11 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `products?${query}`);
             return {
                 products: response.products,
-                pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.products.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -83,7 +87,11 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `orders?${query}`);
             return {
                 orders: response.orders,
-                pagination: response.pagination || { total: response.orders.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.orders.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -111,7 +119,11 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `customers?${query}`);
             return {
                 customers: response.customers,
-                pagination: response.pagination || { total: response.customers.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.customers.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -140,7 +152,11 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `reviews?${query}`);
             return {
                 reviews: response.reviews,
-                pagination: response.pagination || { total: response.reviews.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.reviews.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -167,11 +183,17 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `fulfillments?${query}`);
             return {
                 fulfillments: response.fulfillments,
-                pagination: response.pagination || { total: response.fulfillments.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.fulfillments.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
-            throw new TikTokShopIntegrationError('Failed to fetch fulfillments', { originalError: error });
+            throw new TikTokShopIntegrationError('Failed to fetch fulfillments', {
+                originalError: error,
+            });
         }
     }
     async createFulfillment(data) {
@@ -180,7 +202,9 @@ class TikTokShopIntegration extends BaseIntegration_1.default {
             return await this.request('POST', 'fulfillments', data);
         }
         catch (error) {
-            throw new TikTokShopIntegrationError('Failed to create fulfillment', { originalError: error });
+            throw new TikTokShopIntegrationError('Failed to create fulfillment', {
+                originalError: error,
+            });
         }
     }
 }

@@ -39,7 +39,7 @@ class WooCommerceIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new WooCommerceIntegrationError(`Missing required field: ${field}`);
             }
         });

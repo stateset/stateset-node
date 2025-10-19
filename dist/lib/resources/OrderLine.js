@@ -101,7 +101,11 @@ class OrderLines {
             const response = await this.client.request('GET', `order_line_items?${query}`);
             return {
                 order_lines: response.order_lines.map(this.mapResponse),
-                pagination: response.pagination || { total: response.order_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.order_lines.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -146,7 +150,10 @@ class OrderLines {
     }
     async updateStatus(orderLineId, status, reason) {
         try {
-            const response = await this.client.request('POST', `order_line_items/${orderLineId}/status`, { status, reason });
+            const response = await this.client.request('POST', `order_line_items/${orderLineId}/status`, {
+                status,
+                reason,
+            });
             return this.mapResponse(response.order_line);
         }
         catch (error) {
@@ -182,7 +189,10 @@ class OrderLines {
             throw new OrderLineNotFoundError(orderLineId || 'unknown');
         if (error.status === 400)
             throw new OrderLineValidationError(error.message, error.errors);
-        throw new OrderLineError(`Failed to ${operation} order line: ${error.message}`, { operation, originalError: error });
+        throw new OrderLineError(`Failed to ${operation} order line: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.OrderLines = OrderLines;

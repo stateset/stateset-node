@@ -18,7 +18,7 @@ var AmazonOrderStatus;
 var AmazonFulfillmentMethod;
 (function (AmazonFulfillmentMethod) {
     AmazonFulfillmentMethod["FBA"] = "FBA";
-    AmazonFulfillmentMethod["FBM"] = "FBM"; // Fulfillment by Merchant
+    AmazonFulfillmentMethod["FBM"] = "FBM";
 })(AmazonFulfillmentMethod || (exports.AmazonFulfillmentMethod = AmazonFulfillmentMethod = {}));
 // Error Classes
 class AmazonIntegrationError extends Error {
@@ -36,7 +36,7 @@ class AmazonIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new AmazonIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -52,7 +52,11 @@ class AmazonIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `products?${query.toString()}`);
             return {
                 products: response.products,
-                pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.products.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -81,7 +85,11 @@ class AmazonIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `orders?${query.toString()}`);
             return {
                 orders: response.orders,
-                pagination: response.pagination || { total: response.orders.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.orders.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -107,7 +115,11 @@ class AmazonIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `inventory?${query.toString()}`);
             return {
                 inventory: response.inventory,
-                pagination: response.pagination || { total: response.inventory.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.inventory.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -139,7 +151,11 @@ class AmazonIntegration extends BaseIntegration_1.default {
             const response = await this.request('GET', `reviews?${query.toString()}`);
             return {
                 reviews: response.reviews,
-                pagination: response.pagination || { total: response.reviews.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.reviews.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {

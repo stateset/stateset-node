@@ -153,7 +153,9 @@ class Payments {
     }
     async processPayment(paymentId, transactionId) {
         try {
-            const response = await this.stateset.request('POST', `payments/${paymentId}/process`, { transaction_id: transactionId });
+            const response = await this.stateset.request('POST', `payments/${paymentId}/process`, {
+                transaction_id: transactionId,
+            });
             return this.mapResponse(response.payment);
         }
         catch (error) {
@@ -165,7 +167,10 @@ class Payments {
             throw new PaymentNotFoundError(paymentId || 'unknown');
         if (error.status === 400)
             throw new PaymentValidationError(error.message, error.errors);
-        throw new PaymentError(`Failed to ${operation} payment: ${error.message}`, { operation, originalError: error });
+        throw new PaymentError(`Failed to ${operation} payment: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Payments;

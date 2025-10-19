@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">16.39% </span>
+                <span class="strong">15.15% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>10/61</span>
+                <span class='fraction'>10/66</span>
             </div>
         
             
@@ -264,7 +264,19 @@
 <a name='L199'></a><a href='#L199'>199</a>
 <a name='L200'></a><a href='#L200'>200</a>
 <a name='L201'></a><a href='#L201'>201</a>
-<a name='L202'></a><a href='#L202'>202</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -315,9 +327,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -328,7 +343,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -344,6 +362,11 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -461,6 +484,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -476,7 +500,7 @@ export enum RouteStatus {
   PLANNED = 'PLANNED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 &nbsp;
 // Interfaces
@@ -516,7 +540,10 @@ export interface RouteResponse {
 &nbsp;
 // Error Classes
 export class RouteError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >details?: Record&lt;string, unknown&gt;)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >details?: Record&lt;string, unknown&gt;</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'RouteError';</span>
   }
@@ -529,7 +556,10 @@ export class RouteNotFoundError extends RouteError {
 }
 &nbsp;
 export class RouteValidationError extends RouteError {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >errors?: Record&lt;string, string&gt;)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >errors?: Record&lt;string, string&gt;</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
   }
 }
@@ -539,11 +569,16 @@ export default class Routes {
 &nbsp;
   private <span class="fstat-no" title="function not covered" >validateRouteData(</span>data: RouteData): void {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.carrier_id) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('Carrier ID is required');</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.start_location.address.line1) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('Start location address is required');</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.end_location.address.line1) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('End location address is required');</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.shipment_ids?.length) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('At least one shipment ID is required');</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.estimated_distance &lt; 0) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('Estimated distance cannot be negative');</span></span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.estimated_duration &lt; 0) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('Estimated duration cannot be negative');</span></span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.start_location.address.line1)</span>
+<span class="cstat-no" title="statement not covered" >      throw new RouteValidationError('Start location address is required');</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.end_location.address.line1)</span>
+<span class="cstat-no" title="statement not covered" >      throw new RouteValidationError('End location address is required');</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!data.shipment_ids?.length)</span>
+<span class="cstat-no" title="statement not covered" >      throw new RouteValidationError('At least one shipment ID is required');</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.estimated_distance &lt; 0)</span>
+<span class="cstat-no" title="statement not covered" >      throw new RouteValidationError('Estimated distance cannot be negative');</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.estimated_duration &lt; 0)</span>
+<span class="cstat-no" title="statement not covered" >      throw new RouteValidationError('Estimated duration cannot be negative');</span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.cost_estimate &lt; 0) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError('Cost estimate cannot be negative');</span></span>
   }
 &nbsp;
@@ -661,19 +696,20 @@ export default class Routes {
   private <span class="fstat-no" title="function not covered" >handleError(</span>error: any, operation: string, routeId?: string): never {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (error.status === 404) <span class="cstat-no" title="statement not covered" >throw new RouteNotFoundError(routeId || 'unknown');</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (error.status === 400) <span class="cstat-no" title="statement not covered" >throw new RouteValidationError(error.message, error.errors);</span></span>
-<span class="cstat-no" title="statement not covered" >    throw new RouteError(</span>
-      `Failed to ${operation} route: ${error.message}`,
-      { operation, originalError: error }
-    );
+<span class="cstat-no" title="statement not covered" >    throw new RouteError(`Failed to ${operation} route: ${error.message}`, {</span>
+      operation,
+      originalError: error,
+    });
   }
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -78,7 +78,7 @@ class ProductionJob {
             created_at: jobData.created_at,
             updated_at: jobData.updated_at,
             status: jobData.status,
-            data: jobData.data
+            data: jobData.data,
         };
         switch (jobData.status) {
             case JobStatus.PLANNED:
@@ -201,7 +201,9 @@ class ProductionJob {
      * @returns CancelledJobResponse object
      */
     async cancel(jobId, reason) {
-        const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, { reason });
+        const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, {
+            reason,
+        });
         return this.handleCommandResponse(response);
     }
     /**

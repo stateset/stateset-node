@@ -100,8 +100,8 @@ class ManufacturerOrders {
             ...orderData,
             estimated_costs: orderData.estimated_costs && {
                 ...orderData.estimated_costs,
-                currency: orderData.estimated_costs.currency || DEFAULT_CURRENCY
-            }
+                currency: orderData.estimated_costs.currency || DEFAULT_CURRENCY,
+            },
         });
     }
     async update(orderId, orderData) {
@@ -147,7 +147,7 @@ class ManufacturerOrders {
     async updateCosts(orderId, costs) {
         return this.request('POST', `manufacturerorders/${orderId}/costs`, {
             ...costs,
-            currency: costs.currency || DEFAULT_CURRENCY
+            currency: costs.currency || DEFAULT_CURRENCY,
         });
     }
     // Material Management

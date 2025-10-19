@@ -99,7 +99,11 @@ class WarrantyLines {
             const response = await this.client.request('GET', `warranty_line_items?${query}`);
             return {
                 warranty_lines: response.warranty_lines.map(this.mapResponse),
-                pagination: response.pagination || { total: response.warranty_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.warranty_lines.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -171,7 +175,10 @@ class WarrantyLines {
             throw new WarrantyLineNotFoundError(warrantyLineId || 'unknown');
         if (error.status === 400)
             throw new WarrantyLineValidationError(error.message, error.errors);
-        throw new WarrantyLineError(`Failed to ${operation} warranty line: ${error.message}`, { operation, originalError: error });
+        throw new WarrantyLineError(`Failed to ${operation} warranty line: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.WarrantyLines = WarrantyLines;

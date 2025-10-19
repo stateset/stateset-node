@@ -21,7 +21,9 @@ class DeliveryConfirmationError extends Error {
 exports.DeliveryConfirmationError = DeliveryConfirmationError;
 class DeliveryConfirmationNotFoundError extends DeliveryConfirmationError {
     constructor(deliveryConfirmationId) {
-        super(`Delivery confirmation with ID ${deliveryConfirmationId} not found`, { deliveryConfirmationId });
+        super(`Delivery confirmation with ID ${deliveryConfirmationId} not found`, {
+            deliveryConfirmationId,
+        });
     }
 }
 exports.DeliveryConfirmationNotFoundError = DeliveryConfirmationNotFoundError;

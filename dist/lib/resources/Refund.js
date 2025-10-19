@@ -148,7 +148,9 @@ class Refunds {
     }
     async processRefund(refundId, refundDate) {
         try {
-            const response = await this.stateset.request('POST', `refunds/${refundId}/process`, { refund_date: refundDate });
+            const response = await this.stateset.request('POST', `refunds/${refundId}/process`, {
+                refund_date: refundDate,
+            });
             return this.mapResponse(response.refund);
         }
         catch (error) {
@@ -160,7 +162,10 @@ class Refunds {
             throw new RefundNotFoundError(refundId || 'unknown');
         if (error.status === 400)
             throw new RefundValidationError(error.message, error.errors);
-        throw new RefundError(`Failed to ${operation} refund: ${error.message}`, { operation, originalError: error });
+        throw new RefundError(`Failed to ${operation} refund: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Refunds;

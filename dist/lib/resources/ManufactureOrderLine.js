@@ -31,7 +31,9 @@ class ManufactureOrderLineError extends Error {
 exports.ManufactureOrderLineError = ManufactureOrderLineError;
 class ManufactureOrderLineNotFoundError extends ManufactureOrderLineError {
     constructor(manufactureOrderLineId) {
-        super(`Manufacture order line with ID ${manufactureOrderLineId} not found`, { manufactureOrderLineId });
+        super(`Manufacture order line with ID ${manufactureOrderLineId} not found`, {
+            manufactureOrderLineId,
+        });
     }
 }
 exports.ManufactureOrderLineNotFoundError = ManufactureOrderLineNotFoundError;

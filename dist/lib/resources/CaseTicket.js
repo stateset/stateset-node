@@ -196,7 +196,9 @@ class CasesTickets {
     }
     async assign(caseTicketId, agentId) {
         try {
-            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, { agent_id: agentId });
+            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, {
+                agent_id: agentId,
+            });
             return this.mapResponse(response.case_ticket);
         }
         catch (error) {
@@ -205,7 +207,9 @@ class CasesTickets {
     }
     async addNote(caseTicketId, note) {
         try {
-            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, { note });
+            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, {
+                note,
+            });
             return this.mapResponse(response.case_ticket);
         }
         catch (error) {
@@ -241,7 +245,9 @@ class CasesTickets {
     }
     async reopen(caseTicketId, note) {
         try {
-            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, { note });
+            const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, {
+                note,
+            });
             return this.mapResponse(response.case_ticket);
         }
         catch (error) {
@@ -253,7 +259,10 @@ class CasesTickets {
             throw new CaseTicketNotFoundError(caseTicketId || 'unknown');
         if (error.status === 400)
             throw new CaseTicketValidationError(error.message, error.errors);
-        throw new CaseTicketError(`Failed to ${operation} case/ticket: ${error.message}`, { operation, originalError: error });
+        throw new CaseTicketError(`Failed to ${operation} case/ticket: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = CasesTickets;

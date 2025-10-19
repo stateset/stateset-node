@@ -11,15 +11,15 @@ class OpenAIIntegration {
             baseURL: baseUrl,
             headers: {
                 Authorization: `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
+                'Content-Type': 'application/json',
+            },
         });
     }
     async createChatCompletion(messages, options = {}) {
         const data = {
             model: options.model || 'gpt-3.5-turbo',
             messages,
-            ...options
+            ...options,
         };
         const resp = await this.client.post('/chat/completions', data);
         return resp.data;

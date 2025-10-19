@@ -105,7 +105,11 @@ class WorkOrderLines {
             const response = await this.client.request('GET', `work_order_line_items?${query}`);
             return {
                 work_order_lines: response.work_order_lines.map(this.mapResponse),
-                pagination: response.pagination || { total: response.work_order_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.work_order_lines.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -195,7 +199,10 @@ class WorkOrderLines {
             throw new WorkOrderLineNotFoundError(workOrderLineId || 'unknown');
         if (error.status === 400)
             throw new WorkOrderLineValidationError(error.message, error.errors);
-        throw new WorkOrderLineError(`Failed to ${operation} work order line: ${error.message}`, { operation, originalError: error });
+        throw new WorkOrderLineError(`Failed to ${operation} work order line: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.WorkOrderLines = WorkOrderLines;

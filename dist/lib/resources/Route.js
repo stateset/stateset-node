@@ -165,7 +165,10 @@ class Routes {
             throw new RouteNotFoundError(routeId || 'unknown');
         if (error.status === 400)
             throw new RouteValidationError(error.message, error.errors);
-        throw new RouteError(`Failed to ${operation} route: ${error.message}`, { operation, originalError: error });
+        throw new RouteError(`Failed to ${operation} route: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Routes;

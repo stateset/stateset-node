@@ -39,7 +39,7 @@ class BigCommerceIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new BigCommerceIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -80,8 +80,12 @@ class BigCommerceIntegration extends BaseIntegration_1.default {
     async getOrders(params = {}) {
         const query = new URLSearchParams({
             ...(params.status_id && { status_id: params.status_id.toString() }),
-            ...(params.date_range?.min_date && { min_date_created: params.date_range.min_date.toISOString() }),
-            ...(params.date_range?.max_date && { max_date_created: params.date_range.max_date.toISOString() }),
+            ...(params.date_range?.min_date && {
+                min_date_created: params.date_range.min_date.toISOString(),
+            }),
+            ...(params.date_range?.max_date && {
+                max_date_created: params.date_range.max_date.toISOString(),
+            }),
             ...(params.limit && { limit: params.limit.toString() }),
             ...(params.page && { page: params.page.toString() }),
         });
@@ -161,7 +165,9 @@ class BigCommerceIntegration extends BaseIntegration_1.default {
             return response.data;
         }
         catch (error) {
-            throw new BigCommerceIntegrationError('Failed to fetch shipping rates', { originalError: error });
+            throw new BigCommerceIntegrationError('Failed to fetch shipping rates', {
+                originalError: error,
+            });
         }
     }
 }

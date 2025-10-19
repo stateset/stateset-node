@@ -55,7 +55,9 @@ class PackingListLines {
      * @returns Array of PackingListLineItem objects
      */
     async bulkCreate(packingListId, lineItems) {
-        return this.stateset.request('POST', `packing_lists/${packingListId}/line_items/bulk`, { line_items: lineItems });
+        return this.stateset.request('POST', `packing_lists/${packingListId}/line_items/bulk`, {
+            line_items: lineItems,
+        });
     }
     /**
      * Verify a packing list line item

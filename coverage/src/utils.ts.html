@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">7.09% </span>
+                <span class="strong">7.14% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>10/141</span>
+                <span class='fraction'>10/140</span>
             </div>
         
             
@@ -434,9 +434,7 @@
 <a name='L369'></a><a href='#L369'>369</a>
 <a name='L370'></a><a href='#L370'>370</a>
 <a name='L371'></a><a href='#L371'>371</a>
-<a name='L372'></a><a href='#L372'>372</a>
-<a name='L373'></a><a href='#L373'>373</a>
-<a name='L374'></a><a href='#L374'>374</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L372'></a><a href='#L372'>372</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
@@ -444,7 +442,6 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -493,6 +490,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -617,8 +617,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -691,9 +689,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -816,8 +812,7 @@ import qs from 'qs';
 import crypto from 'crypto';
 import { exec as childProcessExec } from 'child_process';
 &nbsp;
-const hasOwn = <span class="fstat-no" title="function not covered" >(o</span>bj: any, prop: string): boolean =&gt;
-<span class="cstat-no" title="statement not covered" >  Object.prototype.hasOwnProperty.call(obj, prop);</span>
+const hasOwn = <span class="fstat-no" title="function not covered" >(o</span>bj: any, prop: string): boolean =&gt; <span class="cstat-no" title="statement not covered" >Object.prototype.hasOwnProperty.call(obj, prop);</span>
 &nbsp;
 const OPTIONS_KEYS = [
   'apiKey',
@@ -855,7 +850,10 @@ interface Utils {
   normalizeHeaders(obj: { [key: string]: string }): { [key: string]: string };
   normalizeHeader(header: string): string;
   checkForStream(obj: any): boolean;
-  callbackifyPromiseWithTimeout(promise: Promise&lt;any&gt;, callback?: (error: Error | null, response?: any) =&gt; void): Promise&lt;any&gt;;
+  callbackifyPromiseWithTimeout(
+    promise: Promise&lt;any&gt;,
+    callback?: (error: Error | null, response?: any) =&gt; void
+  ): Promise&lt;any&gt;;
   pascalToCamelCase(name: string): string;
   emitWarning(warning: string): void;
   safeExec(cmd: string, cb: (error: Error | null, result: string | null) =&gt; void): void;
@@ -871,22 +869,22 @@ const utils: Utils = {
 <span class="cstat-no" title="statement not covered" >    return (</span>
       o &amp;&amp;
       typeof o === 'object' &amp;&amp;
-      (OPTIONS_KEYS.some(<span class="fstat-no" title="function not covered" >(p</span>rop) =&gt; <span class="cstat-no" title="statement not covered" >hasOwn(o, prop))</span> ||
-        DEPRECATED_OPTIONS_KEYS.some(<span class="fstat-no" title="function not covered" >(p</span>rop) =&gt; <span class="cstat-no" title="statement not covered" >hasOwn(o, prop))</span>)
+      (OPTIONS_KEYS.some(<span class="fstat-no" title="function not covered" >prop </span>=&gt; <span class="cstat-no" title="statement not covered" >hasOwn(o, prop))</span> ||
+        DEPRECATED_OPTIONS_KEYS.some(<span class="fstat-no" title="function not covered" >prop </span>=&gt; <span class="cstat-no" title="statement not covered" >hasOwn(o, prop))</span>)
     );
   },
 &nbsp;
 <span class="fstat-no" title="function not covered" >  protoExtend(</span>sub: any): any {
     const Super = <span class="cstat-no" title="statement not covered" >this.constructor as Function;</span>
-    
-    const Constructor = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function(this: any, .</span>..args: any[]) {</span>
-<span class="cstat-no" title="statement not covered" >      Super.apply(this, args); </span> // Apply parent constructor
+&nbsp;
+    const Constructor = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function (this: any, .</span>..args: any[]) {</span>
+<span class="cstat-no" title="statement not covered" >      Super.apply(this, args); </span>// Apply parent constructor
     };
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    Object.assign(Constructor, Super);</span>
 <span class="cstat-no" title="statement not covered" >    Constructor.prototype = Object.create(Super.prototype); </span>// Inherit prototype
 <span class="cstat-no" title="statement not covered" >    Object.assign(Constructor.prototype, sub);</span>
-  
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return Constructor;</span>
   },
 &nbsp;
@@ -906,7 +904,7 @@ const utils: Utils = {
       '\u2028': '\\u2028',
       '\u2029': '\\u2029',
     };
-    const cleanString = <span class="cstat-no" title="statement not covered" >str.replace(/["\n\r\u2028\u2029]/g, <span class="fstat-no" title="function not covered" >($</span>0) =&gt; <span class="cstat-no" title="statement not covered" >rc[$0])</span>;</span>
+    const cleanString = <span class="cstat-no" title="statement not covered" >str.replace(/["\n\r\u2028\u2029]/g, <span class="fstat-no" title="function not covered" >$0 </span>=&gt; <span class="cstat-no" title="statement not covered" >rc[$0])</span>;</span>
 <span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >(o</span>utputs: { [key: string]: string }) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      return cleanString.replace(/\{([\s\S]+?)\}/g, <span class="fstat-no" title="function not covered" >($</span>0, $1) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >        encodeURIComponent(outputs[$1] || '')</span>
@@ -916,7 +914,7 @@ const utils: Utils = {
 &nbsp;
 <span class="fstat-no" title="function not covered" >  extractUrlParams(</span>path: string): string[] {
     const params = <span class="cstat-no" title="statement not covered" >path.match(/\{\w+\}/g);</span>
-<span class="cstat-no" title="statement not covered" >    return params ? params.map(<span class="fstat-no" title="function not covered" >(p</span>aram) =&gt; <span class="cstat-no" title="statement not covered" >param.replace(/[{}]/g, ''))</span> : [];</span>
+<span class="cstat-no" title="statement not covered" >    return params ? params.map(<span class="fstat-no" title="function not covered" >param </span>=&gt; <span class="cstat-no" title="statement not covered" >param.replace(/[{}]/g, ''))</span> : [];</span>
   },
 &nbsp;
 <span class="fstat-no" title="function not covered" >  getDataFromArgs(</span>args: any[]): any {
@@ -929,7 +927,7 @@ const utils: Utils = {
     }
 &nbsp;
     const argKeys = <span class="cstat-no" title="statement not covered" >Object.keys(args[0]);</span>
-    const optionKeysInArgs = <span class="cstat-no" title="statement not covered" >argKeys.filter(<span class="fstat-no" title="function not covered" >(k</span>ey) =&gt; <span class="cstat-no" title="statement not covered" >OPTIONS_KEYS.includes(key))</span>;</span>
+    const optionKeysInArgs = <span class="cstat-no" title="statement not covered" >argKeys.filter(<span class="fstat-no" title="function not covered" >key </span>=&gt; <span class="cstat-no" title="statement not covered" >OPTIONS_KEYS.includes(key))</span>;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (optionKeysInArgs.length &gt; 0 &amp;&amp; optionKeysInArgs.length !== argKeys.length) {</span>
 <span class="cstat-no" title="statement not covered" >      utils.emitWarning(</span>
@@ -956,8 +954,8 @@ const utils: Utils = {
       },
       host: '',
     };
-    
-<span class="cstat-no" title="statement not covered" >    opts.headers['Idempotency-Key'] = ''</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    opts.headers['Idempotency-Key'] = '';</span>
 <span class="cstat-no" title="statement not covered" >    opts.headers['Stateset-Account'] = '';</span>
 <span class="cstat-no" title="statement not covered" >    opts.headers['Stateset-Version'] = '';</span>
 &nbsp;
@@ -968,10 +966,10 @@ const utils: Utils = {
       } else <span class="cstat-no" title="statement not covered" ><span class="missing-if-branch" title="if path not taken" >I</span>if (utils.isOptionsHash(arg)) {</span>
         const params = <span class="cstat-no" title="statement not covered" >{ ...args.pop() };</span>
 &nbsp;
-        const extraKeys = <span class="cstat-no" title="statement not covered" >Object.keys(params).filter(<span class="fstat-no" title="function not covered" >(k</span>ey) =&gt; <span class="cstat-no" title="statement not covered" >!OPTIONS_KEYS.includes(key))</span>;</span>
+        const extraKeys = <span class="cstat-no" title="statement not covered" >Object.keys(params).filter(<span class="fstat-no" title="function not covered" >key </span>=&gt; <span class="cstat-no" title="statement not covered" >!OPTIONS_KEYS.includes(key))</span>;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        <span class="missing-if-branch" title="if path not taken" >I</span>if (extraKeys.length) {</span>
-          const nonDeprecated = <span class="cstat-no" title="statement not covered" >extraKeys.filter(<span class="fstat-no" title="function not covered" >(k</span>ey) =&gt; {</span>
+          const nonDeprecated = <span class="cstat-no" title="statement not covered" >extraKeys.filter(<span class="fstat-no" title="function not covered" >key </span>=&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            <span class="missing-if-branch" title="if path not taken" >I</span>if (!DEPRECATED_OPTIONS[key]) {</span>
 <span class="cstat-no" title="statement not covered" >              return true;</span>
             }
@@ -986,9 +984,7 @@ const utils: Utils = {
 <span class="cstat-no" title="statement not covered" >            return false;</span>
           });
 <span class="cstat-no" title="statement not covered" >          <span class="missing-if-branch" title="if path not taken" >I</span>if (nonDeprecated.length) {</span>
-<span class="cstat-no" title="statement not covered" >            utils.emitWarning(</span>
-              `Invalid options found (${extraKeys.join(', ')}); ignoring.`
-            );
+<span class="cstat-no" title="statement not covered" >            utils.emitWarning(`Invalid options found (${extraKeys.join(', ')}); ignoring.`);</span>
           }
         }
 &nbsp;
@@ -1064,9 +1060,7 @@ const utils: Utils = {
 <span class="fstat-no" title="function not covered" >  normalizeHeader(</span>header: string): string {
 <span class="cstat-no" title="statement not covered" >    return header</span>
       .split('-')
-      .map(
-<span class="fstat-no" title="function not covered" >        (t</span>ext) =&gt; <span class="cstat-no" title="statement not covered" >text.charAt(0).toUpperCase() + text.substr(1).toLowerCase()</span>
-      )
+      .map(<span class="fstat-no" title="function not covered" >text </span>=&gt; <span class="cstat-no" title="statement not covered" >text.charAt(0).toUpperCase() + text.substr(1).toLowerCase())</span>
       .join('-');
   },
 &nbsp;
@@ -1080,12 +1074,12 @@ const utils: Utils = {
   ): Promise&lt;any&gt; {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (callback) {</span>
 <span class="cstat-no" title="statement not covered" >      return promise.then(</span>
-<span class="fstat-no" title="function not covered" >        (r</span>es) =&gt; {
+<span class="fstat-no" title="function not covered" >        res </span>=&gt; {
 <span class="cstat-no" title="statement not covered" >          setTimeout(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            callback(null, res);</span>
           }, 0);
         },
-<span class="fstat-no" title="function not covered" >        (e</span>rr) =&gt; {
+<span class="fstat-no" title="function not covered" >        err </span>=&gt; {
 <span class="cstat-no" title="statement not covered" >          setTimeout(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            callback(err, null);</span>
           }, 0);
@@ -1130,7 +1124,7 @@ const utils: Utils = {
     const result: { [key: string]: string } = <span class="cstat-no" title="statement not covered" >{};</span>
 &nbsp;
     const step = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(o</span>bj: any, prevKey: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      Object.keys(obj).forEach(<span class="fstat-no" title="function not covered" >(k</span>ey) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      Object.keys(obj).forEach(<span class="fstat-no" title="function not covered" >key </span>=&gt; {</span>
         const value = <span class="cstat-no" title="statement not covered" >obj[key];</span>
         const newKey = <span class="cstat-no" title="statement not covered" >prevKey ? `${prevKey}[${key}]` : key;</span>
 &nbsp;
@@ -1152,7 +1146,7 @@ const utils: Utils = {
   },
 &nbsp;
 <span class="fstat-no" title="function not covered" >  uuid4(</span>): string {
-<span class="cstat-no" title="statement not covered" >    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, <span class="fstat-no" title="function not covered" >(c</span>) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, <span class="fstat-no" title="function not covered" >c </span>=&gt; {</span>
       const r = <span class="cstat-no" title="statement not covered" >(Math.random() * 16) | 0;</span>
       const v = <span class="cstat-no" title="statement not covered" >c === 'x' ? r : (r &amp; 0x3) | 0x8;</span>
 <span class="cstat-no" title="statement not covered" >      return v.toString(16);</span>
@@ -1189,7 +1183,7 @@ export default utils;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../prettify.js"></script>
         <script>

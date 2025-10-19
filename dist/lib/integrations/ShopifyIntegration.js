@@ -41,7 +41,7 @@ class ShopifyIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new ShopifyIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -80,7 +80,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             return response.product;
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to update product', { originalError: error, productId: id });
+            throw new ShopifyIntegrationError('Failed to update product', {
+                originalError: error,
+                productId: id,
+            });
         }
     }
     async deleteProduct(id) {
@@ -88,7 +91,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             await this.request('DELETE', `products/${id}`);
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to delete product', { originalError: error, productId: id });
+            throw new ShopifyIntegrationError('Failed to delete product', {
+                originalError: error,
+                productId: id,
+            });
         }
     }
     async getOrders(params = {}) {
@@ -126,7 +132,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             return response.order;
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to update order', { originalError: error, orderId: id });
+            throw new ShopifyIntegrationError('Failed to update order', {
+                originalError: error,
+                orderId: id,
+            });
         }
     }
     async deleteOrder(id) {
@@ -134,7 +143,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             await this.request('DELETE', `orders/${id}`);
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to delete order', { originalError: error, orderId: id });
+            throw new ShopifyIntegrationError('Failed to delete order', {
+                originalError: error,
+                orderId: id,
+            });
         }
     }
     async getCustomers(params = {}) {
@@ -170,7 +182,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             return response.customer;
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to update customer', { originalError: error, customerId: id });
+            throw new ShopifyIntegrationError('Failed to update customer', {
+                originalError: error,
+                customerId: id,
+            });
         }
     }
     async deleteCustomer(id) {
@@ -178,7 +193,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             await this.request('DELETE', `customers/${id}`);
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to delete customer', { originalError: error, customerId: id });
+            throw new ShopifyIntegrationError('Failed to delete customer', {
+                originalError: error,
+                customerId: id,
+            });
         }
     }
     async getInventory(params = {}) {
@@ -224,7 +242,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             return response.inventory_item;
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to update inventory', { originalError: error, inventoryItemId: id });
+            throw new ShopifyIntegrationError('Failed to update inventory', {
+                originalError: error,
+                inventoryItemId: id,
+            });
         }
     }
     async deleteInventory(id) {
@@ -232,7 +253,10 @@ class ShopifyIntegration extends BaseIntegration_1.default {
             await this.request('DELETE', `inventory_levels/${id}`);
         }
         catch (error) {
-            throw new ShopifyIntegrationError('Failed to delete inventory', { originalError: error, inventoryItemId: id });
+            throw new ShopifyIntegrationError('Failed to delete inventory', {
+                originalError: error,
+                inventoryItemId: id,
+            });
         }
     }
 }

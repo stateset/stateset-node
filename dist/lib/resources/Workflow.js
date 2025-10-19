@@ -162,7 +162,9 @@ class Workflows {
      */
     async execute(workflowId, input) {
         try {
-            const response = await this.stateset.request('POST', `workflows/${workflowId}/execute`, { input });
+            const response = await this.stateset.request('POST', `workflows/${workflowId}/execute`, {
+                input,
+            });
             return response.execution;
         }
         catch (error) {

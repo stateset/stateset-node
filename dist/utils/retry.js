@@ -61,7 +61,7 @@ async function withRetry(operation, options = {}) {
                     attempt,
                     maxAttempts: config.maxAttempts,
                     delay,
-                    error: lastError.message
+                    error: lastError.message,
                 },
             });
             config.onRetryAttempt?.(attemptInfo);

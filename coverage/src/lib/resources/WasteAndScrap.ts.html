@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.45% </span>
+                <span class="strong">6.25% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/31</span>
+                <span class='fraction'>2/32</span>
             </div>
         
             
@@ -241,7 +241,14 @@
 <a name='L176'></a><a href='#L176'>176</a>
 <a name='L177'></a><a href='#L177'>177</a>
 <a name='L178'></a><a href='#L178'>178</a>
-<a name='L179'></a><a href='#L179'>179</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -367,12 +374,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -389,9 +390,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -418,6 +418,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// lib/resources/WasteAndScrap.ts
 &nbsp;
@@ -449,9 +459,11 @@ interface RecycledWasteAndScrapResponse extends BaseWasteAndScrapResponse {
   recycled: true;
 }
 &nbsp;
-type WasteAndScrapResponse = PendingWasteAndScrapResponse | ProcessedWasteAndScrapResponse | DisposedWasteAndScrapResponse | RecycledWasteAndScrapResponse;
-&nbsp;
-&nbsp;
+type WasteAndScrapResponse =
+  | PendingWasteAndScrapResponse
+  | ProcessedWasteAndScrapResponse
+  | DisposedWasteAndScrapResponse
+  | RecycledWasteAndScrapResponse;
 &nbsp;
 interface WasteAndScrapData {
   type: 'WASTE' | 'SCRAP';
@@ -513,7 +525,7 @@ export default class WasteAndScrap {
   /**
    * @param data - WasteAndScrapData object
    * @returns WasteAndScrapResponse object
-   */ 
+   */
 <span class="fstat-no" title="function not covered" >  async </span>create(data: WasteAndScrapData): Promise&lt;WasteAndScrapResponse&gt; {
     const response = <span class="cstat-no" title="statement not covered" >await this.client.request('POST', 'waste-and-scrap', data);</span>
 <span class="cstat-no" title="statement not covered" >    return this.handleCommandResponse(response);</span>
@@ -544,7 +556,9 @@ export default class WasteAndScrap {
    */
 <span class="fstat-no" title="function not covered" >  async </span>list(params?: any): Promise&lt;WasteAndScrapResponse[]&gt; {
     const response = <span class="cstat-no" title="statement not covered" >await this.client.request('GET', 'waste-and-scrap', params);</span>
-<span class="cstat-no" title="statement not covered" >    return response.map(<span class="fstat-no" title="function not covered" >(i</span>tem: any) =&gt; <span class="cstat-no" title="statement not covered" >this.handleCommandResponse({ update_waste_and_scrap_by_pk: item }))</span>;</span>
+<span class="cstat-no" title="statement not covered" >    return response.map(<span class="fstat-no" title="function not covered" >(i</span>tem: any) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >      this.handleCommandResponse({ update_waste_and_scrap_by_pk: item })</span>
+    );
   }
 &nbsp;
   /**
@@ -597,14 +611,15 @@ export default class WasteAndScrap {
 <span class="fstat-no" title="function not covered" >  async </span>getDisposalHistory(id: string): Promise&lt;DisposalData[]&gt; {
 <span class="cstat-no" title="statement not covered" >    return this.client.request('GET', `waste-and-scrap/${id}/disposal-history`);</span>
   }
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

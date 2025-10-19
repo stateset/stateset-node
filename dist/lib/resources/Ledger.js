@@ -165,7 +165,10 @@ class Ledger {
             throw new LedgerNotFoundError(ledgerId || 'unknown');
         if (error.status === 400)
             throw new LedgerValidationError(error.message, error.errors);
-        throw new LedgerError(`Failed to ${operation} ledger entry: ${error.message}`, { operation, originalError: error });
+        throw new LedgerError(`Failed to ${operation} ledger entry: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Ledger;

@@ -268,7 +268,7 @@ declare class Activities {
     /**
      * Validate activity data
      * @param data - ActivityData object
-    */
+     */
     private validateActivityData;
 }
 export default Activities;

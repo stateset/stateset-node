@@ -142,7 +142,7 @@ class Returns {
                 returns: response.returns,
                 total_count: response.total_count,
                 limit: response.limit,
-                offset: response.offset
+                offset: response.offset,
             };
         }
         catch (error) {
@@ -191,7 +191,7 @@ class Returns {
             this.logger.debug('Creating return', {
                 order_id: returnData.order_id,
                 customer_id: returnData.customer_id,
-                item_count: returnData.items.length
+                item_count: returnData.items.length,
             });
             const response = await this.stateset.request('POST', 'returns', returnData);
             return response.return;
@@ -200,7 +200,7 @@ class Returns {
             this.logger.error('Error creating return', {
                 error,
                 order_id: returnData.order_id,
-                customer_id: returnData.customer_id
+                customer_id: returnData.customer_id,
             });
             this.handleApiError(error);
         }
@@ -287,7 +287,7 @@ class Returns {
             this.logger.debug('Processing refund for return', {
                 returnId,
                 method: refundDetails.method,
-                amount: refundDetails.amount
+                amount: refundDetails.amount,
             });
             const response = await this.stateset.request('POST', `returns/${returnId}/refund`, refundDetails);
             return response.return;
@@ -296,7 +296,7 @@ class Returns {
             this.logger.error('Error processing refund', {
                 error,
                 returnId,
-                method: refundDetails.method
+                method: refundDetails.method,
             });
             this.handleStateTransitionError(error, returnId);
         }

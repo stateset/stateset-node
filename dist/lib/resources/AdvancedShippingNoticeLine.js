@@ -65,9 +65,7 @@ class ASNLines {
                 queryParams.append(key, String(value));
             }
         });
-        const endpoint = params.asn_id
-            ? `asns/${params.asn_id}/line_items`
-            : 'asn_line_items';
+        const endpoint = params.asn_id ? `asns/${params.asn_id}/line_items` : 'asn_line_items';
         return this.request('GET', `${endpoint}?${queryParams.toString()}`);
     }
     async get(lineItemId) {
@@ -77,7 +75,7 @@ class ASNLines {
         this.validateLineItem(lineItemData);
         return this.request('POST', 'asn_line_items', {
             ...lineItemData,
-            status: lineItemData.status || LineItemStatus.PENDING
+            status: lineItemData.status || LineItemStatus.PENDING,
         });
     }
     async update(lineItemId, lineItemData) {
@@ -92,16 +90,21 @@ class ASNLines {
             throw new ASNLineValidationError('At least one line item is required for bulk create');
         }
         lineItems.forEach(this.validateLineItem);
-        return this.request('POST', `asns/${asnId}/line_items/bulk`, { line_items: lineItems.map(item => ({
+        return this.request('POST', `asns/${asnId}/line_items/bulk`, {
+            line_items: lineItems.map(item => ({
                 ...item,
-                status: item.status || LineItemStatus.PENDING
-            })) });
+                status: item.status || LineItemStatus.PENDING,
+            })),
+        });
     }
     async updateTrackingInfo(lineItemId, trackingInfo) {
         return this.request('PUT', `asn_line_items/${lineItemId}/tracking`, trackingInfo);
     }
     async updateStatus(lineItemId, status, statusDetails = {}) {
-        return this.request('PUT', `asn_line_items/${lineItemId}/status`, { status, ...statusDetails });
+        return this.request('PUT', `asn_line_items/${lineItemId}/status`, {
+            status,
+            ...statusDetails,
+        });
     }
     async getTrackingHistory(lineItemId, params = {}) {
         const queryParams = new URLSearchParams();

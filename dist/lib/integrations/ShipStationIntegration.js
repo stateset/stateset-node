@@ -37,7 +37,7 @@ class ShipStationIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new ShipStationIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -134,7 +134,13 @@ class ShipStationIntegration extends BaseIntegration_1.default {
         }
     }
     async createShipment(data) {
-        this.validateRequestData(data, ['orderId', 'trackingNumber', 'carrierCode', 'serviceCode', 'shipDate']);
+        this.validateRequestData(data, [
+            'orderId',
+            'trackingNumber',
+            'carrierCode',
+            'serviceCode',
+            'shipDate',
+        ]);
         try {
             const response = await this.request('POST', 'shipments/createshipment', data);
             return response;

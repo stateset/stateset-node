@@ -485,7 +485,14 @@
 <a name='L420'></a><a href='#L420'>420</a>
 <a name='L421'></a><a href='#L421'>421</a>
 <a name='L422'></a><a href='#L422'>422</a>
-<a name='L423'></a><a href='#L423'>423</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -664,7 +671,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -741,9 +751,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -890,14 +897,20 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -907,14 +920,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
 &nbsp;
 // Enums for schedule management
 export enum ScheduleType {
   RECURRING = 'recurring',
   ONE_TIME = 'one_time',
   ADAPTIVE = 'adaptive',
-  CONDITIONAL = 'conditional'
+  CONDITIONAL = 'conditional',
 }
 &nbsp;
 export enum ScheduleStatus {
@@ -922,14 +936,14 @@ export enum ScheduleStatus {
   PAUSED = 'paused',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  PENDING = 'pending'
+  PENDING = 'pending',
 }
 &nbsp;
 export enum TaskPriority {
   CRITICAL = 'critical',
   HIGH = 'high',
   MEDIUM = 'medium',
-  LOW = 'low'
+  LOW = 'low',
 }
 &nbsp;
 export enum RecurrencePattern {
@@ -937,13 +951,13 @@ export enum RecurrencePattern {
   DAILY = 'daily',
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 &nbsp;
 export enum ExecutionStrategy {
   SEQUENTIAL = 'sequential',
   PARALLEL = 'parallel',
-  ROUND_ROBIN = 'round_robin'
+  ROUND_ROBIN = 'round_robin',
 }
 &nbsp;
 // Interfaces for schedule data structures
@@ -1086,7 +1100,10 @@ export class ScheduleValidationError extends Error {
 }
 &nbsp;
 export class ScheduleExecutionError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >scheduleId: string)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >scheduleId: string</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'ScheduleExecutionError';</span>
   }
@@ -1109,7 +1126,7 @@ class Schedule {
     org_id?: string;
   }): Promise&lt;ScheduleResponse[]&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.status) <span class="cstat-no" title="statement not covered" >queryParams.append('status', params.status);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.schedule_type) <span class="cstat-no" title="statement not covered" >queryParams.append('schedule_type', params.schedule_type);</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.priority) <span class="cstat-no" title="statement not covered" >queryParams.append('priority', params.priority);</span></span>
@@ -1162,10 +1179,7 @@ class Schedule {
    * @param scheduleData - Partial&lt;ScheduleData&gt; object
    * @returns ScheduleResponse object
    */
-<span class="fstat-no" title="function not covered" >  async </span>update(
-    scheduleId: string, 
-    scheduleData: Partial&lt;ScheduleData&gt;
-  ): Promise&lt;ScheduleResponse&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>update(scheduleId: string, scheduleData: Partial&lt;ScheduleData&gt;): Promise&lt;ScheduleResponse&gt; {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (Object.keys(scheduleData).length &gt; 0) {</span>
 <span class="cstat-no" title="statement not covered" >      this.validateScheduleData(scheduleData as ScheduleData, true);</span>
     }
@@ -1257,7 +1271,7 @@ class Schedule {
     }
   ): Promise&lt;ExecutionResult[]&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >new URLSearchParams();</span>
-    
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.start_date) <span class="cstat-no" title="statement not covered" >queryParams.append('start_date', params.start_date.toISOString());</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.end_date) <span class="cstat-no" title="statement not covered" >queryParams.append('end_date', params.end_date.toISOString());</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (params?.status) <span class="cstat-no" title="statement not covered" >queryParams.append('status', params.status);</span></span>
@@ -1309,15 +1323,21 @@ class Schedule {
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.schedule_type === ScheduleType.RECURRING &amp;&amp; !data.recurrence_config) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError('Recurrence configuration is required for recurring schedules');</span>
+<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError(</span>
+        'Recurrence configuration is required for recurring schedules'
+      );
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.schedule_type === ScheduleType.ADAPTIVE &amp;&amp; !data.adaptive_config) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError('Adaptive configuration is required for adaptive schedules');</span>
+<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError(</span>
+        'Adaptive configuration is required for adaptive schedules'
+      );
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.schedule_type === ScheduleType.CONDITIONAL &amp;&amp; !data.conditional_config) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError('Conditional configuration is required for conditional schedules');</span>
+<span class="cstat-no" title="statement not covered" >      throw new ScheduleValidationError(</span>
+        'Conditional configuration is required for conditional schedules'
+      );
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.time_window) {</span>
@@ -1329,14 +1349,15 @@ class Schedule {
   }
 }
 &nbsp;
-export default Schedule;</pre></td></tr></table></pre>
+export default Schedule;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:42.883Z
+                at 2025-10-19T21:30:50.018Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

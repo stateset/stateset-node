@@ -83,17 +83,41 @@ class Warranty {
         };
         switch (data.status) {
             case WarrantyStatus.PENDING:
-                return { ...baseResponse, status: WarrantyStatus.PENDING, pending_details: { submitted_at: data.created_at } };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.PENDING,
+                    pending_details: { submitted_at: data.created_at },
+                };
             case WarrantyStatus.APPROVED:
-                return { ...baseResponse, status: WarrantyStatus.APPROVED, approved_at: data.updated_at };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.APPROVED,
+                    approved_at: data.updated_at,
+                };
             case WarrantyStatus.REJECTED:
-                return { ...baseResponse, status: WarrantyStatus.REJECTED, rejection_reason: data.rejection_reason || 'Not specified' };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.REJECTED,
+                    rejection_reason: data.rejection_reason || 'Not specified',
+                };
             case WarrantyStatus.CANCELLED:
-                return { ...baseResponse, status: WarrantyStatus.CANCELLED, cancellation_reason: data.cancellation_reason };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.CANCELLED,
+                    cancellation_reason: data.cancellation_reason,
+                };
             case WarrantyStatus.CLOSED:
-                return { ...baseResponse, status: WarrantyStatus.CLOSED, closed_at: data.updated_at };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.CLOSED,
+                    closed_at: data.updated_at,
+                };
             case WarrantyStatus.REOPENED:
-                return { ...baseResponse, status: WarrantyStatus.REOPENED, reopened_reason: data.reopened_reason || 'Not specified' };
+                return {
+                    ...baseResponse,
+                    status: WarrantyStatus.REOPENED,
+                    reopened_reason: data.reopened_reason || 'Not specified',
+                };
             default:
                 throw new WarrantyError(`Unexpected warranty status: ${data.status}`);
         }
@@ -136,7 +160,9 @@ class Warranty {
     }
     async approve(warrantyId, reason) {
         try {
-            const response = await this.client.request('POST', `warranties/approve/${warrantyId}`, { reason });
+            const response = await this.client.request('POST', `warranties/approve/${warrantyId}`, {
+                reason,
+            });
             return this.mapResponse(response.warranty);
         }
         catch (error) {
@@ -145,7 +171,9 @@ class Warranty {
     }
     async reject(warrantyId, reason) {
         try {
-            const response = await this.client.request('POST', `warranties/reject/${warrantyId}`, { reason });
+            const response = await this.client.request('POST', `warranties/reject/${warrantyId}`, {
+                reason,
+            });
             return this.mapResponse(response.warranty);
         }
         catch (error) {
@@ -154,7 +182,9 @@ class Warranty {
     }
     async cancel(warrantyId, reason) {
         try {
-            const response = await this.client.request('POST', `warranties/cancel/${warrantyId}`, { reason });
+            const response = await this.client.request('POST', `warranties/cancel/${warrantyId}`, {
+                reason,
+            });
             return this.mapResponse(response.warranty);
         }
         catch (error) {
@@ -172,7 +202,9 @@ class Warranty {
     }
     async reopen(warrantyId, reason) {
         try {
-            const response = await this.client.request('POST', `warranties/reopen/${warrantyId}`, { reason });
+            const response = await this.client.request('POST', `warranties/reopen/${warrantyId}`, {
+                reason,
+            });
             return this.mapResponse(response.warranty);
         }
         catch (error) {

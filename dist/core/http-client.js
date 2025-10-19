@@ -65,18 +65,20 @@ class EnhancedHttpClient {
             timeout: options.timeout ?? 60000,
             httpsAgent,
             headers: {
-                'Authorization': `Bearer ${options.apiKey}`,
+                Authorization: `Bearer ${options.apiKey}`,
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'User-Agent': options.userAgent || 'stateset-node-client/1.0.0',
                 ...options.additionalHeaders,
             },
-            proxy: options.proxy ? {
-                protocol: options.proxy.protocol,
-                host: options.proxy.host,
-                port: options.proxy.port,
-                auth: options.proxy.auth,
-            } : false,
+            proxy: options.proxy
+                ? {
+                    protocol: options.proxy.protocol,
+                    host: options.proxy.host,
+                    port: options.proxy.port,
+                    auth: options.proxy.auth,
+                }
+                : false,
         });
         this.setupInterceptors();
     }
@@ -109,7 +111,7 @@ class EnhancedHttpClient {
             });
             // Apply custom request interceptors
             return this.applyRequestInterceptors(config);
-        }, (error) => {
+        }, error => {
             logger_1.logger.error('Request interceptor error', {
                 operation: 'http_request',
                 metadata: { error: error.message },
@@ -117,7 +119,7 @@ class EnhancedHttpClient {
             return Promise.reject(error);
         });
         // Response interceptor
-        this.axiosInstance.interceptors.response.use((response) => {
+        this.axiosInstance.interceptors.response.use(response => {
             const metadata = response.config.metadata;
             const endTime = Date.now();
             const responseMetadata = {

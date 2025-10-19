@@ -354,14 +354,7 @@
 <a name='L289'></a><a href='#L289'>289</a>
 <a name='L290'></a><a href='#L290'>290</a>
 <a name='L291'></a><a href='#L291'>291</a>
-<a name='L292'></a><a href='#L292'>292</a>
-<a name='L293'></a><a href='#L293'>293</a>
-<a name='L294'></a><a href='#L294'>294</a>
-<a name='L295'></a><a href='#L295'>295</a>
-<a name='L296'></a><a href='#L296'>296</a>
-<a name='L297'></a><a href='#L297'>297</a>
-<a name='L298'></a><a href='#L298'>298</a>
-<a name='L299'></a><a href='#L299'>299</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L292'></a><a href='#L292'>292</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -498,10 +491,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -511,10 +500,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -658,6 +643,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { BaseResource } from '../core/base-resource';</span>
 import { EnhancedHttpClient } from '../core/http-client';
@@ -708,7 +694,7 @@ export interface ShippingLabelParams {
     options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;Return&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ status, notes };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.patch&lt;{ return: Return }&gt;(</span>
       `${this.resourceName}/${returnId}/status`,
       data,
@@ -761,7 +747,7 @@ export interface ShippingLabelParams {
     options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;Return&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ inspection_notes: inspectionNotes };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.post&lt;{ return: Return }&gt;(</span>
       `${this.resourceName}/${returnId}/receive`,
       data,
@@ -795,13 +781,9 @@ export interface ShippingLabelParams {
   /**
    * Cancel a return
    */
-<span class="fstat-no" title="function not covered" >  async </span>cancel(
-    returnId: string,
-    reason: string,
-    options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
-  ): Promise&lt;Return&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>cancel(returnId: string, reason: string, options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span>: Promise&lt;Return&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ reason };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.post&lt;{ return: Return }&gt;(</span>
       `${this.resourceName}/${returnId}/cancel`,
       data,
@@ -814,13 +796,9 @@ export interface ShippingLabelParams {
   /**
    * Reopen a return
    */
-<span class="fstat-no" title="function not covered" >  async </span>reopen(
-    returnId: string,
-    reason: string,
-    options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
-  ): Promise&lt;Return&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>reopen(returnId: string, reason: string, options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{})</span>: Promise&lt;Return&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ reason };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.post&lt;{ return: Return }&gt;(</span>
       `${this.resourceName}/${returnId}/reopen`,
       data,
@@ -840,7 +818,7 @@ export interface ShippingLabelParams {
     options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;ReturnNote&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ content, is_internal: isInternal };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.post&lt;{ note: ReturnNote }&gt;(</span>
       `${this.resourceName}/${returnId}/notes`,
       data,
@@ -859,7 +837,7 @@ export interface ShippingLabelParams {
     options: RequestOptions = <span class="branch-0 cbranch-no" title="branch not covered" >{}</span>
   ): Promise&lt;ReturnNote[]&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >{ include_internal: includeInternal };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.get&lt;{ notes: ReturnNote[] }&gt;(</span>
       `${this.resourceName}/${returnId}/notes`,
       { ...options, params: queryParams }
@@ -900,11 +878,11 @@ export interface ShippingLabelParams {
     refund_rate: number;
   }&gt; {
     const queryParams = <span class="cstat-no" title="statement not covered" >filters || {};</span>
-    
-    const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.get&lt;any&gt;(</span>
-      `${this.resourceName}/analytics`,
-      { ...options, params: queryParams }
-    );
+&nbsp;
+    const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.get&lt;any&gt;(`${this.resourceName}/analytics`, {</span>
+      ...options,
+      params: queryParams,
+    });
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
@@ -948,7 +926,7 @@ export interface ShippingLabelParams {
     }&gt;;
   }&gt; {
     const data = <span class="cstat-no" title="statement not covered" >{ order_item_ids: orderItemIds };</span>
-    
+&nbsp;
     const response = <span class="cstat-no" title="statement not covered" >await this.httpClient.post&lt;any&gt;(</span>
       `${this.resourceName}/validate-eligibility`,
       data,
@@ -957,14 +935,15 @@ export interface ShippingLabelParams {
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return response.data;</span>
   }
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:42.883Z
+                at 2025-10-19T21:30:50.018Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

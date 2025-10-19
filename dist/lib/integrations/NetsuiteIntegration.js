@@ -37,7 +37,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new NetsuiteIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -92,7 +92,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/salesOrder', params);
         return {
             orders: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createOrder(data) {
@@ -109,7 +109,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/customer', params);
         return {
             customers: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createCustomer(data) {
@@ -126,7 +126,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/inventoryItem', params);
         return {
             inventory: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createInventory(data) {
@@ -143,7 +143,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/salesOrder', params);
         return {
             salesOrders: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createSalesOrder(data) {
@@ -160,7 +160,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/invoice', params);
         return {
             invoices: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createInvoice(data) {
@@ -177,7 +177,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/customerPayment', params);
         return {
             payments: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createPayment(data) {
@@ -194,7 +194,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/itemFulfillment', params);
         return {
             shipments: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createShipment(data) {
@@ -230,7 +230,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/trackingNumber', params);
         return {
             trackingNumbers: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createTrackingNumber(data) {
@@ -240,14 +240,16 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
             return response;
         }
         catch (error) {
-            throw new NetsuiteIntegrationError('Failed to create tracking number', { originalError: error });
+            throw new NetsuiteIntegrationError('Failed to create tracking number', {
+                originalError: error,
+            });
         }
     }
     async getReturns(params = {}) {
         const response = await this.paginatedRequest('GET', 'record/v1/returnAuthorization', params);
         return {
             returns: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createReturn(data) {
@@ -264,7 +266,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/warranty', params);
         return {
             warranties: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createWarranty(data) {
@@ -281,7 +283,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/warrantyItem', params);
         return {
             warrantyItems: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createWarrantyItem(data) {
@@ -291,14 +293,16 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
             return response;
         }
         catch (error) {
-            throw new NetsuiteIntegrationError('Failed to create warranty item', { originalError: error });
+            throw new NetsuiteIntegrationError('Failed to create warranty item', {
+                originalError: error,
+            });
         }
     }
     async getWorkOrders(params = {}) {
         const response = await this.paginatedRequest('GET', 'record/v1/workOrder', params);
         return {
             workOrders: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createWorkOrder(data) {
@@ -315,7 +319,7 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
         const response = await this.paginatedRequest('GET', 'record/v1/workOrderItem', params);
         return {
             workOrderItems: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createWorkOrderItem(data) {
@@ -325,14 +329,16 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
             return response;
         }
         catch (error) {
-            throw new NetsuiteIntegrationError('Failed to create work order item', { originalError: error });
+            throw new NetsuiteIntegrationError('Failed to create work order item', {
+                originalError: error,
+            });
         }
     }
     async getPurchaseOrders(params = {}) {
         const response = await this.paginatedRequest('GET', 'record/v1/purchaseOrder', params);
         return {
             purchaseOrders: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createPurchaseOrder(data) {
@@ -342,14 +348,16 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
             return response;
         }
         catch (error) {
-            throw new NetsuiteIntegrationError('Failed to create purchase order', { originalError: error });
+            throw new NetsuiteIntegrationError('Failed to create purchase order', {
+                originalError: error,
+            });
         }
     }
     async getPurchaseOrderItems(params = {}) {
         const response = await this.paginatedRequest('GET', 'record/v1/purchaseOrderItem', params);
         return {
             purchaseOrderItems: response.data,
-            pagination: response.pagination
+            pagination: response.pagination,
         };
     }
     async createPurchaseOrderItem(data) {
@@ -359,7 +367,9 @@ class NetsuiteIntegration extends BaseIntegration_1.default {
             return response;
         }
         catch (error) {
-            throw new NetsuiteIntegrationError('Failed to create purchase order item', { originalError: error });
+            throw new NetsuiteIntegrationError('Failed to create purchase order item', {
+                originalError: error,
+            });
         }
     }
 }

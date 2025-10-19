@@ -5,7 +5,7 @@ import { StatesetError, StatesetAPIError, StatesetAuthenticationError, StatesetC
 export default StatesetClient;
 export declare const Stateset: typeof StatesetClient;
 export declare const stateset: typeof legacyStateset;
-export { StatesetClient, OpenAIIntegration, StatesetError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetInvalidRequestError, StatesetNotFoundError, StatesetRateLimitError, StatesetPermissionError };
+export { StatesetClient, OpenAIIntegration, StatesetError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetInvalidRequestError, StatesetNotFoundError, StatesetRateLimitError, StatesetPermissionError, };
 export * from './types';
 export { logger, LogLevel } from './utils/logger';
 export { MemoryCache, globalCache, resourceCache } from './utils/cache';

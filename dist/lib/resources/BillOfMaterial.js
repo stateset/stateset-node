@@ -116,7 +116,9 @@ class BillOfMaterials {
         return this.request('POST', `billofmaterials/${bomId}/set-obsolete`);
     }
     async startRevision(bomId, revisionNotes) {
-        return this.request('POST', `billofmaterials/${bomId}/start-revision`, { revision_notes: revisionNotes });
+        return this.request('POST', `billofmaterials/${bomId}/start-revision`, {
+            revision_notes: revisionNotes,
+        });
     }
     async completeRevision(bomId) {
         return this.request('POST', `billofmaterials/${bomId}/complete-revision`);
@@ -127,7 +129,13 @@ class BillOfMaterials {
         return this.request('POST', `billofmaterials/${bomId}/add-component`, component);
     }
     async updateComponent(bomId, componentId, updates) {
-        this.validateComponent({ ...updates, id: componentId, item_id: 'temp', quantity: updates.quantity || 1, type: ComponentType.RAW_MATERIAL });
+        this.validateComponent({
+            ...updates,
+            id: componentId,
+            item_id: 'temp',
+            quantity: updates.quantity || 1,
+            type: ComponentType.RAW_MATERIAL,
+        });
         return this.request('PUT', `billofmaterials/${bomId}/components/${componentId}`, updates);
     }
     async removeComponent(bomId, componentId) {

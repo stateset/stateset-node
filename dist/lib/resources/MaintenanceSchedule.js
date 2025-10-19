@@ -28,7 +28,9 @@ class MaintenanceScheduleError extends Error {
 exports.MaintenanceScheduleError = MaintenanceScheduleError;
 class MaintenanceScheduleNotFoundError extends MaintenanceScheduleError {
     constructor(maintenanceScheduleId) {
-        super(`Maintenance schedule with ID ${maintenanceScheduleId} not found`, { maintenanceScheduleId });
+        super(`Maintenance schedule with ID ${maintenanceScheduleId} not found`, {
+            maintenanceScheduleId,
+        });
     }
 }
 exports.MaintenanceScheduleNotFoundError = MaintenanceScheduleNotFoundError;

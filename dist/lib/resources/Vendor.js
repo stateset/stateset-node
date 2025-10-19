@@ -202,7 +202,10 @@ class Vendors {
             throw new VendorNotFoundError(vendorId || 'unknown');
         if (error.status === 400)
             throw new VendorValidationError(error.message, error.errors);
-        throw new VendorError(`Failed to ${operation} vendor: ${error.message}`, { operation, originalError: error });
+        throw new VendorError(`Failed to ${operation} vendor: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Vendors;

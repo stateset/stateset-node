@@ -155,7 +155,21 @@
 <a name='L90'></a><a href='#L90'>90</a>
 <a name='L91'></a><a href='#L91'>91</a>
 <a name='L92'></a><a href='#L92'>92</a>
-<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -215,11 +229,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -231,6 +240,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -243,11 +263,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ApiClientLike } from '../../types';
 &nbsp;
 interface PurchaseOrderLineItem {
   id: string;
@@ -276,7 +304,7 @@ class PurchaseOrderLines {
    * @returns Array of PurchaseOrderLineItem objects
    */
 <span class="fstat-no" title="function not covered" >  async </span>list(purchaseOrderId?: string): Promise&lt;PurchaseOrderLineItem[]&gt; {
-    const endpoint = <span class="cstat-no" title="statement not covered" >purchaseOrderId </span>
+    const endpoint = <span class="cstat-no" title="statement not covered" >purchaseOrderId</span>
       ? `purchase_orders/${purchaseOrderId}/line_items`
       : 'purchase_order_line_items';
 <span class="cstat-no" title="statement not covered" >    return this.stateset.request('GET', endpoint);</span>
@@ -306,7 +334,10 @@ class PurchaseOrderLines {
    * @param lineItemData - Partial&lt;PurchaseOrderLineItem&gt; object
    * @returns PurchaseOrderLineItem object
    */
-<span class="fstat-no" title="function not covered" >  async </span>update(lineItemId: string, lineItemData: Partial&lt;PurchaseOrderLineItem&gt;): Promise&lt;PurchaseOrderLineItem&gt; {
+<span class="fstat-no" title="function not covered" >  async </span>update(
+    lineItemId: string,
+    lineItemData: Partial&lt;PurchaseOrderLineItem&gt;
+  ): Promise&lt;PurchaseOrderLineItem&gt; {
 <span class="cstat-no" title="statement not covered" >    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}`, lineItemData);</span>
   }
 &nbsp;
@@ -324,8 +355,13 @@ class PurchaseOrderLines {
    * @param lineItems - Array of PurchaseOrderLineItem objects
    * @returns Array of PurchaseOrderLineItem objects
    */
-<span class="fstat-no" title="function not covered" >  async </span>bulkCreate(purchaseOrderId: string, lineItems: Array&lt;Omit&lt;PurchaseOrderLineItem, 'id' | 'purchase_order_id'&gt;&gt;): Promise&lt;PurchaseOrderLineItem[]&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, { line_items: lineItems });</span>
+<span class="fstat-no" title="function not covered" >  async </span>bulkCreate(
+    purchaseOrderId: string,
+    lineItems: Array&lt;Omit&lt;PurchaseOrderLineItem, 'id' | 'purchase_order_id'&gt;&gt;
+  ): Promise&lt;PurchaseOrderLineItem[]&gt; {
+<span class="cstat-no" title="statement not covered" >    return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, {</span>
+      line_items: lineItems,
+    });
   }
 &nbsp;
   /**
@@ -334,19 +370,25 @@ class PurchaseOrderLines {
    * @param quantityReceived - Quantity received
    * @returns PurchaseOrderLineItem object
    */
-<span class="fstat-no" title="function not covered" >  async </span>updateQuantityReceived(lineItemId: string, quantityReceived: number): Promise&lt;PurchaseOrderLineItem&gt; {
-<span class="cstat-no" title="statement not covered" >    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, { quantity_received: quantityReceived });</span>
+<span class="fstat-no" title="function not covered" >  async </span>updateQuantityReceived(
+    lineItemId: string,
+    quantityReceived: number
+  ): Promise&lt;PurchaseOrderLineItem&gt; {
+<span class="cstat-no" title="statement not covered" >    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, {</span>
+      quantity_received: quantityReceived,
+    });
   }
 }
 &nbsp;
-export default PurchaseOrderLines;</pre></td></tr></table></pre>
+export default PurchaseOrderLines;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

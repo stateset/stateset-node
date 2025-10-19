@@ -43,7 +43,7 @@ class GorgiasIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new GorgiasIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -99,7 +99,10 @@ class GorgiasIntegration extends BaseIntegration_1.default {
             };
         }
         catch (error) {
-            throw new GorgiasIntegrationError('Failed to fetch ticket messages', { originalError: error, ticketId });
+            throw new GorgiasIntegrationError('Failed to fetch ticket messages', {
+                originalError: error,
+                ticketId,
+            });
         }
     }
     async createTicketMessage(ticketId, data) {
@@ -109,7 +112,10 @@ class GorgiasIntegration extends BaseIntegration_1.default {
             return response.data;
         }
         catch (error) {
-            throw new GorgiasIntegrationError('Failed to create ticket message', { originalError: error, ticketId });
+            throw new GorgiasIntegrationError('Failed to create ticket message', {
+                originalError: error,
+                ticketId,
+            });
         }
     }
     async updateTicket(ticketId, data) {
@@ -118,7 +124,10 @@ class GorgiasIntegration extends BaseIntegration_1.default {
             return response.data;
         }
         catch (error) {
-            throw new GorgiasIntegrationError('Failed to update ticket', { originalError: error, ticketId });
+            throw new GorgiasIntegrationError('Failed to update ticket', {
+                originalError: error,
+                ticketId,
+            });
         }
     }
     async closeTicket(ticketId, reason) {
@@ -130,7 +139,10 @@ class GorgiasIntegration extends BaseIntegration_1.default {
             return response.data;
         }
         catch (error) {
-            throw new GorgiasIntegrationError('Failed to close ticket', { originalError: error, ticketId });
+            throw new GorgiasIntegrationError('Failed to close ticket', {
+                originalError: error,
+                ticketId,
+            });
         }
     }
 }

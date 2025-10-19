@@ -146,7 +146,7 @@ declare class Rules {
      * Get specific rule by ID
      * @param ruleId - Rule ID
      * @returns RuleResponse object
-      */
+     */
     get(ruleId: string): Promise<RuleResponse>;
     /**
      * Create new rule

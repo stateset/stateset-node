@@ -151,104 +151,105 @@ type CacheDirectiveOption = boolean | CacheControlOptions;
 
 type RequestOptionsInternal = RequestOptions & Record<string, any>;
 
+type ResourceConstructor<T = any> = new (client: any) => T;
+
+const RESOURCE_REGISTRY = {
+  // Core Commerce Resources
+  returns: Returns,
+  returnItems: ReturnLines,
+  warranties: Warranties,
+  warrantyItems: WarrantyLines,
+  products: Products,
+  orders: Orders,
+  orderItems: OrderLines,
+  shipments: Shipments,
+  shipmentItems: ShipmentLines,
+  shipTo: ShipTo,
+  inventory: Inventory,
+  customers: Customers,
+
+  // Manufacturing & Supply Chain
+  workorders: Workorders,
+  workorderItems: WorkOrderLines,
+  billofmaterials: BillOfMaterials,
+  purchaseorders: PurchaseOrders,
+  purchaseorderItems: PurchaseOrderLines,
+  manufacturerorders: ManufacturerOrders,
+  manufacturerorderItems: ManufactureOrderLines,
+  packinglists: PackingList,
+  packinglistItems: PackingListLines,
+  asns: ASN,
+  asnItems: ASNLine,
+
+  // AI & Automation
+  channels: Channels,
+  messages: Messages,
+  agents: Agents,
+  rules: Rules,
+  attributes: Attributes,
+  responses: Responses,
+  knowledge: Knowledge,
+  evals: Evals,
+  workflows: Workflows,
+  schedules: Schedule,
+  users: Users,
+
+  // Financial & Settlement
+  settlements: Settlements,
+  payouts: Payouts,
+  payments: Payments,
+  refunds: Refunds,
+  creditsDebits: CreditsDebits,
+  ledger: Ledger,
+
+  // Warehouse & Operations
+  picks: Picks,
+  cycleCounts: CycleCounts,
+  machines: Machines,
+  wasteAndScrap: WasteAndScrap,
+  warehouses: Warehouses,
+  suppliers: Suppliers,
+  locations: Locations,
+  vendors: Vendors,
+
+  // Accounting & Compliance
+  invoices: Invoices,
+  invoiceLines: InvoiceLines,
+  compliance: Compliance,
+  leads: Leads,
+  assets: Assets,
+  contracts: Contracts,
+  promotions: Promotions,
+
+  // Maintenance & Quality
+  logs: Logs,
+  maintenanceSchedules: MaintenanceSchedules,
+  qualityControl: QualityControl,
+  resourceUtilization: ResourceUtilization,
+
+  // Sales & CRM
+  opportunities: Opportunities,
+  contacts: Contacts,
+  casesTickets: CasesTickets,
+
+  // Logistics & Delivery
+  carriers: Carriers,
+  routes: Routes,
+  deliveryConfirmations: DeliveryConfirmations,
+  activities: Activities,
+  fulfillment: Fulfillment,
+  productionJob: ProductionJob,
+  salesOrders: SalesOrders,
+  fulfillmentOrders: FulfillmentOrders,
+  itemReceipts: ItemReceipts,
+  cashSales: CashSales,
+} satisfies Record<string, ResourceConstructor>;
+
 export class StatesetClient {
   private httpClient: EnhancedHttpClient;
   private config: StatesetClientConfigInternal;
   private cache: MemoryCache;
   private cacheKeyIndex = new Map<string, Set<string>>();
-
-  // Core Commerce Resources
-  public returns!: Returns;
-  public returnItems!: ReturnLines;
-  public warranties!: Warranties;
-  public warrantyItems!: WarrantyLines;
-  public products!: Products;
-  public orders!: Orders;
-  public orderItems!: OrderLines;
-  public shipments!: Shipments;
-  public shipmentItems!: ShipmentLines;
-  public shipTo!: ShipTo;
-  public inventory!: Inventory;
-  public customers!: Customers;
-
-  // Manufacturing & Supply Chain
-  public workorders!: Workorders;
-  public workorderItems!: WorkOrderLines;
-  public billofmaterials!: BillOfMaterials;
-  public purchaseorders!: PurchaseOrders;
-  public purchaseorderItems!: PurchaseOrderLines;
-  public manufacturerorders!: ManufacturerOrders;
-  public manufacturerorderItems!: ManufactureOrderLines;
-  public packinglists!: PackingList;
-  public packinglistItems!: PackingListLines;
-  public asns!: ASN;
-  public asnItems!: ASNLine;
-
-  // AI & Automation
-  public channels!: Channels;
-  public messages!: Messages;
-  public agents!: Agents;
-  public rules!: Rules;
-  public attributes!: Attributes;
-  public responses!: Responses;
-  public knowledge!: Knowledge;
-  public evals!: Evals;
-  public workflows!: Workflows;
-  public schedules!: Schedule;
-  public users!: Users;
-
-  // Financial & Settlement
-  public settlements!: Settlements;
-  public payouts!: Payouts;
-  public payments!: Payments;
-  public refunds!: Refunds;
-  public creditsDebits!: CreditsDebits;
-  public ledger!: Ledger;
-
-  // Warehouse & Operations
-  public picks!: Picks;
-  public cycleCounts!: CycleCounts;
-  public machines!: Machines;
-  public wasteAndScrap!: WasteAndScrap;
-  public warehouses!: Warehouses;
-  public suppliers!: Suppliers;
-  public locations!: Locations;
-  public vendors!: Vendors;
-
-  // Accounting & Compliance
-  public invoices!: Invoices;
-  public invoiceLines!: InvoiceLines;
-  public compliance!: Compliance;
-  public leads!: Leads;
-  public assets!: Assets;
-  public contracts!: Contracts;
-  public promotions!: Promotions;
-
-  // Maintenance & Quality
-  public logs!: Logs;
-  public maintenanceSchedules!: MaintenanceSchedules;
-  public qualityControl!: QualityControl;
-  public resourceUtilization!: ResourceUtilization;
-
-  // Sales & CRM
-  public opportunities!: Opportunities;
-  public contacts!: Contacts;
-  public casesTickets!: CasesTickets;
-
-  // Logistics & Delivery
-  public carriers!: Carriers;
-  public routes!: Routes;
-  public deliveryConfirmations!: DeliveryConfirmations;
-  public activities!: Activities;
-  public fulfillment!: Fulfillment;
-  public productionJob!: ProductionJob;
-  public salesOrders!: SalesOrders;
-  public fulfillmentOrders!: FulfillmentOrders;
-  public itemReceipts!: ItemReceipts;
-  public cashSales!: CashSales;
-
-  // Legacy compatibility
-  public workOrders!: Workorders;
 
   constructor(config: StatesetClientConfig = {}) {
     // Validate required configuration
@@ -463,101 +464,13 @@ export class StatesetClient {
   }
 
   private initializeResources(): void {
-    // Note: Resources need to be updated to accept EnhancedHttpClient instead of stateset
-    // For now, we'll pass `this` as the client parameter and update resources later
     const clientInstance = this as any;
 
-    // Core Commerce Resources
-    this.returns = new Returns(clientInstance);
-    this.returnItems = new ReturnLines(clientInstance);
-    this.warranties = new Warranties(clientInstance);
-    this.warrantyItems = new WarrantyLines(clientInstance);
-    this.products = new Products(clientInstance);
-    this.orders = new Orders(clientInstance);
-    this.orderItems = new OrderLines(clientInstance);
-    this.shipments = new Shipments(clientInstance);
-    this.shipmentItems = new ShipmentLines(clientInstance);
-    this.shipTo = new ShipTo(clientInstance);
-    this.inventory = new Inventory(clientInstance);
-    this.customers = new Customers(clientInstance);
+    Object.entries(RESOURCE_REGISTRY).forEach(([property, ResourceConstructor]) => {
+      (this as any)[property] = new (ResourceConstructor as ResourceConstructor)(clientInstance);
+    });
 
-    // Manufacturing & Supply Chain
-    this.workorders = new Workorders(clientInstance);
-    this.workorderItems = new WorkOrderLines(clientInstance);
-    this.billofmaterials = new BillOfMaterials(clientInstance);
-    this.purchaseorders = new PurchaseOrders(clientInstance);
-    this.purchaseorderItems = new PurchaseOrderLines(clientInstance);
-    this.manufacturerorders = new ManufacturerOrders(clientInstance);
-    this.manufacturerorderItems = new ManufactureOrderLines(clientInstance);
-    this.packinglists = new PackingList(clientInstance);
-    this.packinglistItems = new PackingListLines(clientInstance);
-    this.asns = new ASN(clientInstance);
-    this.asnItems = new ASNLine(clientInstance);
-
-    // AI & Automation
-    this.channels = new Channels(clientInstance);
-    this.messages = new Messages(clientInstance);
-    this.agents = new Agents(clientInstance);
-    this.rules = new Rules(clientInstance);
-    this.attributes = new Attributes(clientInstance);
-    this.responses = new Responses(clientInstance);
-    this.knowledge = new Knowledge(clientInstance);
-    this.evals = new Evals(clientInstance);
-    this.workflows = new Workflows(clientInstance);
-    this.schedules = new Schedule(clientInstance);
-    this.users = new Users(clientInstance);
-
-    // Financial & Settlement
-    this.settlements = new Settlements(clientInstance);
-    this.payouts = new Payouts(clientInstance);
-    this.payments = new Payments(clientInstance);
-    this.refunds = new Refunds(clientInstance);
-    this.creditsDebits = new CreditsDebits(clientInstance);
-    this.ledger = new Ledger(clientInstance);
-
-    // Warehouse & Operations
-    this.picks = new Picks(clientInstance);
-    this.cycleCounts = new CycleCounts(clientInstance);
-    this.machines = new Machines(clientInstance);
-    this.wasteAndScrap = new WasteAndScrap(clientInstance);
-    this.warehouses = new Warehouses(clientInstance);
-    this.suppliers = new Suppliers(clientInstance);
-    this.locations = new Locations(clientInstance);
-    this.vendors = new Vendors(clientInstance);
-
-    // Accounting & Compliance
-    this.invoices = new Invoices(clientInstance);
-    this.invoiceLines = new InvoiceLines(clientInstance);
-    this.compliance = new Compliance(clientInstance);
-    this.leads = new Leads(clientInstance);
-    this.assets = new Assets(clientInstance);
-    this.contracts = new Contracts(clientInstance);
-    this.promotions = new Promotions(clientInstance);
-
-    // Maintenance & Quality
-    this.logs = new Logs(clientInstance);
-    this.maintenanceSchedules = new MaintenanceSchedules(clientInstance);
-    this.qualityControl = new QualityControl(clientInstance);
-    this.resourceUtilization = new ResourceUtilization(clientInstance);
-
-    // Sales & CRM
-    this.opportunities = new Opportunities(clientInstance);
-    this.contacts = new Contacts(clientInstance);
-    this.casesTickets = new CasesTickets(clientInstance);
-
-    // Logistics & Delivery
-    this.carriers = new Carriers(clientInstance);
-    this.routes = new Routes(clientInstance);
-    this.deliveryConfirmations = new DeliveryConfirmations(clientInstance);
-    this.activities = new Activities(clientInstance);
-    this.fulfillment = new Fulfillment(clientInstance);
-    this.productionJob = new ProductionJob(clientInstance);
-    this.salesOrders = new SalesOrders(clientInstance);
-    this.fulfillmentOrders = new FulfillmentOrders(clientInstance);
-    this.itemReceipts = new ItemReceipts(clientInstance);
-    this.cashSales = new CashSales(clientInstance);
-
-    // Legacy compatibility
+    // Legacy compatibility alias
     this.workOrders = this.workorders;
   }
 
@@ -1173,3 +1086,12 @@ export class StatesetClient {
 }
 
 export default StatesetClient;
+
+type ResourceInstances = {
+  [K in keyof typeof RESOURCE_REGISTRY]: InstanceType<(typeof RESOURCE_REGISTRY)[K]>;
+};
+
+// eslint-disable-next-line no-redeclare
+export interface StatesetClient extends ResourceInstances {
+  workOrders: InstanceType<typeof Workorders>;
+}

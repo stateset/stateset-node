@@ -38,7 +38,7 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
     }
     validateRequestData(data, requiredFields) {
         requiredFields.forEach(field => {
-            if (!(field) || !data[field]) {
+            if (!field || !data[field]) {
                 throw new QuickbooksIntegrationError(`Missing required field: ${field}`);
             }
         });
@@ -67,7 +67,9 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
     async createInvoice(data) {
         this.validateRequestData(data, ['CustomerRef', 'Line', 'TotalAmt']);
         try {
-            const response = await this.request('POST', 'v3/company/{companyId}/invoice', { Invoice: data });
+            const response = await this.request('POST', 'v3/company/{companyId}/invoice', {
+                Invoice: data,
+            });
             return response.Invoice;
         }
         catch (error) {
@@ -98,7 +100,9 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
     async createAccount(data) {
         this.validateRequestData(data, ['Name', 'AccountType']);
         try {
-            const response = await this.request('POST', 'v3/company/{companyId}/account', { Account: data });
+            const response = await this.request('POST', 'v3/company/{companyId}/account', {
+                Account: data,
+            });
             return response.Account;
         }
         catch (error) {
@@ -116,7 +120,9 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
             return {
                 contacts: response.QueryResponse.Customer || response.QueryResponse.Vendor || [],
                 pagination: {
-                    total: response.QueryResponse.totalCount || (response.QueryResponse.Customer || response.QueryResponse.Vendor)?.length || 0,
+                    total: response.QueryResponse.totalCount ||
+                        (response.QueryResponse.Customer || response.QueryResponse.Vendor)?.length ||
+                        0,
                     limit: params.limit || 100,
                     offset: params.offset || 0,
                 },
@@ -130,7 +136,9 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
         this.validateRequestData(data, ['DisplayName', 'ContactType']);
         try {
             const endpoint = data.ContactType === 'Customer' ? 'customer' : 'vendor';
-            const response = await this.request('POST', `v3/company/{companyId}/${endpoint}`, { [data.ContactType]: data });
+            const response = await this.request('POST', `v3/company/{companyId}/${endpoint}`, {
+                [data.ContactType]: data,
+            });
             return response[data.ContactType];
         }
         catch (error) {
@@ -161,7 +169,9 @@ class QuickbooksIntegration extends BaseIntegration_1.default {
     async createPayment(data) {
         this.validateRequestData(data, ['CustomerRef', 'TotalAmt']);
         try {
-            const response = await this.request('POST', 'v3/company/{companyId}/payment', { Payment: data });
+            const response = await this.request('POST', 'v3/company/{companyId}/payment', {
+                Payment: data,
+            });
             return response.Payment;
         }
         catch (error) {

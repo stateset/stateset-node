@@ -167,7 +167,7 @@ class Attributes {
     async copyAttributes(sourceAgentId, targetAgentId) {
         const response = await this.stateset.request('POST', 'attributes/copy', {
             source_agent_id: sourceAgentId,
-            target_agent_id: targetAgentId
+            target_agent_id: targetAgentId,
         });
         return response.attributes;
     }

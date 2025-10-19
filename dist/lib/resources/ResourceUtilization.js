@@ -27,7 +27,9 @@ class ResourceUtilizationError extends Error {
 exports.ResourceUtilizationError = ResourceUtilizationError;
 class ResourceUtilizationNotFoundError extends ResourceUtilizationError {
     constructor(resourceUtilizationId) {
-        super(`Resource utilization with ID ${resourceUtilizationId} not found`, { resourceUtilizationId });
+        super(`Resource utilization with ID ${resourceUtilizationId} not found`, {
+            resourceUtilizationId,
+        });
     }
 }
 exports.ResourceUtilizationNotFoundError = ResourceUtilizationNotFoundError;

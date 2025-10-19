@@ -127,7 +127,11 @@ class Suppliers {
             const response = await this.client.request('GET', `suppliers?${query.toString()}`);
             return {
                 suppliers: response.suppliers.map(this.mapResponse),
-                pagination: response.pagination || { total: response.suppliers.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.suppliers.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -173,7 +177,11 @@ class Suppliers {
             const response = await this.client.request('GET', `suppliers/${id}/products?${query.toString()}`);
             return {
                 products: response.products,
-                pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.products.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -209,7 +217,10 @@ class Suppliers {
             throw new SupplierNotFoundError(supplierId || 'unknown');
         if (error.status === 400)
             throw new SupplierValidationError(error.message, error.errors);
-        throw new SupplierError(`Failed to ${operation} supplier: ${error.message}`, { operation, originalError: error });
+        throw new SupplierError(`Failed to ${operation} supplier: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Suppliers;

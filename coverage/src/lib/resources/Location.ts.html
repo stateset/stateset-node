@@ -136,7 +136,8 @@
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
 <a name='L73'></a><a href='#L73'>73</a>
-<a name='L74'></a><a href='#L74'>74</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -209,87 +210,89 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// lib/resources/Location.ts
 &nbsp;
 export default class Locations {
-    private client: any;
-  
-    constructor(client: any) {
-      this.client = client;
-    }
-  
-    /**
-     * Create a new location
-     * @param data - LocationData object
-     * @returns LocationResponse object
-     */
-<span class="fstat-no" title="function not covered" >    async </span>create(data: any) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('POST', 'locations', data);</span>
-    }
-  
-    /**
-     * Get a location by ID
-     * @param id - Location ID
-     * @returns LocationResponse object
-     */
-<span class="fstat-no" title="function not covered" >    async </span>get(id: string) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('GET', `locations/${id}`);</span>
-    }
-  
-    /**
-     * Update a location
-     * @param id - Location ID
-     * @param data - Partial&lt;LocationData&gt; object
-     * @returns LocationResponse object
-     */
-<span class="fstat-no" title="function not covered" >    async </span>update(id: string, data: any) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('PUT', `locations/${id}`, data);</span>
-    }
-  
-    /**
-     * List locations
-     * @param params - Optional filtering parameters
-     * @returns Array of LocationResponse objects
-     */
-<span class="fstat-no" title="function not covered" >    async </span>list(params?: any) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('GET', 'locations', params);</span>
-    }
-  
-    /**
-     * Delete a location
-     * @param id - Location ID
-     */
-<span class="fstat-no" title="function not covered" >    async </span>delete(id: string) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('DELETE', `locations/${id}`);</span>
-    }
-  
-    /**
-     * Get inventory for a location
-     * @param id - Location ID
-     * @returns Array of InventoryResponse objects
-     */
-<span class="fstat-no" title="function not covered" >    async </span>getInventory(id: string) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('GET', `locations/${id}/inventory`);</span>
-    }
-  
-    /**
-     * Assign a product to a location
-     * @param id - Location ID
-     * @param productId - Product ID
-     * @param data - Partial&lt;InventoryData&gt; object
-     * @returns InventoryResponse object
-     */
-<span class="fstat-no" title="function not covered" >    async </span>assignProduct(id: string, productId: string, data: any) {
-<span class="cstat-no" title="statement not covered" >      return this.client.request('POST', `locations/${id}/products/${productId}`, data);</span>
-    }
-  }</pre></td></tr></table></pre>
+  private client: any;
+&nbsp;
+  constructor(client: any) {
+    this.client = client;
+  }
+&nbsp;
+  /**
+   * Create a new location
+   * @param data - LocationData object
+   * @returns LocationResponse object
+   */
+<span class="fstat-no" title="function not covered" >  async </span>create(data: any) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('POST', 'locations', data);</span>
+  }
+&nbsp;
+  /**
+   * Get a location by ID
+   * @param id - Location ID
+   * @returns LocationResponse object
+   */
+<span class="fstat-no" title="function not covered" >  async </span>get(id: string) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('GET', `locations/${id}`);</span>
+  }
+&nbsp;
+  /**
+   * Update a location
+   * @param id - Location ID
+   * @param data - Partial&lt;LocationData&gt; object
+   * @returns LocationResponse object
+   */
+<span class="fstat-no" title="function not covered" >  async </span>update(id: string, data: any) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('PUT', `locations/${id}`, data);</span>
+  }
+&nbsp;
+  /**
+   * List locations
+   * @param params - Optional filtering parameters
+   * @returns Array of LocationResponse objects
+   */
+<span class="fstat-no" title="function not covered" >  async </span>list(params?: any) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('GET', 'locations', params);</span>
+  }
+&nbsp;
+  /**
+   * Delete a location
+   * @param id - Location ID
+   */
+<span class="fstat-no" title="function not covered" >  async </span>delete(id: string) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('DELETE', `locations/${id}`);</span>
+  }
+&nbsp;
+  /**
+   * Get inventory for a location
+   * @param id - Location ID
+   * @returns Array of InventoryResponse objects
+   */
+<span class="fstat-no" title="function not covered" >  async </span>getInventory(id: string) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('GET', `locations/${id}/inventory`);</span>
+  }
+&nbsp;
+  /**
+   * Assign a product to a location
+   * @param id - Location ID
+   * @param productId - Product ID
+   * @param data - Partial&lt;InventoryData&gt; object
+   * @returns InventoryResponse object
+   */
+<span class="fstat-no" title="function not covered" >  async </span>assignProduct(id: string, productId: string, data: any) {
+<span class="cstat-no" title="statement not covered" >    return this.client.request('POST', `locations/${id}/products/${productId}`, data);</span>
+  }
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

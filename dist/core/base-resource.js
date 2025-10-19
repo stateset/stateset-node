@@ -66,7 +66,7 @@ class BaseResource {
                 metadata: {
                     count: response.data.data.length,
                     hasMore: response.data.has_more,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -97,7 +97,7 @@ class BaseResource {
                 operation: `${this.resourceName.toLowerCase()}.create`,
                 metadata: {
                     id: response.data.id,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -128,7 +128,7 @@ class BaseResource {
                 operation: `${this.resourceName.toLowerCase()}.update`,
                 metadata: {
                     id,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -159,7 +159,7 @@ class BaseResource {
                 operation: `${this.resourceName.toLowerCase()}.patch`,
                 metadata: {
                     id,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -190,7 +190,7 @@ class BaseResource {
                 operation: `${this.resourceName.toLowerCase()}.delete`,
                 metadata: {
                     id,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
         }
@@ -230,7 +230,7 @@ class BaseResource {
                     query,
                     count: response.data.data.length,
                     hasMore: response.data.has_more,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -261,7 +261,7 @@ class BaseResource {
                 operation: `${this.resourceName.toLowerCase()}.count`,
                 metadata: {
                     count: response.data.count,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data.count;
@@ -310,7 +310,7 @@ class BaseResource {
                 metadata: {
                     successCount: response.data.successCount,
                     errorCount: response.data.errorCount,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -344,7 +344,7 @@ class BaseResource {
                 metadata: {
                     successCount: response.data.successCount,
                     errorCount: response.data.errorCount,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -378,7 +378,7 @@ class BaseResource {
                 metadata: {
                     successCount: response.data.successCount,
                     errorCount: response.data.errorCount,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -416,7 +416,7 @@ class BaseResource {
                     format,
                     hasUrl: !!response.data.url,
                     hasData: !!response.data.data,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;
@@ -446,7 +446,7 @@ class BaseResource {
                 metadata: {
                     fieldCount: response.data.fields.length,
                     operationCount: response.data.operations.length,
-                    statusCode: response.status
+                    statusCode: response.status,
                 },
             });
             return response.data;

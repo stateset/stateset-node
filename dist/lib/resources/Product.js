@@ -128,7 +128,11 @@ class Products {
             const response = await this.client.request('GET', `products?${query.toString()}`);
             return {
                 products: response.products.map(this.mapResponse),
-                pagination: response.pagination || { total: response.products.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.products.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -194,7 +198,10 @@ class Products {
             throw new ProductNotFoundError(productId || 'unknown');
         if (error.status === 400)
             throw new ProductValidationError(error.message, error.errors);
-        throw new ProductError(`Failed to ${operation} product: ${error.message}`, { operation, originalError: error });
+        throw new ProductError(`Failed to ${operation} product: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Products;

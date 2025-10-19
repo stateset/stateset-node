@@ -81,94 +81,94 @@ const SalesOrder_1 = __importDefault(require("./lib/resources/SalesOrder"));
 const FulfillmentOrder_1 = __importDefault(require("./lib/resources/FulfillmentOrder"));
 const ItemReceipt_1 = __importDefault(require("./lib/resources/ItemReceipt"));
 const CashSale_1 = __importDefault(require("./lib/resources/CashSale"));
+const RESOURCE_REGISTRY = {
+    // Core Commerce Resources
+    returns: Return_1.default,
+    returnItems: ReturnLine_1.default,
+    warranties: Warranty_1.default,
+    warrantyItems: WarrantyLine_1.default,
+    products: Product_1.default,
+    orders: Order_1.default,
+    orderItems: OrderLine_1.default,
+    shipments: Shipment_1.default,
+    shipmentItems: ShipmentLine_1.default,
+    shipTo: ShipTo_1.default,
+    inventory: Inventory_1.default,
+    customers: Customer_1.default,
+    // Manufacturing & Supply Chain
+    workorders: WorkOrder_1.default,
+    workorderItems: WorkOrderLine_1.default,
+    billofmaterials: BillOfMaterial_1.default,
+    purchaseorders: PurchaseOrder_1.default,
+    purchaseorderItems: PurchaseOrderLine_1.default,
+    manufacturerorders: ManufactureOrder_1.default,
+    manufacturerorderItems: ManufactureOrderLine_1.default,
+    packinglists: PackingList_1.default,
+    packinglistItems: PackingListLine_1.default,
+    asns: AdvancedShippingNotice_1.default,
+    asnItems: AdvancedShippingNoticeLine_1.default,
+    // AI & Automation
+    channels: Channel_1.default,
+    messages: Message_1.default,
+    agents: Agent_1.default,
+    rules: Rule_1.default,
+    attributes: Attribute_1.default,
+    responses: Response_1.default,
+    knowledge: Knowledge_1.default,
+    evals: Eval_1.default,
+    workflows: Workflow_1.default,
+    schedules: Schedule_1.default,
+    users: User_1.default,
+    // Financial & Settlement
+    settlements: Settlement_1.default,
+    payouts: Payout_1.default,
+    payments: Payment_1.default,
+    refunds: Refund_1.default,
+    creditsDebits: CreditsDebits_1.default,
+    ledger: Ledger_1.default,
+    // Warehouse & Operations
+    picks: Pick_1.default,
+    cycleCounts: CycleCount_1.default,
+    machines: Machine_1.default,
+    wasteAndScrap: WasteAndScrap_1.default,
+    warehouses: Warehouse_1.default,
+    suppliers: Supplier_1.default,
+    locations: Location_1.default,
+    vendors: Vendor_1.default,
+    // Accounting & Compliance
+    invoices: Invoice_1.default,
+    invoiceLines: InvoiceLine_1.default,
+    compliance: Compliance_1.default,
+    leads: Lead_1.default,
+    assets: Asset_1.default,
+    contracts: Contract_1.default,
+    promotions: Promotion_1.default,
+    // Maintenance & Quality
+    logs: Log_1.default,
+    maintenanceSchedules: MaintenanceSchedule_1.default,
+    qualityControl: QualityControl_1.default,
+    resourceUtilization: ResourceUtilization_1.default,
+    // Sales & CRM
+    opportunities: Opportunity_1.default,
+    contacts: Contact_1.default,
+    casesTickets: CaseTicket_1.default,
+    // Logistics & Delivery
+    carriers: Carrier_1.default,
+    routes: Route_1.default,
+    deliveryConfirmations: DeliveryConfirmation_1.default,
+    activities: Activities_1.default,
+    fulfillment: Fulfillment_1.default,
+    productionJob: ProductionJob_1.default,
+    salesOrders: SalesOrder_1.default,
+    fulfillmentOrders: FulfillmentOrder_1.default,
+    itemReceipts: ItemReceipt_1.default,
+    cashSales: CashSale_1.default,
+};
 class StatesetClient {
     httpClient;
     config;
     cache;
     cacheKeyIndex = new Map();
-    // Core Commerce Resources
-    returns;
-    returnItems;
-    warranties;
-    warrantyItems;
-    products;
-    orders;
-    orderItems;
-    shipments;
-    shipmentItems;
-    shipTo;
-    inventory;
-    customers;
-    // Manufacturing & Supply Chain
-    workorders;
-    workorderItems;
-    billofmaterials;
-    purchaseorders;
-    purchaseorderItems;
-    manufacturerorders;
-    manufacturerorderItems;
-    packinglists;
-    packinglistItems;
-    asns;
-    asnItems;
-    // AI & Automation
-    channels;
-    messages;
-    agents;
-    rules;
-    attributes;
-    responses;
-    knowledge;
-    evals;
-    workflows;
-    schedules;
-    users;
-    // Financial & Settlement
-    settlements;
-    payouts;
-    payments;
-    refunds;
-    creditsDebits;
-    ledger;
-    // Warehouse & Operations
-    picks;
-    cycleCounts;
-    machines;
-    wasteAndScrap;
-    warehouses;
-    suppliers;
-    locations;
-    vendors;
-    // Accounting & Compliance
-    invoices;
-    invoiceLines;
-    compliance;
-    leads;
-    assets;
-    contracts;
-    promotions;
-    // Maintenance & Quality
-    logs;
-    maintenanceSchedules;
-    qualityControl;
-    resourceUtilization;
-    // Sales & CRM
-    opportunities;
-    contacts;
-    casesTickets;
-    // Logistics & Delivery
-    carriers;
-    routes;
-    deliveryConfirmations;
-    activities;
-    fulfillment;
-    productionJob;
-    salesOrders;
-    fulfillmentOrders;
-    itemReceipts;
-    cashSales;
-    // Legacy compatibility
-    workOrders;
     constructor(config = {}) {
         // Validate required configuration
         this.validateConfig(config);
@@ -232,14 +232,19 @@ class StatesetClient {
         const normalizedRetryOptions = this.normalizeRetryOptions(combinedRetryOptions, Math.max(1, baseRetryCount + 1), baseRetryDelay);
         return {
             apiKey: config.apiKey || process.env.STATESET_API_KEY || '',
-            baseUrl: config.baseUrl || process.env.STATESET_BASE_URL || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
+            baseUrl: config.baseUrl ||
+                process.env.STATESET_BASE_URL ||
+                'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
             timeout: config.timeout ?? 60000,
             retry: Math.max(0, (normalizedRetryOptions.maxAttempts ?? 1) - 1),
             retryDelayMs: normalizedRetryOptions.baseDelay ?? baseRetryDelay,
             retryOptions: normalizedRetryOptions,
             userAgent: config.userAgent || this.buildUserAgent(config.appInfo),
             additionalHeaders: config.additionalHeaders || {},
-            proxy: config.proxy || process.env.STATESET_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+            proxy: config.proxy ||
+                process.env.STATESET_PROXY ||
+                process.env.HTTPS_PROXY ||
+                process.env.HTTP_PROXY,
             appInfo: config.appInfo,
             maxSockets: config.maxSockets ?? 10,
             keepAlive: config.keepAlive ?? true,
@@ -304,10 +309,12 @@ class StatesetClient {
                 protocol: parsed.protocol.replace(':', ''),
                 host: parsed.hostname,
                 port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80),
-                auth: parsed.username || parsed.password ? {
-                    username: decodeURIComponent(parsed.username),
-                    password: decodeURIComponent(parsed.password),
-                } : undefined,
+                auth: parsed.username || parsed.password
+                    ? {
+                        username: decodeURIComponent(parsed.username),
+                        password: decodeURIComponent(parsed.password),
+                    }
+                    : undefined,
             };
         }
         catch {
@@ -333,91 +340,11 @@ class StatesetClient {
         });
     }
     initializeResources() {
-        // Note: Resources need to be updated to accept EnhancedHttpClient instead of stateset
-        // For now, we'll pass `this` as the client parameter and update resources later
         const clientInstance = this;
-        // Core Commerce Resources
-        this.returns = new Return_1.default(clientInstance);
-        this.returnItems = new ReturnLine_1.default(clientInstance);
-        this.warranties = new Warranty_1.default(clientInstance);
-        this.warrantyItems = new WarrantyLine_1.default(clientInstance);
-        this.products = new Product_1.default(clientInstance);
-        this.orders = new Order_1.default(clientInstance);
-        this.orderItems = new OrderLine_1.default(clientInstance);
-        this.shipments = new Shipment_1.default(clientInstance);
-        this.shipmentItems = new ShipmentLine_1.default(clientInstance);
-        this.shipTo = new ShipTo_1.default(clientInstance);
-        this.inventory = new Inventory_1.default(clientInstance);
-        this.customers = new Customer_1.default(clientInstance);
-        // Manufacturing & Supply Chain
-        this.workorders = new WorkOrder_1.default(clientInstance);
-        this.workorderItems = new WorkOrderLine_1.default(clientInstance);
-        this.billofmaterials = new BillOfMaterial_1.default(clientInstance);
-        this.purchaseorders = new PurchaseOrder_1.default(clientInstance);
-        this.purchaseorderItems = new PurchaseOrderLine_1.default(clientInstance);
-        this.manufacturerorders = new ManufactureOrder_1.default(clientInstance);
-        this.manufacturerorderItems = new ManufactureOrderLine_1.default(clientInstance);
-        this.packinglists = new PackingList_1.default(clientInstance);
-        this.packinglistItems = new PackingListLine_1.default(clientInstance);
-        this.asns = new AdvancedShippingNotice_1.default(clientInstance);
-        this.asnItems = new AdvancedShippingNoticeLine_1.default(clientInstance);
-        // AI & Automation
-        this.channels = new Channel_1.default(clientInstance);
-        this.messages = new Message_1.default(clientInstance);
-        this.agents = new Agent_1.default(clientInstance);
-        this.rules = new Rule_1.default(clientInstance);
-        this.attributes = new Attribute_1.default(clientInstance);
-        this.responses = new Response_1.default(clientInstance);
-        this.knowledge = new Knowledge_1.default(clientInstance);
-        this.evals = new Eval_1.default(clientInstance);
-        this.workflows = new Workflow_1.default(clientInstance);
-        this.schedules = new Schedule_1.default(clientInstance);
-        this.users = new User_1.default(clientInstance);
-        // Financial & Settlement
-        this.settlements = new Settlement_1.default(clientInstance);
-        this.payouts = new Payout_1.default(clientInstance);
-        this.payments = new Payment_1.default(clientInstance);
-        this.refunds = new Refund_1.default(clientInstance);
-        this.creditsDebits = new CreditsDebits_1.default(clientInstance);
-        this.ledger = new Ledger_1.default(clientInstance);
-        // Warehouse & Operations
-        this.picks = new Pick_1.default(clientInstance);
-        this.cycleCounts = new CycleCount_1.default(clientInstance);
-        this.machines = new Machine_1.default(clientInstance);
-        this.wasteAndScrap = new WasteAndScrap_1.default(clientInstance);
-        this.warehouses = new Warehouse_1.default(clientInstance);
-        this.suppliers = new Supplier_1.default(clientInstance);
-        this.locations = new Location_1.default(clientInstance);
-        this.vendors = new Vendor_1.default(clientInstance);
-        // Accounting & Compliance
-        this.invoices = new Invoice_1.default(clientInstance);
-        this.invoiceLines = new InvoiceLine_1.default(clientInstance);
-        this.compliance = new Compliance_1.default(clientInstance);
-        this.leads = new Lead_1.default(clientInstance);
-        this.assets = new Asset_1.default(clientInstance);
-        this.contracts = new Contract_1.default(clientInstance);
-        this.promotions = new Promotion_1.default(clientInstance);
-        // Maintenance & Quality
-        this.logs = new Log_1.default(clientInstance);
-        this.maintenanceSchedules = new MaintenanceSchedule_1.default(clientInstance);
-        this.qualityControl = new QualityControl_1.default(clientInstance);
-        this.resourceUtilization = new ResourceUtilization_1.default(clientInstance);
-        // Sales & CRM
-        this.opportunities = new Opportunity_1.default(clientInstance);
-        this.contacts = new Contact_1.default(clientInstance);
-        this.casesTickets = new CaseTicket_1.default(clientInstance);
-        // Logistics & Delivery
-        this.carriers = new Carrier_1.default(clientInstance);
-        this.routes = new Route_1.default(clientInstance);
-        this.deliveryConfirmations = new DeliveryConfirmation_1.default(clientInstance);
-        this.activities = new Activities_1.default(clientInstance);
-        this.fulfillment = new Fulfillment_1.default(clientInstance);
-        this.productionJob = new ProductionJob_1.default(clientInstance);
-        this.salesOrders = new SalesOrder_1.default(clientInstance);
-        this.fulfillmentOrders = new FulfillmentOrder_1.default(clientInstance);
-        this.itemReceipts = new ItemReceipt_1.default(clientInstance);
-        this.cashSales = new CashSale_1.default(clientInstance);
-        // Legacy compatibility
+        Object.entries(RESOURCE_REGISTRY).forEach(([property, ResourceConstructor]) => {
+            this[property] = new ResourceConstructor(clientInstance);
+        });
+        // Legacy compatibility alias
         this.workOrders = this.workorders;
     }
     /**
@@ -637,9 +564,9 @@ class StatesetClient {
         if (cacheOption === false) {
             return null;
         }
-        const derivedKey = explicitCacheKey
-            || (typeof cacheOption === 'object' ? cacheOption.key : undefined)
-            || this.generateCacheKey(path, params || {});
+        const derivedKey = explicitCacheKey ||
+            (typeof cacheOption === 'object' ? cacheOption.key : undefined) ||
+            this.generateCacheKey(path, params || {});
         if (!derivedKey) {
             return null;
         }
@@ -670,9 +597,7 @@ class StatesetClient {
         return targets;
     }
     generateCacheKey(path, params) {
-        const serializedParams = params && Object.keys(params).length > 0
-            ? JSON.stringify(params)
-            : '';
+        const serializedParams = params && Object.keys(params).length > 0 ? JSON.stringify(params) : '';
         return `${path}:${serializedParams}`;
     }
     normalizePath(path) {

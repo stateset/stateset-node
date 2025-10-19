@@ -105,7 +105,11 @@ class ShipmentLine {
             const response = await this.client.request('GET', `shipment_line_items?${query}`);
             return {
                 shipment_lines: response.shipment_lines.map(this.mapResponse),
-                pagination: response.pagination || { total: response.shipment_lines.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.shipment_lines.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -186,7 +190,10 @@ class ShipmentLine {
             throw new ShipmentLineNotFoundError(shipmentLineId || 'unknown');
         if (error.status === 400)
             throw new ShipmentLineValidationError(error.message, error.errors);
-        throw new ShipmentLineError(`Failed to ${operation} shipment line: ${error.message}`, { operation, originalError: error });
+        throw new ShipmentLineError(`Failed to ${operation} shipment line: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.ShipmentLine = ShipmentLine;

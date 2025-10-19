@@ -158,7 +158,10 @@ class Contacts {
             throw new ContactNotFoundError(contactId || 'unknown');
         if (error.status === 400)
             throw new ContactValidationError(error.message, error.errors);
-        throw new ContactError(`Failed to ${operation} contact: ${error.message}`, { operation, originalError: error });
+        throw new ContactError(`Failed to ${operation} contact: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = Contacts;

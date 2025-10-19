@@ -97,7 +97,11 @@ class Customers {
             const response = await this.client.request('GET', `customers?${query.toString()}`);
             return {
                 customers: response.customers.map(this.mapResponse),
-                pagination: response.pagination || { total: response.customers.length, limit: params.limit || 100, offset: params.offset || 0 },
+                pagination: response.pagination || {
+                    total: response.customers.length,
+                    limit: params.limit || 100,
+                    offset: params.offset || 0,
+                },
             };
         }
         catch (error) {
@@ -178,7 +182,10 @@ class Customers {
             throw new CustomerNotFoundError(customerId || 'unknown');
         if (error.status === 400)
             throw new CustomerValidationError(error.message, error.errors);
-        throw new CustomerError(`Failed to ${operation} customer: ${error.message}`, { operation, originalError: error });
+        throw new CustomerError(`Failed to ${operation} customer: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.Customers = Customers;

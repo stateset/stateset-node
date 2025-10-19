@@ -19,7 +19,11 @@ function statesetMethod(spec) {
         const callback = typeof args[args.length - 1] === 'function' ? args.pop() : undefined;
         const urlParams = utils_1.default.extractUrlParams(spec.fullPath || this.createResourcePathWithSymbols(spec.path || ''));
         spec.urlParams = urlParams;
-        const requestPromise = utils_1.default.callbackifyPromiseWithTimeout((0, makeRequest_1.default)(this, { method: spec.method || 'GET', path: spec.fullPath || this.createResourcePathWithSymbols(spec.path || ''), params: args }), callback);
+        const requestPromise = utils_1.default.callbackifyPromiseWithTimeout((0, makeRequest_1.default)(this, {
+            method: spec.method || 'GET',
+            path: spec.fullPath || this.createResourcePathWithSymbols(spec.path || ''),
+            params: args,
+        }), callback);
         if (spec.methodType === 'list' || spec.methodType === 'search') {
             const autoPaginationMethods = (0, autoPagination_1.makeAutoPaginationMethods)(this, args, spec, requestPromise);
             Object.assign(requestPromise, autoPaginationMethods);

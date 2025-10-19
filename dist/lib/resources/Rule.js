@@ -94,7 +94,7 @@ class Rules {
      * Get specific rule by ID
      * @param ruleId - Rule ID
      * @returns RuleResponse object
-      */
+     */
     async get(ruleId) {
         try {
             const response = await this.stateset.request('GET', `rules/${ruleId}`);
@@ -174,7 +174,9 @@ class Rules {
      * @returns RuleResponse object
      */
     async setActivation(ruleId, activated) {
-        const response = await this.stateset.request('POST', `rules/${ruleId}/activation`, { activated });
+        const response = await this.stateset.request('POST', `rules/${ruleId}/activation`, {
+            activated,
+        });
         return response.rule;
     }
     /**
@@ -230,7 +232,8 @@ class Rules {
             if (!condition.field || !condition.operator) {
                 throw new RuleValidationError('Invalid condition: missing required fields');
             }
-            if (['equals', 'not_equals', 'greater_than', 'less_than'].includes(condition.operator) && condition.value === undefined) {
+            if (['equals', 'not_equals', 'greater_than', 'less_than'].includes(condition.operator) &&
+                condition.value === undefined) {
                 throw new RuleValidationError(`Invalid condition: ${condition.operator} operator requires a value`);
             }
         }

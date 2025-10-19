@@ -68,7 +68,7 @@ class Agents {
             metadata: agentData.metadata,
             capabilities: agentData.capabilities,
             status: agentData.status,
-            current_task: agentData.current_task
+            current_task: agentData.current_task,
         };
         switch (agentData.status) {
             case 'AVAILABLE':
@@ -78,7 +78,7 @@ class Agents {
                     ...baseResponse,
                     status: 'BUSY',
                     busy: true,
-                    current_task: agentData.current_task
+                    current_task: agentData.current_task,
                 };
             case 'OFFLINE':
                 return { ...baseResponse, status: 'OFFLINE', offline: true };
@@ -181,7 +181,7 @@ class Agents {
         return this.handleCommandResponse(response);
     }
     /**
-    * Task management methods
+     * Task management methods
      */
     async assignTask(agentId, taskData) {
         const response = await this.stateset.request('POST', `agents/${agentId}/assign-task`, taskData);
@@ -210,7 +210,7 @@ class Agents {
     async getSchedule(agentId, startDate, endDate) {
         const params = new URLSearchParams({
             start_date: startDate.toISOString(),
-            end_date: endDate.toISOString()
+            end_date: endDate.toISOString(),
         });
         return this.stateset.request('GET', `agents/${agentId}/schedule?${params.toString()}`);
     }

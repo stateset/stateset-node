@@ -300,7 +300,15 @@
 <a name='L235'></a><a href='#L235'>235</a>
 <a name='L236'></a><a href='#L236'>236</a>
 <a name='L237'></a><a href='#L237'>237</a>
-<a name='L238'></a><a href='#L238'>238</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -357,9 +365,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -370,7 +381,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -500,11 +514,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -523,6 +535,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -533,6 +548,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -548,7 +564,7 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 &nbsp;
 export enum UserRole {
@@ -556,7 +572,7 @@ export enum UserRole {
   MANAGER = 'MANAGER',
   STAFF = 'STAFF',
   TECHNICIAN = 'TECHNICIAN',
-  CUSTOMER = 'CUSTOMER'
+  CUSTOMER = 'CUSTOMER',
 }
 &nbsp;
 // Interfaces
@@ -594,7 +610,10 @@ export interface UserResponse {
 &nbsp;
 // Error Classes
 export class UserError extends Error {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >details?: Record&lt;string, unknown&gt;)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >details?: Record&lt;string, unknown&gt;</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
 <span class="cstat-no" title="statement not covered" >    this.name = 'UserError';</span>
   }
@@ -607,7 +626,10 @@ export class UserNotFoundError extends UserError {
 }
 &nbsp;
 export class UserValidationError extends UserError {
-<span class="fstat-no" title="function not covered" >  constructor(m</span>essage: string, public readonly <span class="cstat-no" title="statement not covered" >errors?: Record&lt;string, string&gt;)</span> {
+<span class="fstat-no" title="function not covered" >  constructor(</span>
+    message: string,
+    public readonly <span class="cstat-no" title="statement not covered" >errors?: Record&lt;string, string&gt;</span>
+  ) {
 <span class="cstat-no" title="statement not covered" >    super(message);</span>
   }
 }
@@ -735,17 +757,15 @@ export default class Users {
 <span class="cstat-no" title="statement not covered" >      throw new UserValidationError('New password must be at least 8 characters long');</span>
     }
 <span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      await this.stateset.request('POST', `users/${userId}/reset-password`, { password: newPassword });</span>
+<span class="cstat-no" title="statement not covered" >      await this.stateset.request('POST', `users/${userId}/reset-password`, {</span>
+        password: newPassword,
+      });
     } catch (error: any) {
 <span class="cstat-no" title="statement not covered" >      throw this.handleError(error, 'resetPassword', userId);</span>
     }
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  async </span>getMetrics(params?: {
-    org_id?: string;
-    date_from?: Date;
-    date_to?: Date;
-  }): Promise&lt;{
+<span class="fstat-no" title="function not covered" >  async </span>getMetrics(params?: { org_id?: string; date_from?: Date; date_to?: Date }): Promise&lt;{
     total_users: number;
     status_breakdown: Record&lt;UserStatus, number&gt;;
     role_breakdown: Record&lt;UserRole, number&gt;;
@@ -759,7 +779,10 @@ export default class Users {
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request('GET', `users/metrics?${queryParams.toString()}`);</span>
+      const response = <span class="cstat-no" title="statement not covered" >await this.stateset.request(</span>
+        'GET',
+        `users/metrics?${queryParams.toString()}`
+      );
 <span class="cstat-no" title="statement not covered" >      return response.metrics;</span>
     } catch (error: any) {
 <span class="cstat-no" title="statement not covered" >      throw this.handleError(error, 'getMetrics');</span>
@@ -769,19 +792,20 @@ export default class Users {
   private <span class="fstat-no" title="function not covered" >handleError(</span>error: any, operation: string, userId?: string): never {
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (error.status === 404) <span class="cstat-no" title="statement not covered" >throw new UserNotFoundError(userId || 'unknown');</span></span>
 <span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (error.status === 400) <span class="cstat-no" title="statement not covered" >throw new UserValidationError(error.message, error.errors);</span></span>
-<span class="cstat-no" title="statement not covered" >    throw new UserError(</span>
-      `Failed to ${operation} user: ${error.message}`,
-      { operation, originalError: error }
-    );
+<span class="cstat-no" title="statement not covered" >    throw new UserError(`Failed to ${operation} user: ${error.message}`, {</span>
+      operation,
+      originalError: error,
+    });
   }
-}</pre></td></tr></table></pre>
+}
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-19T20:17:43.029Z
+                at 2025-10-19T21:30:50.102Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

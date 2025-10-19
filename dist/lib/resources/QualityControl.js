@@ -154,7 +154,10 @@ class QualityControl {
             throw new QualityControlNotFoundError(qualityControlId || 'unknown');
         if (error.status === 400)
             throw new QualityControlValidationError(error.message, error.errors);
-        throw new QualityControlError(`Failed to ${operation} quality control: ${error.message}`, { operation, originalError: error });
+        throw new QualityControlError(`Failed to ${operation} quality control: ${error.message}`, {
+            operation,
+            originalError: error,
+        });
     }
 }
 exports.default = QualityControl;

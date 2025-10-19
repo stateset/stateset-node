@@ -55,7 +55,9 @@ class PurchaseOrderLines {
      * @returns Array of PurchaseOrderLineItem objects
      */
     async bulkCreate(purchaseOrderId, lineItems) {
-        return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, { line_items: lineItems });
+        return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, {
+            line_items: lineItems,
+        });
     }
     /**
      * Update the quantity received for a purchase order line
@@ -64,7 +66,9 @@ class PurchaseOrderLines {
      * @returns PurchaseOrderLineItem object
      */
     async updateQuantityReceived(lineItemId, quantityReceived) {
-        return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, { quantity_received: quantityReceived });
+        return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, {
+            quantity_received: quantityReceived,
+        });
     }
 }
 exports.default = PurchaseOrderLines;
