@@ -1,6 +1,6 @@
 {
   "name": "stateset-node",
-  "version": "0.0.93",
+  "version": "0.0.94",
   "description": "TypeScript/Node.js library for the Stateset API",
   "keywords": [
     "stateset",
@@ -16,9 +16,9 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "lint": "eslint . --ext .ts --fix",
-    "lint:check": "eslint . --ext .ts",
+    "test:ci": "jest --ci --coverage --runInBand --watchAll=false",
+    "lint": "node ./scripts/run-eslint.cjs --ext .ts --fix .",
+    "lint:check": "node ./scripts/run-eslint.cjs --ext .ts .",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run lint:check && npm run type-check && npm run test:ci && npm run build",
     "dev": "tsc --watch",

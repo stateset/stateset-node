@@ -11,14 +11,46 @@ export interface AgentMetadata {
     [key: string]: any;
 }
 export interface AgentCreateParams {
-    role: AgentRole;
-    capabilities: AgentCapability[];
-    metadata?: AgentMetadata;
+    agent_name?: string;
+    agent_type?: string;
+    description?: string;
+    activated?: boolean;
+    org_id?: string;
+    voice_model?: string;
+    voice_model_id?: string;
+    voice_model_provider?: string;
+    user_id?: string;
+    goal?: string;
+    instructions?: string;
+    role?: string;
+    avatar_url?: string;
+    mcp_servers?: Record<string, unknown>;
+    model_id?: string;
+    skills?: Record<string, unknown>;
+    attributes?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+    capabilities?: AgentCapability[];
 }
 export interface AgentUpdateParams {
-    role?: AgentRole;
+    agent_name?: string;
+    agent_type?: string;
+    description?: string;
+    activated?: boolean;
+    org_id?: string;
+    voice_model?: string;
+    voice_model_id?: string;
+    voice_model_provider?: string;
+    user_id?: string;
+    goal?: string;
+    instructions?: string;
+    role?: string;
+    avatar_url?: string;
+    mcp_servers?: Record<string, unknown>;
+    model_id?: string;
+    skills?: Record<string, unknown>;
+    attributes?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
     capabilities?: AgentCapability[];
-    metadata?: Partial<AgentMetadata>;
 }
 export interface TaskData {
     id: string;
@@ -32,10 +64,27 @@ interface BaseAgentResponse {
     object: 'agent';
     created_at: string;
     updated_at: string;
-    role: AgentRole;
-    capabilities: AgentCapability[];
-    status: AgentStatus;
-    metadata: AgentMetadata;
+    agent_name?: string;
+    agent_type?: string;
+    description?: string;
+    activated?: boolean;
+    last_updated?: string;
+    org_id?: string;
+    voice_model?: string;
+    voice_model_id?: string;
+    voice_model_provider?: string;
+    user_id?: string;
+    goal?: string;
+    instructions?: string;
+    role?: string;
+    avatar_url?: string;
+    mcp_servers?: Record<string, unknown>;
+    model_id?: string;
+    skills?: Record<string, unknown>;
+    attributes?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+    capabilities?: AgentCapability[];
+    status?: AgentStatus;
     current_task?: TaskData;
 }
 interface AvailableAgentResponse extends BaseAgentResponse {

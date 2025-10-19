@@ -40,7 +40,10 @@ export type ResponseInterceptor = (response: AxiosResponse & {
 }) => AxiosResponse | Promise<AxiosResponse>;
 export type ErrorInterceptor = (error: AxiosError & {
     metadata?: RequestMetadata;
-}) => Promise<AxiosError>;
+}) => void | AxiosError | Promise<void | AxiosError>;
+type InternalAxiosRequestConfigWithRetry = AxiosRequestConfig & {
+    statesetRetryOptions?: Partial<RetryOptions>;
+};
 export declare class EnhancedHttpClient {
     private axiosInstance;
     private circuitBreaker;
@@ -63,7 +66,7 @@ export declare class EnhancedHttpClient {
     put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
     patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
     delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>>;
-    request<T = any>(config: AxiosRequestConfig): Promise<AxiosResponse<T>>;
+    request<T = any>(config: InternalAxiosRequestConfigWithRetry): Promise<AxiosResponse<T>>;
     healthCheck(): Promise<{
         status: string;
         timestamp: string;
@@ -73,8 +76,11 @@ export declare class EnhancedHttpClient {
     updateBaseURL(baseURL: string): void;
     updateTimeout(timeout: number): void;
     updateHeaders(headers: Record<string, string>): void;
+    updateRetryOptions(retry?: Partial<RetryOptions>): void;
+    updateProxy(proxy?: HttpClientOptions['proxy'] | null): void;
     getCircuitBreakerState(): string;
     resetCircuitBreaker(): void;
     destroy(): void;
 }
+export {};
 //# sourceMappingURL=http-client.d.ts.map

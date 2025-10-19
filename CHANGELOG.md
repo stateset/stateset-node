@@ -5,6 +5,20 @@ All notable changes to the Stateset Node.js library will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.94] - 2025-10-19
+
+### Added
+- Global retry strategy controls via `client.setRetryStrategy` and per-request overrides for caching, retries, and abort signals.
+- `onRetryAttempt` hook to observe retry scheduling details during execution.
+- Expanded agent resource schema and dedicated tests covering create, update, assignment, and insights flows.
+
+### Changed
+- Memory cache housekeeping timers now call `unref()` so they no longer keep Node.js event loops alive on shutdown.
+- Documentation refreshed with advanced request examples and retry guidance.
+
+### Fixed
+- Custom error interceptors now propagate thrown errors without being double-wrapped by the HTTP client.
+
 ## [0.1.0] - 2024-01-XX
 
 ### 🚨 BREAKING CHANGES

@@ -1,5 +1,6 @@
 import { RequestInterceptor, ResponseInterceptor, ErrorInterceptor } from './core/http-client';
-import { StatesetConfig } from './types';
+import { StatesetConfig, RequestOptions } from './types';
+import type { RetryOptions } from './utils/retry';
 import Returns from './lib/resources/Return';
 import Warranties from './lib/resources/Warranty';
 import Products from './lib/resources/Product';
@@ -115,6 +116,7 @@ interface StatesetClientConfigInternal extends StatesetConfig {
     requestInterceptors: RequestInterceptor[];
     responseInterceptors: ResponseInterceptor[];
     errorInterceptors: ErrorInterceptor[];
+    retryOptions: RetryOptions;
     cache: {
         enabled: boolean;
         ttl: number;
@@ -131,10 +133,12 @@ interface StatesetClientConfigInternal extends StatesetConfig {
         url?: string;
     };
 }
+type RequestOptionsInternal = RequestOptions & Record<string, any>;
 export declare class StatesetClient {
     private httpClient;
     private config;
     private cache;
+    private cacheKeyIndex;
     returns: Returns;
     returnItems: ReturnLines;
     warranties: Warranties;
@@ -213,6 +217,7 @@ export declare class StatesetClient {
     private isValidUrl;
     private buildConfig;
     private buildUserAgent;
+    private normalizeRetryOptions;
     private buildHttpClientOptions;
     private parseProxyUrl;
     private setupCustomInterceptors;
@@ -237,11 +242,18 @@ export declare class StatesetClient {
      */
     updateRetryOptions(retry: number, retryDelayMs?: number): void;
     setRetryOptions(retry: number, retryDelayMs?: number): void;
+    setRetryStrategy(options: Partial<RetryOptions>): void;
     /**
      * Update headers
      */
     updateHeaders(headers: Record<string, string>): void;
     setHeaders(headers: Record<string, string>): void;
+    /**
+     * Update proxy configuration
+     */
+    updateProxy(proxyUrl: string): void;
+    setProxy(proxyUrl: string): void;
+    clearProxy(): void;
     /**
      * Update app info for user agent
      */
@@ -287,10 +299,17 @@ export declare class StatesetClient {
      * Get current configuration (sanitized)
      */
     getConfig(): Omit<StatesetClientConfigInternal, 'apiKey' | 'requestInterceptors' | 'responseInterceptors' | 'errorInterceptors'>;
+    private resolveCacheDirective;
+    private collectInvalidationTargets;
+    private generateCacheKey;
+    private normalizePath;
+    private indexCacheKey;
+    private invalidateCacheForPath;
+    private pathsOverlap;
     /**
      * Enhanced request method with caching and performance monitoring
      */
-    request(method: string, path: string, data?: any, options?: any): Promise<any>;
+    request(method: string, path: string, data?: any, options?: RequestOptionsInternal): Promise<any>;
     /**
      * Get cache statistics
      */

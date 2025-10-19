@@ -85,6 +85,7 @@ class StatesetClient {
     httpClient;
     config;
     cache;
+    cacheKeyIndex = new Map();
     // Core Commerce Resources
     returns;
     returnItems;
@@ -218,13 +219,25 @@ class StatesetClient {
         }
     }
     buildConfig(config) {
+        const envRetry = parseInt(process.env.STATESET_RETRY || '0', 10);
+        const envRetryDelay = parseInt(process.env.STATESET_RETRY_DELAY_MS || '1000', 10);
+        const baseRetryCount = config.retry ?? envRetry;
+        const baseRetryDelay = config.retryDelayMs ?? envRetryDelay;
+        const combinedRetryOptions = {
+            ...config.retryOptions,
+        };
+        if (config.onRetryAttempt) {
+            combinedRetryOptions.onRetryAttempt = config.onRetryAttempt;
+        }
+        const normalizedRetryOptions = this.normalizeRetryOptions(combinedRetryOptions, Math.max(1, baseRetryCount + 1), baseRetryDelay);
         return {
             apiKey: config.apiKey || process.env.STATESET_API_KEY || '',
             baseUrl: config.baseUrl || process.env.STATESET_BASE_URL || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
             timeout: config.timeout ?? 60000,
-            retry: config.retry ?? parseInt(process.env.STATESET_RETRY || '0', 10),
-            retryDelayMs: config.retryDelayMs ?? parseInt(process.env.STATESET_RETRY_DELAY_MS || '1000', 10),
-            userAgent: config.userAgent || this.buildUserAgent(),
+            retry: Math.max(0, (normalizedRetryOptions.maxAttempts ?? 1) - 1),
+            retryDelayMs: normalizedRetryOptions.baseDelay ?? baseRetryDelay,
+            retryOptions: normalizedRetryOptions,
+            userAgent: config.userAgent || this.buildUserAgent(config.appInfo),
             additionalHeaders: config.additionalHeaders || {},
             proxy: config.proxy || process.env.STATESET_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
             appInfo: config.appInfo,
@@ -244,19 +257,31 @@ class StatesetClient {
             },
         };
     }
-    buildUserAgent() {
+    buildUserAgent(appInfo) {
         const packageVersion = process.env.npm_package_version || '1.0.0';
+        const info = appInfo ?? this.config?.appInfo;
         let ua = `stateset-node/${packageVersion}`;
-        if (this.config?.appInfo) {
-            ua += ` ${this.config.appInfo.name}`;
-            if (this.config.appInfo.version) {
-                ua += `/${this.config.appInfo.version}`;
+        if (info) {
+            ua += ` ${info.name}`;
+            if (info.version) {
+                ua += `/${info.version}`;
             }
-            if (this.config.appInfo.url) {
-                ua += ` (${this.config.appInfo.url})`;
+            if (info.url) {
+                ua += ` (${info.url})`;
             }
         }
         return ua;
+    }
+    normalizeRetryOptions(options, fallbackAttempts, fallbackDelay) {
+        const normalized = { ...(options ?? {}) };
+        const attempts = Math.max(1, normalized.maxAttempts ?? fallbackAttempts);
+        const baseDelay = normalized.baseDelay ?? fallbackDelay;
+        normalized.maxAttempts = attempts;
+        normalized.baseDelay = baseDelay;
+        if (normalized.maxDelay !== undefined && normalized.maxDelay < baseDelay) {
+            normalized.maxDelay = baseDelay;
+        }
+        return normalized;
     }
     buildHttpClientOptions() {
         const proxy = this.config.proxy ? this.parseProxyUrl(this.config.proxy) : undefined;
@@ -264,10 +289,7 @@ class StatesetClient {
             baseURL: this.config.baseUrl,
             apiKey: this.config.apiKey,
             timeout: this.config.timeout,
-            retry: {
-                maxAttempts: (this.config.retry || 0) + 1, // retry count + initial attempt
-                baseDelay: this.config.retryDelayMs,
-            },
+            retry: { ...this.config.retryOptions },
             userAgent: this.config.userAgent,
             additionalHeaders: this.config.additionalHeaders,
             maxSockets: this.config.maxSockets,
@@ -461,13 +483,31 @@ class StatesetClient {
         }
         this.config.retry = retry;
         this.config.retryDelayMs = delay;
+        this.config.retryOptions = this.normalizeRetryOptions({ ...this.config.retryOptions, maxAttempts: retry + 1, baseDelay: delay }, Math.max(1, retry + 1), delay);
+        this.httpClient.updateRetryOptions(this.config.retryOptions);
         logger_1.logger.info('Retry options updated successfully', {
             operation: 'client.update_retry_options',
-            metadata: { retry, retryDelayMs: delay },
+            metadata: { retry, retryDelayMs: delay, maxAttempts: this.config.retryOptions.maxAttempts },
         });
     }
     setRetryOptions(retry, retryDelayMs) {
         this.updateRetryOptions(retry, retryDelayMs);
+    }
+    setRetryStrategy(options) {
+        const fallbackAttempts = Math.max(1, (this.config.retry ?? 0) + 1);
+        const fallbackDelay = this.config.retryDelayMs ?? 1000;
+        this.config.retryOptions = this.normalizeRetryOptions({ ...this.config.retryOptions, ...options }, fallbackAttempts, fallbackDelay);
+        this.config.retry = Math.max(0, this.config.retryOptions.maxAttempts - 1);
+        this.config.retryDelayMs = this.config.retryOptions.baseDelay ?? fallbackDelay;
+        this.httpClient.updateRetryOptions(this.config.retryOptions);
+        logger_1.logger.info('Retry strategy updated successfully', {
+            operation: 'client.update_retry_strategy',
+            metadata: {
+                maxAttempts: this.config.retryOptions.maxAttempts,
+                baseDelay: this.config.retryOptions.baseDelay,
+                jitter: this.config.retryOptions.jitter,
+            },
+        });
     }
     /**
      * Update headers
@@ -482,6 +522,31 @@ class StatesetClient {
     }
     setHeaders(headers) {
         this.updateHeaders(headers);
+    }
+    /**
+     * Update proxy configuration
+     */
+    updateProxy(proxyUrl) {
+        const parsed = this.parseProxyUrl(proxyUrl);
+        if (!parsed) {
+            throw new Error('Invalid proxy URL provided');
+        }
+        this.config.proxy = proxyUrl;
+        this.httpClient.updateProxy(parsed);
+        logger_1.logger.info('Proxy configuration updated', {
+            operation: 'client.update_proxy',
+            metadata: { host: parsed.host, port: parsed.port, protocol: parsed.protocol },
+        });
+    }
+    setProxy(proxyUrl) {
+        this.updateProxy(proxyUrl);
+    }
+    clearProxy() {
+        this.config.proxy = undefined;
+        this.httpClient.updateProxy(null);
+        logger_1.logger.info('Proxy configuration cleared', {
+            operation: 'client.clear_proxy',
+        });
     }
     /**
      * Update app info for user agent
@@ -562,21 +627,116 @@ class StatesetClient {
         const { apiKey, requestInterceptors, responseInterceptors, errorInterceptors, ...safeConfig } = this.config;
         return safeConfig;
     }
+    resolveCacheDirective(method, path, params, cacheOption, explicitCacheKey, ttlOverride) {
+        if (method !== 'GET') {
+            return null;
+        }
+        if (!this.config.cache.enabled) {
+            return null;
+        }
+        if (cacheOption === false) {
+            return null;
+        }
+        const derivedKey = explicitCacheKey
+            || (typeof cacheOption === 'object' ? cacheOption.key : undefined)
+            || this.generateCacheKey(path, params || {});
+        if (!derivedKey) {
+            return null;
+        }
+        const ttl = ttlOverride ?? (typeof cacheOption === 'object' ? cacheOption.ttl : undefined);
+        return { key: derivedKey, ttl };
+    }
+    collectInvalidationTargets(method, normalizedPath, cacheOption, overridePaths) {
+        const targets = new Set();
+        if (method !== 'GET' && normalizedPath) {
+            targets.add(normalizedPath);
+        }
+        const addPaths = (paths) => {
+            if (!paths) {
+                return;
+            }
+            const list = Array.isArray(paths) ? paths : [paths];
+            for (const raw of list) {
+                const normalized = this.normalizePath(raw);
+                if (normalized) {
+                    targets.add(normalized);
+                }
+            }
+        };
+        addPaths(overridePaths);
+        if (typeof cacheOption === 'object') {
+            addPaths(cacheOption.invalidate);
+        }
+        return targets;
+    }
+    generateCacheKey(path, params) {
+        const serializedParams = params && Object.keys(params).length > 0
+            ? JSON.stringify(params)
+            : '';
+        return `${path}:${serializedParams}`;
+    }
+    normalizePath(path) {
+        if (!path) {
+            return '';
+        }
+        const withoutQuery = path.split('?')[0];
+        return withoutQuery.replace(/^\/+/, '').replace(/\/+$/, '');
+    }
+    indexCacheKey(normalizedPath, cacheKey) {
+        if (!normalizedPath) {
+            return;
+        }
+        const existing = this.cacheKeyIndex.get(normalizedPath) ?? new Set();
+        existing.add(cacheKey);
+        this.cacheKeyIndex.set(normalizedPath, existing);
+    }
+    invalidateCacheForPath(normalizedPath) {
+        if (!normalizedPath || this.cacheKeyIndex.size === 0) {
+            return;
+        }
+        let removedEntries = 0;
+        for (const [storedPath, keys] of this.cacheKeyIndex.entries()) {
+            if (!this.pathsOverlap(normalizedPath, storedPath)) {
+                continue;
+            }
+            for (const key of keys) {
+                if (this.cache.delete(key)) {
+                    removedEntries++;
+                }
+            }
+            this.cacheKeyIndex.delete(storedPath);
+        }
+        if (removedEntries > 0) {
+            logger_1.logger.debug('Cache invalidated for path', {
+                operation: 'client.cache_invalidate',
+                metadata: { path: normalizedPath, removedEntries },
+            });
+        }
+    }
+    pathsOverlap(pathA, pathB) {
+        if (pathA === pathB) {
+            return true;
+        }
+        if (!pathA || !pathB) {
+            return false;
+        }
+        return pathA.startsWith(`${pathB}/`) || pathB.startsWith(`${pathA}/`);
+    }
     /**
      * Enhanced request method with caching and performance monitoring
      */
     async request(method, path, data, options = {}) {
+        const methodUpper = method.toUpperCase();
         const timer = this.config.performance.enabled
-            ? performance_1.performanceMonitor.startTimer(`client.request.${method.toUpperCase()}.${path}`)
+            ? performance_1.performanceMonitor.startTimer(`client.request.${methodUpper}.${path}`)
             : null;
+        const { cache: cacheOption, cacheKey: explicitCacheKey, cacheTTL, invalidateCachePaths, signal, idempotencyKey, retryOptions: perRequestRetry, onRetryAttempt, ...axiosOptions } = options || {};
         try {
-            // Generate cache key for GET requests
-            const cacheKey = method.toUpperCase() === 'GET'
-                ? `${path}:${JSON.stringify(options.params || {})}`
-                : null;
+            const normalizedPath = this.normalizePath(path);
+            const cacheDirective = this.resolveCacheDirective(methodUpper, path, axiosOptions.params, cacheOption, explicitCacheKey, cacheTTL);
             // Check cache for GET requests
-            if (this.config.cache.enabled && cacheKey) {
-                const cached = this.cache.get(cacheKey);
+            if (this.config.cache.enabled && cacheDirective) {
+                const cached = this.cache.get(cacheDirective.key);
                 if (cached) {
                     timer?.end(true);
                     logger_1.logger.debug('Request served from cache', {
@@ -590,17 +750,40 @@ class StatesetClient {
                 operation: 'client.request',
                 metadata: { method, path },
             });
+            const { headers: providedHeaders, ...restAxiosOptions } = axiosOptions;
+            const headers = providedHeaders ? { ...providedHeaders } : {};
+            if (idempotencyKey) {
+                headers['Idempotency-Key'] = idempotencyKey;
+            }
             const config = {
-                method: method.toLowerCase(),
+                method: methodUpper.toLowerCase(),
                 url: path,
                 data,
-                ...options,
+                ...restAxiosOptions,
+                headers,
             };
+            if (signal) {
+                config.signal = signal;
+            }
+            if (perRequestRetry || onRetryAttempt) {
+                config.statesetRetryOptions = {
+                    ...perRequestRetry,
+                    ...(onRetryAttempt ? { onRetryAttempt } : {}),
+                };
+            }
             const response = await this.httpClient.request(config);
             const result = response.data;
+            if (this.config.cache.enabled) {
+                const invalidationTargets = this.collectInvalidationTargets(methodUpper, normalizedPath, cacheOption, invalidateCachePaths);
+                if (methodUpper === 'GET' && cacheDirective) {
+                    invalidationTargets.delete(normalizedPath);
+                }
+                invalidationTargets.forEach(target => this.invalidateCacheForPath(target));
+            }
             // Cache successful GET responses
-            if (this.config.cache.enabled && cacheKey && method.toUpperCase() === 'GET') {
-                this.cache.set(cacheKey, result);
+            if (this.config.cache.enabled && cacheDirective) {
+                this.cache.set(cacheDirective.key, result, cacheDirective.ttl);
+                this.indexCacheKey(normalizedPath, cacheDirective.key);
             }
             timer?.end(true);
             return result;
@@ -625,6 +808,7 @@ class StatesetClient {
      */
     clearCache() {
         this.cache.clear();
+        this.cacheKeyIndex.clear();
         logger_1.logger.info('Cache cleared manually', {
             operation: 'client.clear_cache',
         });
@@ -640,6 +824,10 @@ class StatesetClient {
      */
     setCacheEnabled(enabled) {
         this.config.cache.enabled = enabled;
+        if (!enabled) {
+            this.cache.clear();
+            this.cacheKeyIndex.clear();
+        }
         logger_1.logger.info(`Cache ${enabled ? 'enabled' : 'disabled'}`, {
             operation: 'client.set_cache_enabled',
             metadata: { enabled },
@@ -678,6 +866,7 @@ class StatesetClient {
     destroy() {
         this.httpClient.destroy();
         this.cache.destroy();
+        this.cacheKeyIndex.clear();
         logger_1.logger.info('StatesetClient destroyed', {
             operation: 'client.destroy',
         });

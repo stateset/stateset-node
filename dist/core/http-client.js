@@ -157,9 +157,9 @@ class EnhancedHttpClient {
                 }, error);
             }
             // Apply custom error interceptors
-            await this.applyErrorInterceptors(error);
+            const processedError = await this.applyErrorInterceptors(error);
             // Transform axios errors to Stateset errors
-            throw this.transformError(error);
+            throw this.transformError(processedError);
         });
     }
     async applyRequestInterceptors(config) {
@@ -177,9 +177,14 @@ class EnhancedHttpClient {
         return result;
     }
     async applyErrorInterceptors(error) {
+        let current = error;
         for (const interceptor of this.errorInterceptors) {
-            await interceptor(error);
+            const result = await interceptor(current);
+            if (result) {
+                current = result;
+            }
         }
+        return current;
     }
     transformError(error) {
         const metadata = error.config?.metadata;
@@ -256,9 +261,14 @@ class EnhancedHttpClient {
         return this.request({ ...config, method: 'DELETE', url });
     }
     async request(config) {
-        const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request(config));
-        if (this.retryOptions.maxAttempts && this.retryOptions.maxAttempts > 1) {
-            return (0, retry_1.withRetry)(operation, this.retryOptions);
+        const { statesetRetryOptions, ...axiosConfig } = config;
+        const mergedRetryOptions = {
+            ...this.retryOptions,
+            ...statesetRetryOptions,
+        };
+        const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request(axiosConfig));
+        if (mergedRetryOptions.maxAttempts && mergedRetryOptions.maxAttempts > 1) {
+            return (0, retry_1.withRetry)(operation, mergedRetryOptions);
         }
         return operation();
     }
@@ -298,6 +308,12 @@ class EnhancedHttpClient {
     }
     updateHeaders(headers) {
         Object.assign(this.axiosInstance.defaults.headers.common, headers);
+    }
+    updateRetryOptions(retry) {
+        this.retryOptions = retry ? { ...retry } : {};
+    }
+    updateProxy(proxy) {
+        this.axiosInstance.defaults.proxy = proxy || false;
     }
     getCircuitBreakerState() {
         return this.circuitBreaker.getState();

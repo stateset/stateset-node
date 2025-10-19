@@ -5,6 +5,7 @@ export interface RetryOptions {
     backoffMultiplier?: number;
     jitter?: boolean;
     retryCondition?: (error: Error) => boolean;
+    onRetryAttempt?: (attempt: RetryAttempt) => void;
 }
 export interface RetryAttempt {
     attempt: number;

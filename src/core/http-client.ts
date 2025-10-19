@@ -182,12 +182,7 @@ export class EnhancedHttpClient {
         }
 
         // Apply custom error interceptors
-        let processedError: AxiosError;
-        try {
-          processedError = await this.applyErrorInterceptors(error);
-        } catch (interceptorError) {
-          throw interceptorError;
-        }
+        const processedError = await this.applyErrorInterceptors(error);
         
         // Transform axios errors to Stateset errors
         throw this.transformError(processedError);

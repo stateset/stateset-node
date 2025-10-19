@@ -22,6 +22,7 @@ const DEFAULT_RETRY_OPTIONS = {
     backoffMultiplier: 2,
     jitter: true,
     retryCondition: () => true, // Default: retry all errors
+    onRetryAttempt: undefined,
 };
 async function withRetry(operation, options = {}) {
     const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
@@ -52,7 +53,8 @@ async function withRetry(operation, options = {}) {
                 throw lastError;
             }
             const delay = calculateDelay(attempt, config);
-            attempts.push({ attempt, delay, error: lastError });
+            const attemptInfo = { attempt, delay, error: lastError };
+            attempts.push(attemptInfo);
             logger_1.logger.warn('Operation failed, retrying', {
                 operation: 'retry',
                 metadata: {
@@ -62,6 +64,7 @@ async function withRetry(operation, options = {}) {
                     error: lastError.message
                 },
             });
+            config.onRetryAttempt?.(attemptInfo);
             await sleep(delay);
         }
     }
