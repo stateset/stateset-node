@@ -41,18 +41,10 @@ class StatesetBaseError extends Error {
             request_id: this.request_id,
         };
     }
-    /**
-     * @deprecated Dynamic subclassing via extend is legacy. Use native `class extends` instead.
-     */
-    // eslint-disable-next-line @typescript-eslint/ban-types
     static extend(subClass) {
         const Parent = this;
-        class Extended extends Parent {
-            constructor(...args) {
-                // @ts-ignore allow legacy call signatures that pass (type, message, raw)
-                super(...args);
-            }
-        }
+        const Extended = class extends Parent {
+        };
         Object.assign(Extended, subClass);
         Object.assign(Extended.prototype, subClass);
         return Extended;

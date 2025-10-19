@@ -29,9 +29,6 @@ declare class StatesetBaseError extends Error implements ErrorInterface {
     constructor(type: string, message: string, raw?: StatesetErrorRaw);
     populate(raw: StatesetErrorRaw): void;
     toJSON(): StatesetErrorRaw;
-    /**
-     * @deprecated Dynamic subclassing via extend is legacy. Use native `class extends` instead.
-     */
     static extend(subClass: Partial<typeof StatesetBaseError>): typeof StatesetBaseError;
 }
 declare class StatesetError extends StatesetBaseError {

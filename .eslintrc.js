@@ -44,6 +44,12 @@ module.exports = {
       rules: {
         'no-console': 'off'
       }
+    },
+    {
+      files: ['samples/**/*.{ts,js}'],
+      rules: {
+        'no-console': 'off'
+      }
     }
   ]
 };

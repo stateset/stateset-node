@@ -65,18 +65,9 @@ class StatesetBaseError extends Error implements ErrorInterface {
     };
   }
 
-  /**
-   * @deprecated Dynamic subclassing via extend is legacy. Use native `class extends` instead.
-   */
-  // eslint-disable-next-line @typescript-eslint/ban-types
   static extend(subClass: Partial<typeof StatesetBaseError>): typeof StatesetBaseError {
     const Parent = this;
-    class Extended extends (Parent as typeof StatesetBaseError) {
-      constructor(...args: any[]) {
-        // @ts-ignore allow legacy call signatures that pass (type, message, raw)
-        super(...args);
-      }
-    }
+    const Extended = class extends Parent {};
 
     Object.assign(Extended, subClass);
     Object.assign(Extended.prototype, subClass);
