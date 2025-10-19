@@ -30,13 +30,73 @@ export class RetryError extends Error {
 type InternalRetryOptions = Required<Omit<RetryOptions, 'onRetryAttempt'>> &
   Pick<RetryOptions, 'onRetryAttempt'>;
 
+const TRANSIENT_ERROR_CODES = new Set([
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'ECONNREFUSED',
+  'EPIPE',
+  'EAI_AGAIN',
+  'ECONNABORTED',
+  'EHOSTDOWN',
+]);
+
+const TRANSIENT_STATUS_CODES = new Set([408, 425, 429, 499]);
+
+function extractStatusCode(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+
+  const err = error as Record<string, unknown>;
+  if (typeof err.statusCode === 'number') {
+    return err.statusCode;
+  }
+
+  if (typeof err.status === 'number') {
+    return err.status;
+  }
+
+  const response = err.response as { status?: number } | undefined;
+  if (response && typeof response.status === 'number') {
+    return response.status;
+  }
+
+  if (err.cause) {
+    return extractStatusCode(err.cause);
+  }
+
+  return undefined;
+}
+
+function isRetriableStatus(status: number): boolean {
+  if (status >= 500) {
+    return true;
+  }
+
+  return TRANSIENT_STATUS_CODES.has(status);
+}
+
+function defaultRetryCondition(error: Error): boolean {
+  const status = extractStatusCode(error);
+  if (status !== undefined) {
+    return isRetriableStatus(status);
+  }
+
+  const code = (error as any)?.code;
+  if (typeof code === 'string') {
+    return TRANSIENT_ERROR_CODES.has(code);
+  }
+
+  return true;
+}
+
 const DEFAULT_RETRY_OPTIONS: InternalRetryOptions = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 30000,
   backoffMultiplier: 2,
   jitter: true,
-  retryCondition: () => true, // Default: retry all errors
+  retryCondition: defaultRetryCondition,
   onRetryAttempt: undefined,
 };
 

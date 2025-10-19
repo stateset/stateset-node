@@ -50,6 +50,7 @@ describe('StatesetError', () => {
     };
     const err = new StatesetPermissionError(raw);
     expect(err.statusCode).toBe(403);
+    expect(err.status).toBe(403);
     expect(err.code).toBe('forbidden');
     expect(err.toJSON()).toMatchObject(raw);
   });

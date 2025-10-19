@@ -47,6 +47,20 @@ test('new client has proper resources', () => {
   expect(client.inventory).toBeDefined();
 });
 
+test('legacy CommonJS entry exports working factory', () => {
+  const legacyModule: any = require('../src/stateset/stateset.js');
+  const client = legacyModule({ apiKey: 'test-key' });
+
+  expect(client).toBeInstanceOf(legacyModule.Stateset);
+  expect(typeof client.request).toBe('function');
+
+  client.destroy();
+
+  const fromKey = legacyModule.fromApiKey('test-key-2');
+  expect(fromKey).toBeInstanceOf(legacyModule.Stateset);
+  fromKey.destroy();
+});
+
 test('OpenAIIntegration sends chat completion request with defaults', async () => {
   const integration: any = new OpenAIIntegration('test-key', { baseUrl: 'https://example.com' });
   const mockPost = jest.spyOn(integration.client, 'post').mockResolvedValue({

@@ -261,6 +261,7 @@ export class EnhancedHttpClient {
       detail: (error.response?.data as any)?.detail || error.stack,
       path: error.config?.url,
       statusCode: error.response?.status,
+      status: error.response?.status,
       timestamp: new Date().toISOString(),
       request_id: metadata?.requestId,
     };

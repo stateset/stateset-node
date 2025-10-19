@@ -5,6 +5,7 @@ interface StatesetErrorRaw {
   detail?: string;
   path?: string;
   statusCode?: number;
+  status?: number;
   timestamp?: string;
   request_id?: string;
 }
@@ -15,6 +16,7 @@ interface ErrorInterface extends Error {
   detail?: string;
   path?: string;
   statusCode?: number;
+  status?: number;
   timestamp?: string;
   request_id?: string;
   populate(raw: StatesetErrorRaw): void;
@@ -26,6 +28,7 @@ class StatesetBaseError extends Error implements ErrorInterface {
   detail?: string;
   path?: string;
   statusCode?: number;
+  status?: number;
   timestamp?: string;
   request_id?: string;
 
@@ -48,6 +51,7 @@ class StatesetBaseError extends Error implements ErrorInterface {
     this.detail = raw.detail;
     this.path = raw.path;
     this.statusCode = raw.statusCode;
+    this.status = raw.status ?? raw.statusCode;
     this.timestamp = raw.timestamp;
     this.request_id = raw.request_id;
   }
@@ -60,6 +64,7 @@ class StatesetBaseError extends Error implements ErrorInterface {
       detail: this.detail,
       path: this.path,
       statusCode: this.statusCode,
+      status: this.status ?? this.statusCode,
       timestamp: this.timestamp,
       request_id: this.request_id,
     };

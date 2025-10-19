@@ -56,6 +56,39 @@ describe('Retry Utility', () => {
       expect(mockOperation).toHaveBeenCalledTimes(1);
     });
 
+    it('does not retry on non-retriable client errors by default', async () => {
+      const clientError = new Error('Bad Request') as Error & { statusCode?: number };
+      clientError.statusCode = 400;
+
+      const mockOperation = jest.fn().mockRejectedValue(clientError);
+
+      await expect(
+        withRetry(mockOperation, {
+          maxAttempts: 3,
+          baseDelay: 10,
+        })
+      ).rejects.toThrow('Bad Request');
+
+      expect(mockOperation).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries on rate limit errors by default', async () => {
+      const rateLimitError = new Error('Too Many Requests') as Error & { statusCode?: number };
+      rateLimitError.statusCode = 429;
+
+      const mockOperation = jest.fn().mockRejectedValue(rateLimitError);
+
+      await expect(
+        withRetry(mockOperation, {
+          maxAttempts: 3,
+          baseDelay: 10,
+          jitter: false,
+        })
+      ).rejects.toThrow(RetryError);
+
+      expect(mockOperation).toHaveBeenCalledTimes(3);
+    });
+
     it('should apply exponential backoff', async () => {
       const mockOperation = jest.fn().mockRejectedValue(new Error('Failure'));
       const delays: number[] = [];
