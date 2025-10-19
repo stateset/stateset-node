@@ -80,6 +80,7 @@ client.setApiKey('new-key');
 client.setBaseUrl('https://api.example.com');
 client.setTimeout(30000);
 client.setRetryOptions(5, 500);
+client.setRetryStrategy({ baseDelay: 750, jitter: false });
 client.setHeaders({ 'X-Customer-ID': 'abc123' });
 client.setProxy('http://localhost:3128');
 client.setAppInfo({ name: 'MyApp', version: '1.0', url: 'https://example.com' });
@@ -153,6 +154,28 @@ const completion = await openai.createChatCompletion([
 ]);
 console.log(completion.choices[0].message.content);
 ```
+
+### Advanced request options
+
+Fine-tune caching, retries, and safety per request:
+
+```typescript
+const controller = new AbortController();
+
+const inventory = await client.request('GET', '/inventory', null, {
+  params: { org_id: 'org_123' },
+  cache: { key: 'inventory:org_123', ttl: 60_000 },
+  invalidateCachePaths: ['inventory/count'],
+  idempotencyKey: 'idem-xyz',
+  signal: controller.signal,
+  retryOptions: { maxAttempts: 4, baseDelay: 250 },
+  onRetryAttempt: ({ attempt, delay }) => {
+    console.log(`retry #${attempt} scheduled in ${delay}ms`);
+  }
+});
+```
+
+Disable caching entirely with `cache: false`, or override the default retry strategy globally via `client.setRetryStrategy()` when your deployment requires different backoff semantics.
 
 ### Managing orders
 

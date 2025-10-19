@@ -223,6 +223,10 @@ export class MemoryCache<T = any> {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, interval);
+
+    if (typeof (this.cleanupInterval as any).unref === 'function') {
+      (this.cleanupInterval as any).unref();
+    }
   }
 
   private cleanup(): void {

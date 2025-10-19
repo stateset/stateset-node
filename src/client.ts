@@ -2,7 +2,8 @@ import { EnhancedHttpClient, HttpClientOptions, RequestInterceptor, ResponseInte
 import { logger } from './utils/logger';
 import { performanceMonitor } from './utils/performance';
 import { MemoryCache } from './utils/cache';
-import { StatesetConfig } from './types';
+import { StatesetConfig, RequestOptions, CacheControlOptions } from './types';
+import type { RetryOptions } from './utils/retry';
 
 // Import all resource classes
 import Returns from './lib/resources/Return';
@@ -122,6 +123,7 @@ interface StatesetClientConfigInternal extends StatesetConfig {
   requestInterceptors: RequestInterceptor[];
   responseInterceptors: ResponseInterceptor[];
   errorInterceptors: ErrorInterceptor[];
+  retryOptions: RetryOptions;
   cache: {
     enabled: boolean;
     ttl: number;
@@ -139,10 +141,15 @@ interface StatesetClientConfigInternal extends StatesetConfig {
   };
 }
 
+type CacheDirectiveOption = boolean | CacheControlOptions;
+
+type RequestOptionsInternal = RequestOptions & Record<string, any>;
+
 export class StatesetClient {
   private httpClient: EnhancedHttpClient;
   private config: StatesetClientConfigInternal;
   private cache: MemoryCache;
+  private cacheKeyIndex = new Map<string, Set<string>>();
 
   // Core Commerce Resources
   public returns!: Returns;
@@ -298,13 +305,34 @@ export class StatesetClient {
   }
 
   private buildConfig(config: StatesetClientConfig): StatesetClientConfigInternal {
+    const envRetry = parseInt(process.env.STATESET_RETRY || '0', 10);
+    const envRetryDelay = parseInt(process.env.STATESET_RETRY_DELAY_MS || '1000', 10);
+
+    const baseRetryCount = config.retry ?? envRetry;
+    const baseRetryDelay = config.retryDelayMs ?? envRetryDelay;
+
+    const combinedRetryOptions: Partial<RetryOptions> = {
+      ...config.retryOptions,
+    };
+
+    if (config.onRetryAttempt) {
+      combinedRetryOptions.onRetryAttempt = config.onRetryAttempt;
+    }
+
+    const normalizedRetryOptions = this.normalizeRetryOptions(
+      combinedRetryOptions,
+      Math.max(1, baseRetryCount + 1),
+      baseRetryDelay,
+    );
+
     return {
       apiKey: config.apiKey || process.env.STATESET_API_KEY || '',
       baseUrl: config.baseUrl || process.env.STATESET_BASE_URL || 'https://stateset-proxy-server.stateset.cloud.stateset.app/api',
       timeout: config.timeout ?? 60000,
-      retry: config.retry ?? parseInt(process.env.STATESET_RETRY || '0', 10),
-      retryDelayMs: config.retryDelayMs ?? parseInt(process.env.STATESET_RETRY_DELAY_MS || '1000', 10),
-      userAgent: config.userAgent || this.buildUserAgent(),
+      retry: Math.max(0, (normalizedRetryOptions.maxAttempts ?? 1) - 1),
+      retryDelayMs: normalizedRetryOptions.baseDelay ?? baseRetryDelay,
+      retryOptions: normalizedRetryOptions,
+      userAgent: config.userAgent || this.buildUserAgent(config.appInfo),
       additionalHeaders: config.additionalHeaders || {},
       proxy: config.proxy || process.env.STATESET_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
       appInfo: config.appInfo,
@@ -325,21 +353,41 @@ export class StatesetClient {
     };
   }
 
-  private buildUserAgent(): string {
+  private buildUserAgent(appInfo?: StatesetClientConfig['appInfo']): string {
     const packageVersion = process.env.npm_package_version || '1.0.0';
+    const info = appInfo ?? this.config?.appInfo;
     let ua = `stateset-node/${packageVersion}`;
-    
-    if (this.config?.appInfo) {
-      ua += ` ${this.config.appInfo.name}`;
-      if (this.config.appInfo.version) {
-        ua += `/${this.config.appInfo.version}`;
+
+    if (info) {
+      ua += ` ${info.name}`;
+      if (info.version) {
+        ua += `/${info.version}`;
       }
-      if (this.config.appInfo.url) {
-        ua += ` (${this.config.appInfo.url})`;
+      if (info.url) {
+        ua += ` (${info.url})`;
       }
     }
-    
+
     return ua;
+  }
+
+  private normalizeRetryOptions(
+    options: Partial<RetryOptions> | undefined,
+    fallbackAttempts: number,
+    fallbackDelay: number,
+  ): RetryOptions {
+    const normalized: Partial<RetryOptions> = { ...(options ?? {}) };
+    const attempts = Math.max(1, normalized.maxAttempts ?? fallbackAttempts);
+    const baseDelay = normalized.baseDelay ?? fallbackDelay;
+
+    normalized.maxAttempts = attempts;
+    normalized.baseDelay = baseDelay;
+
+    if (normalized.maxDelay !== undefined && normalized.maxDelay < baseDelay) {
+      normalized.maxDelay = baseDelay;
+    }
+
+    return normalized as RetryOptions;
   }
 
   private buildHttpClientOptions(): HttpClientOptions {
@@ -349,10 +397,7 @@ export class StatesetClient {
       baseURL: this.config.baseUrl!,
       apiKey: this.config.apiKey!,
       timeout: this.config.timeout,
-      retry: {
-        maxAttempts: (this.config.retry || 0) + 1, // retry count + initial attempt
-        baseDelay: this.config.retryDelayMs,
-      },
+      retry: { ...this.config.retryOptions },
       userAgent: this.config.userAgent,
       additionalHeaders: this.config.additionalHeaders,
       maxSockets: this.config.maxSockets,
@@ -576,15 +621,44 @@ export class StatesetClient {
     
     this.config.retry = retry;
     this.config.retryDelayMs = delay;
+    this.config.retryOptions = this.normalizeRetryOptions(
+      { ...this.config.retryOptions, maxAttempts: retry + 1, baseDelay: delay },
+      Math.max(1, retry + 1),
+      delay,
+    );
+    this.httpClient.updateRetryOptions(this.config.retryOptions);
     
     logger.info('Retry options updated successfully', {
       operation: 'client.update_retry_options',
-      metadata: { retry, retryDelayMs: delay },
+      metadata: { retry, retryDelayMs: delay, maxAttempts: this.config.retryOptions.maxAttempts },
     });
   }
 
   setRetryOptions(retry: number, retryDelayMs?: number): void {
     this.updateRetryOptions(retry, retryDelayMs);
+  }
+
+  setRetryStrategy(options: Partial<RetryOptions>): void {
+    const fallbackAttempts = Math.max(1, (this.config.retry ?? 0) + 1);
+    const fallbackDelay = this.config.retryDelayMs ?? 1000;
+
+    this.config.retryOptions = this.normalizeRetryOptions(
+      { ...this.config.retryOptions, ...options },
+      fallbackAttempts,
+      fallbackDelay,
+    );
+    this.config.retry = Math.max(0, this.config.retryOptions.maxAttempts - 1);
+    this.config.retryDelayMs = this.config.retryOptions.baseDelay ?? fallbackDelay;
+    this.httpClient.updateRetryOptions(this.config.retryOptions);
+
+    logger.info('Retry strategy updated successfully', {
+      operation: 'client.update_retry_strategy',
+      metadata: {
+        maxAttempts: this.config.retryOptions.maxAttempts,
+        baseDelay: this.config.retryOptions.baseDelay,
+        jitter: this.config.retryOptions.jitter,
+      },
+    });
   }
 
   /**
@@ -602,6 +676,38 @@ export class StatesetClient {
 
   setHeaders(headers: Record<string, string>): void {
     this.updateHeaders(headers);
+  }
+
+  /**
+   * Update proxy configuration
+   */
+  updateProxy(proxyUrl: string): void {
+    const parsed = this.parseProxyUrl(proxyUrl);
+
+    if (!parsed) {
+      throw new Error('Invalid proxy URL provided');
+    }
+
+    this.config.proxy = proxyUrl;
+    this.httpClient.updateProxy(parsed);
+
+    logger.info('Proxy configuration updated', {
+      operation: 'client.update_proxy',
+      metadata: { host: parsed.host, port: parsed.port, protocol: parsed.protocol },
+    });
+  }
+
+  setProxy(proxyUrl: string): void {
+    this.updateProxy(proxyUrl);
+  }
+
+  clearProxy(): void {
+    this.config.proxy = undefined;
+    this.httpClient.updateProxy(null);
+
+    logger.info('Proxy configuration cleared', {
+      operation: 'client.clear_proxy',
+    });
   }
 
   /**
@@ -696,23 +802,176 @@ export class StatesetClient {
     return safeConfig;
   }
 
+  private resolveCacheDirective(
+    method: string,
+    path: string,
+    params: Record<string, unknown> | undefined,
+    cacheOption: CacheDirectiveOption | undefined,
+    explicitCacheKey?: string,
+    ttlOverride?: number,
+  ): { key: string; ttl?: number } | null {
+    if (method !== 'GET') {
+      return null;
+    }
+
+    if (!this.config.cache.enabled) {
+      return null;
+    }
+
+    if (cacheOption === false) {
+      return null;
+    }
+
+    const derivedKey = explicitCacheKey
+      || (typeof cacheOption === 'object' ? cacheOption.key : undefined)
+      || this.generateCacheKey(path, params || {});
+
+    if (!derivedKey) {
+      return null;
+    }
+
+    const ttl = ttlOverride ?? (typeof cacheOption === 'object' ? cacheOption.ttl : undefined);
+
+    return { key: derivedKey, ttl };
+  }
+
+  private collectInvalidationTargets(
+    method: string,
+    normalizedPath: string,
+    cacheOption: CacheDirectiveOption | undefined,
+    overridePaths?: string | string[],
+  ): Set<string> {
+    const targets = new Set<string>();
+
+    if (method !== 'GET' && normalizedPath) {
+      targets.add(normalizedPath);
+    }
+
+    const addPaths = (paths?: string | string[]): void => {
+      if (!paths) {
+        return;
+      }
+
+      const list = Array.isArray(paths) ? paths : [paths];
+      for (const raw of list) {
+        const normalized = this.normalizePath(raw);
+        if (normalized) {
+          targets.add(normalized);
+        }
+      }
+    };
+
+    addPaths(overridePaths);
+
+    if (typeof cacheOption === 'object') {
+      addPaths(cacheOption.invalidate);
+    }
+
+    return targets;
+  }
+
+  private generateCacheKey(path: string, params: Record<string, unknown>): string {
+    const serializedParams = params && Object.keys(params).length > 0
+      ? JSON.stringify(params)
+      : '';
+    return `${path}:${serializedParams}`;
+  }
+
+  private normalizePath(path: string): string {
+    if (!path) {
+      return '';
+    }
+
+    const withoutQuery = path.split('?')[0];
+    return withoutQuery.replace(/^\/+/, '').replace(/\/+$/, '');
+  }
+
+  private indexCacheKey(normalizedPath: string, cacheKey: string): void {
+    if (!normalizedPath) {
+      return;
+    }
+
+    const existing = this.cacheKeyIndex.get(normalizedPath) ?? new Set<string>();
+    existing.add(cacheKey);
+    this.cacheKeyIndex.set(normalizedPath, existing);
+  }
+
+  private invalidateCacheForPath(normalizedPath: string): void {
+    if (!normalizedPath || this.cacheKeyIndex.size === 0) {
+      return;
+    }
+
+    let removedEntries = 0;
+
+    for (const [storedPath, keys] of this.cacheKeyIndex.entries()) {
+      if (!this.pathsOverlap(normalizedPath, storedPath)) {
+        continue;
+      }
+
+      for (const key of keys) {
+        if (this.cache.delete(key)) {
+          removedEntries++;
+        }
+      }
+
+      this.cacheKeyIndex.delete(storedPath);
+    }
+
+    if (removedEntries > 0) {
+      logger.debug('Cache invalidated for path', {
+        operation: 'client.cache_invalidate',
+        metadata: { path: normalizedPath, removedEntries },
+      });
+    }
+  }
+
+  private pathsOverlap(pathA: string, pathB: string): boolean {
+    if (pathA === pathB) {
+      return true;
+    }
+
+    if (!pathA || !pathB) {
+      return false;
+    }
+
+    return pathA.startsWith(`${pathB}/`) || pathB.startsWith(`${pathA}/`);
+  }
+
   /**
    * Enhanced request method with caching and performance monitoring
    */
-  async request(method: string, path: string, data?: any, options: any = {}): Promise<any> {
-    const timer = this.config.performance.enabled 
-      ? performanceMonitor.startTimer(`client.request.${method.toUpperCase()}.${path}`)
+  async request(method: string, path: string, data?: any, options: RequestOptionsInternal = {}): Promise<any> {
+    const methodUpper = method.toUpperCase();
+    const timer = this.config.performance.enabled
+      ? performanceMonitor.startTimer(`client.request.${methodUpper}.${path}`)
       : null;
 
+    const {
+      cache: cacheOption,
+      cacheKey: explicitCacheKey,
+      cacheTTL,
+      invalidateCachePaths,
+      signal,
+      idempotencyKey,
+      retryOptions: perRequestRetry,
+      onRetryAttempt,
+      ...axiosOptions
+    } = options || {};
+
     try {
-      // Generate cache key for GET requests
-      const cacheKey = method.toUpperCase() === 'GET' 
-        ? `${path}:${JSON.stringify(options.params || {})}`
-        : null;
+      const normalizedPath = this.normalizePath(path);
+      const cacheDirective = this.resolveCacheDirective(
+        methodUpper,
+        path,
+        axiosOptions.params as Record<string, unknown> | undefined,
+        cacheOption,
+        explicitCacheKey,
+        cacheTTL,
+      );
 
       // Check cache for GET requests
-      if (this.config.cache.enabled && cacheKey) {
-        const cached = this.cache.get(cacheKey);
+      if (this.config.cache.enabled && cacheDirective) {
+        const cached = this.cache.get(cacheDirective.key);
         if (cached) {
           timer?.end(true);
           logger.debug('Request served from cache', {
@@ -728,19 +987,57 @@ export class StatesetClient {
         metadata: { method, path },
       });
 
-      const config = {
-        method: method.toLowerCase(),
+      const {
+        headers: providedHeaders,
+        ...restAxiosOptions
+      } = axiosOptions as { headers?: Record<string, string> };
+
+      const headers = providedHeaders ? { ...providedHeaders } : {};
+      if (idempotencyKey) {
+        headers['Idempotency-Key'] = idempotencyKey;
+      }
+
+      const config: Record<string, any> = {
+        method: methodUpper.toLowerCase(),
         url: path,
         data,
-        ...options,
+        ...restAxiosOptions,
+        headers,
       };
+
+      if (signal) {
+        config.signal = signal;
+      }
+
+      if (perRequestRetry || onRetryAttempt) {
+        config.statesetRetryOptions = {
+          ...(perRequestRetry as Partial<RetryOptions> | undefined),
+          ...(onRetryAttempt ? { onRetryAttempt } : {}),
+        } as Partial<RetryOptions>;
+      }
 
       const response = await this.httpClient.request(config);
       const result = response.data;
 
+      if (this.config.cache.enabled) {
+        const invalidationTargets = this.collectInvalidationTargets(
+          methodUpper,
+          normalizedPath,
+          cacheOption,
+          invalidateCachePaths,
+        );
+
+        if (methodUpper === 'GET' && cacheDirective) {
+          invalidationTargets.delete(normalizedPath);
+        }
+
+        invalidationTargets.forEach(target => this.invalidateCacheForPath(target));
+      }
+
       // Cache successful GET responses
-      if (this.config.cache.enabled && cacheKey && method.toUpperCase() === 'GET') {
-        this.cache.set(cacheKey, result);
+      if (this.config.cache.enabled && cacheDirective) {
+        this.cache.set(cacheDirective.key, result, cacheDirective.ttl);
+        this.indexCacheKey(normalizedPath, cacheDirective.key);
       }
 
       timer?.end(true);
@@ -768,6 +1065,7 @@ export class StatesetClient {
    */
   clearCache(): void {
     this.cache.clear();
+    this.cacheKeyIndex.clear();
     logger.info('Cache cleared manually', {
       operation: 'client.clear_cache',
     });
@@ -785,6 +1083,10 @@ export class StatesetClient {
    */
   setCacheEnabled(enabled: boolean): void {
     this.config.cache.enabled = enabled;
+    if (!enabled) {
+      this.cache.clear();
+      this.cacheKeyIndex.clear();
+    }
     logger.info(`Cache ${enabled ? 'enabled' : 'disabled'}`, {
       operation: 'client.set_cache_enabled',
       metadata: { enabled },
@@ -829,6 +1131,7 @@ export class StatesetClient {
   destroy(): void {
     this.httpClient.destroy();
     this.cache.destroy();
+    this.cacheKeyIndex.clear();
     
     logger.info('StatesetClient destroyed', {
       operation: 'client.destroy',

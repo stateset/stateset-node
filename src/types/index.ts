@@ -1,9 +1,13 @@
+import type { RetryOptions, RetryAttempt } from '../utils/retry';
+
 // Core Types
 export interface StatesetConfig {
   apiKey?: string;
   baseUrl?: string;
   retry?: number;
   retryDelayMs?: number;
+  retryOptions?: Partial<RetryOptions>;
+  onRetryAttempt?: (attempt: RetryAttempt) => void;
   timeout?: number;
   userAgent?: string;
   additionalHeaders?: Record<string, string>;
@@ -21,6 +25,20 @@ export interface RequestOptions {
   retries?: number;
   headers?: Record<string, string>;
   params?: Record<string, unknown>;
+  signal?: AbortSignal;
+  idempotencyKey?: string;
+  cache?: boolean | CacheControlOptions;
+  /**
+   * @deprecated Use cache.key instead.
+   */
+  cacheKey?: string;
+  /**
+   * @deprecated Use cache.ttl instead.
+   */
+  cacheTTL?: number;
+  invalidateCachePaths?: string | string[];
+  retryOptions?: Partial<RetryOptions>;
+  onRetryAttempt?: (attempt: RetryAttempt) => void;
 }
 
 export interface PaginationParams {
@@ -34,6 +52,12 @@ export interface ListResponse<T> {
   has_more: boolean;
   total_count?: number;
   next_cursor?: string;
+}
+
+export interface CacheControlOptions {
+  key?: string;
+  ttl?: number;
+  invalidate?: string | string[];
 }
 
 // Resource Operation Types
@@ -326,13 +350,31 @@ export interface WorkOrderPart {
 
 // AI Agent Types
 export interface Agent extends BaseEntity {
-  name: string;
+  agent_name?: string;
+  agent_type?: string;
   description?: string;
-  type: 'customer_service' | 'sales' | 'technical_support' | 'general';
-  status: 'active' | 'inactive' | 'training';
-  capabilities: string[];
-  knowledge_base_ids: string[];
-  attributes: Record<string, unknown>;
+  activated?: boolean;
+  last_updated?: string;
+  org_id?: string;
+  voice_model?: string;
+  voice_model_id?: string;
+  voice_model_provider?: string;
+  user_id?: string;
+  goal?: string;
+  instructions?: string;
+  role?: string;
+  avatar_url?: string;
+  mcp_servers?: Record<string, unknown>;
+  model_id?: string;
+  skills?: Record<string, unknown>;
+  attributes?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  // Legacy fields kept for backward compatibility
+  name?: string;
+  type?: 'customer_service' | 'sales' | 'technical_support' | 'general';
+  status?: 'active' | 'inactive' | 'training';
+  capabilities?: string[];
+  knowledge_base_ids?: string[];
   metrics?: AgentMetrics;
 }
 

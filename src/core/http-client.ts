@@ -42,7 +42,11 @@ export interface ResponseMetadata extends RequestMetadata {
 
 export type RequestInterceptor = (config: InternalAxiosRequestConfig & { metadata?: RequestMetadata }) => InternalAxiosRequestConfig | Promise<InternalAxiosRequestConfig>;
 export type ResponseInterceptor = (response: AxiosResponse & { metadata?: ResponseMetadata }) => AxiosResponse | Promise<AxiosResponse>;
-export type ErrorInterceptor = (error: AxiosError & { metadata?: RequestMetadata }) => Promise<AxiosError>;
+export type ErrorInterceptor = (error: AxiosError & { metadata?: RequestMetadata }) => void | AxiosError | Promise<void | AxiosError>;
+
+type InternalAxiosRequestConfigWithRetry = AxiosRequestConfig & {
+  statesetRetryOptions?: Partial<RetryOptions>;
+};
 
 export class EnhancedHttpClient {
   private axiosInstance: AxiosInstance;
@@ -178,10 +182,15 @@ export class EnhancedHttpClient {
         }
 
         // Apply custom error interceptors
-        await this.applyErrorInterceptors(error);
+        let processedError: AxiosError;
+        try {
+          processedError = await this.applyErrorInterceptors(error);
+        } catch (interceptorError) {
+          throw interceptorError;
+        }
         
         // Transform axios errors to Stateset errors
-        throw this.transformError(error);
+        throw this.transformError(processedError);
       }
     );
   }
@@ -202,10 +211,17 @@ export class EnhancedHttpClient {
     return result;
   }
 
-  private async applyErrorInterceptors(error: AxiosError): Promise<void> {
+  private async applyErrorInterceptors(error: AxiosError): Promise<AxiosError> {
+    let current = error;
+
     for (const interceptor of this.errorInterceptors) {
-      await interceptor(error);
+      const result = await interceptor(current as AxiosError & { metadata?: RequestMetadata });
+      if (result) {
+        current = result;
+      }
     }
+
+    return current;
   }
 
   private transformError(error: AxiosError): StatesetError {
@@ -295,11 +311,17 @@ export class EnhancedHttpClient {
     return this.request({ ...config, method: 'DELETE', url });
   }
 
-  async request<T = any>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request<T>(config));
+  async request<T = any>(config: InternalAxiosRequestConfigWithRetry): Promise<AxiosResponse<T>> {
+    const { statesetRetryOptions, ...axiosConfig } = config as InternalAxiosRequestConfigWithRetry;
+    const mergedRetryOptions = {
+      ...this.retryOptions,
+      ...statesetRetryOptions,
+    };
+
+    const operation = () => this.circuitBreaker.execute(() => this.axiosInstance.request<T>(axiosConfig));
     
-    if (this.retryOptions.maxAttempts && this.retryOptions.maxAttempts > 1) {
-      return withRetry(operation, this.retryOptions);
+    if (mergedRetryOptions.maxAttempts && mergedRetryOptions.maxAttempts > 1) {
+      return withRetry(operation, mergedRetryOptions);
     }
     
     return operation();
@@ -344,6 +366,14 @@ export class EnhancedHttpClient {
 
   updateHeaders(headers: Record<string, string>): void {
     Object.assign(this.axiosInstance.defaults.headers.common, headers);
+  }
+
+  updateRetryOptions(retry?: Partial<RetryOptions>): void {
+    this.retryOptions = retry ? { ...retry } : {};
+  }
+
+  updateProxy(proxy?: HttpClientOptions['proxy'] | null): void {
+    this.axiosInstance.defaults.proxy = proxy || false;
   }
 
   getCircuitBreakerState(): string {

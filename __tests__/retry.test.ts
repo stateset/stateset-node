@@ -81,6 +81,27 @@ describe('Retry Utility', () => {
       
       global.setTimeout = originalSetTimeout;
     });
+
+    it('should invoke retry callback on each attempt', async () => {
+      const mockOperation = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Temporary'))
+        .mockRejectedValueOnce(new Error('Temporary'))
+        .mockResolvedValue('ok');
+
+      const onRetryAttempt = jest.fn();
+
+      const result = await withRetry(mockOperation, {
+        maxAttempts: 3,
+        baseDelay: 10,
+        onRetryAttempt,
+      });
+
+      expect(result).toBe('ok');
+      expect(onRetryAttempt).toHaveBeenCalledTimes(2);
+      expect(onRetryAttempt).toHaveBeenNthCalledWith(1, expect.objectContaining({ attempt: 1 }));
+      expect(onRetryAttempt).toHaveBeenNthCalledWith(2, expect.objectContaining({ attempt: 2 }));
+    });
   });
 
   describe('CircuitBreaker', () => {

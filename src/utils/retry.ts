@@ -7,6 +7,7 @@ export interface RetryOptions {
   backoffMultiplier?: number;
   jitter?: boolean;
   retryCondition?: (error: Error) => boolean;
+  onRetryAttempt?: (attempt: RetryAttempt) => void;
 }
 
 export interface RetryAttempt {
@@ -26,20 +27,23 @@ export class RetryError extends Error {
   }
 }
 
-const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
+type InternalRetryOptions = Required<Omit<RetryOptions, 'onRetryAttempt'>> & Pick<RetryOptions, 'onRetryAttempt'>;
+
+const DEFAULT_RETRY_OPTIONS: InternalRetryOptions = {
   maxAttempts: 3,
   baseDelay: 1000,
   maxDelay: 30000,
   backoffMultiplier: 2,
   jitter: true,
   retryCondition: () => true, // Default: retry all errors
+  onRetryAttempt: undefined,
 };
 
 export async function withRetry<T>(
   operation: () => Promise<T>,
   options: Partial<RetryOptions> = {}
 ): Promise<T> {
-  const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
+  const config: InternalRetryOptions = { ...DEFAULT_RETRY_OPTIONS, ...options };
   const attempts: RetryAttempt[] = [];
   let lastError: Error;
 
@@ -73,7 +77,8 @@ export async function withRetry<T>(
       }
       
       const delay = calculateDelay(attempt, config);
-      attempts.push({ attempt, delay, error: lastError });
+      const attemptInfo: RetryAttempt = { attempt, delay, error: lastError };
+      attempts.push(attemptInfo);
       
       logger.warn('Operation failed, retrying', {
         operation: 'retry',
@@ -85,6 +90,7 @@ export async function withRetry<T>(
         },
       });
       
+      config.onRetryAttempt?.(attemptInfo);
       await sleep(delay);
     }
   }
@@ -96,7 +102,7 @@ export async function withRetry<T>(
   );
 }
 
-function calculateDelay(attempt: number, options: Required<RetryOptions>): number {
+function calculateDelay(attempt: number, options: InternalRetryOptions): number {
   let delay = options.baseDelay * Math.pow(options.backoffMultiplier, attempt - 1);
   delay = Math.min(delay, options.maxDelay);
   
