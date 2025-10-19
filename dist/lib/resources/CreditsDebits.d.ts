@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum CreditDebitType {
@@ -46,7 +46,7 @@ export declare class CreditsDebitsValidationError extends CreditsDebitsError {
 }
 export default class CreditsDebits {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateCreditsDebitsData;
     private mapResponse;
     list(params?: {

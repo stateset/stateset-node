@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type UnitOfWeight = 'lb' | 'kg' | 'oz';
 type UnitOfLength = 'in' | 'cm';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -242,7 +242,7 @@ export declare class CarrierApiError extends ShipmentError {
 }
 export declare class Shipments {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private validateShipmentData;
     list(params?: {
         status?: ShipmentStatus;

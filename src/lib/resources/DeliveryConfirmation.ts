@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -58,7 +58,7 @@ export class DeliveryConfirmationValidationError extends DeliveryConfirmationErr
 }
 
 export default class DeliveryConfirmations {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateDeliveryConfirmationData(data: DeliveryConfirmationData): void {
     if (!data.shipment_id) throw new DeliveryConfirmationValidationError('Shipment ID is required');

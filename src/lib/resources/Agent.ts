@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Agent Types and Interfaces
 export type AgentStatus = 'AVAILABLE' | 'BUSY' | 'OFFLINE' | 'ON_BREAK';
@@ -150,7 +150,7 @@ export class AgentOperationError extends Error {
 
 // Main Agents Class
 class Agents {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * Transforms API response into a strongly-typed AgentResponse

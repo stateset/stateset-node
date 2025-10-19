@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum KnowledgeType {
     DOCUMENT = "document",
     FAQ = "faq",
@@ -30,7 +30,7 @@ export declare class KnowledgeValidationError extends Error {
 }
 declare class Knowledge {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List knowledge items with optional filtering
      */

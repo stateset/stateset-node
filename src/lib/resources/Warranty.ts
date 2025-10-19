@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -111,7 +111,7 @@ export class WarrantyOperationError extends WarrantyError {
 
 // Main Warranty Class
 export class Warranty {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateWarrantyData(data: WarrantyData): void {
     if (!data.customer_id) throw new WarrantyValidationError('Customer ID is required');

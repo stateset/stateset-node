@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -64,7 +64,7 @@ export class CreditsDebitsValidationError extends CreditsDebitsError {
 }
 
 export default class CreditsDebits {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateCreditsDebitsData(data: CreditsDebitsData): void {
     if (!data.customer_id) throw new CreditsDebitsValidationError('Customer ID is required');

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -66,7 +66,7 @@ export class ResourceUtilizationValidationError extends ResourceUtilizationError
 }
 
 export default class ResourceUtilization {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateResourceUtilizationData(data: ResourceUtilizationData): void {
     if (!data.resource_id) throw new ResourceUtilizationValidationError('Resource ID is required');

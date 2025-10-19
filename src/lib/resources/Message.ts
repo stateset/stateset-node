@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for message management
 export enum MessageType {
@@ -156,7 +156,7 @@ export class MessageDeliveryError extends Error {
 
 // Main Messages Class
 class Messages {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List messages with optional filtering

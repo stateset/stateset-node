@@ -1,5 +1,5 @@
 // lib/resources/Supplier.ts
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -109,7 +109,7 @@ export class SupplierValidationError extends SupplierError {
 }
 
 export default class Suppliers {
-  constructor(private client: stateset) {}
+  constructor(private client: ApiClientLike) {}
 
   private validateSupplierData(data: SupplierData): void {
     if (!data.name) throw new SupplierValidationError('Supplier name is required');

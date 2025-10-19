@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum VendorStatus {
@@ -74,7 +74,7 @@ export declare class VendorValidationError extends VendorError {
 }
 export default class Vendors {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private validateVendorData;
     private mapResponse;
     list(params?: {

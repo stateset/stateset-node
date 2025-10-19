@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export type CashSaleStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 interface BaseCashSaleResponse {
     id: string;
@@ -36,7 +36,7 @@ export interface CashSaleData {
 }
 declare class CashSales {
     private stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private handleCommandResponse;
     list(): Promise<CashSaleResponse[]>;
     get(id: string): Promise<CashSaleResponse>;

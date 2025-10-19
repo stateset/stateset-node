@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums
 export enum InventoryStatus {
@@ -141,7 +141,7 @@ export class InventoryValidationError extends InventoryError {
 
 // Main Inventory Class
 export class Inventory {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private async request<T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -70,7 +70,7 @@ export class MaintenanceScheduleValidationError extends MaintenanceScheduleError
 }
 
 export default class MaintenanceSchedules {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateMaintenanceScheduleData(data: MaintenanceScheduleData): void {
     if (!data.asset_id) throw new MaintenanceScheduleValidationError('Asset ID is required');

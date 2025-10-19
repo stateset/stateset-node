@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for workflow management
 export enum WorkflowType {
@@ -208,7 +208,7 @@ export class WorkflowExecutionError extends Error {
 
 // Main Workflows Class
 class Workflows {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List workflows with optional filtering

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -221,7 +221,7 @@ export class ResourceConflictError extends WorkorderError {
 
 // Main Workorders Class
 export class Workorders {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateWorkorderData(data: WorkorderData): void {
     if (!data.description) throw new WorkorderValidationError('Description is required');

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum AttributeType {
     PERSONALITY = "personality",
     TONE = "tone",
@@ -77,7 +77,7 @@ export declare class AttributeOperationError extends Error {
 }
 declare class Attributes {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * Validates attribute value against min/max constraints
      */

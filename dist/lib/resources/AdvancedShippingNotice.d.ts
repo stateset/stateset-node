@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum ASNStatus {
     DRAFT = "DRAFT",
     SUBMITTED = "SUBMITTED",
@@ -63,7 +63,7 @@ export declare class ASNStateError extends ASNError {
 }
 export declare class ASN {
     private readonly client;
-    constructor(client: stateset);
+    constructor(client: ApiClientLike);
     private request;
     private normalizeResponse;
     list(params?: {

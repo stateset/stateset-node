@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -104,7 +104,7 @@ export class ShipmentLineValidationError extends ShipmentLineError {
 
 // Main ShipmentLine Class
 export class ShipmentLine {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validateShipmentLineData(data: ShipmentLineData): void {
     if (!data.shipment_id) {

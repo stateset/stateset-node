@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum QualityControlStatus {
@@ -53,7 +53,7 @@ export declare class QualityControlValidationError extends QualityControlError {
 }
 export default class QualityControl {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateQualityControlData;
     private mapResponse;
     list(params?: {

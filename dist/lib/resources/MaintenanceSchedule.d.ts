@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 type NonEmptyString<T extends string> = T extends '' ? never : T;
 type Timestamp = string;
 export declare enum MaintenanceScheduleStatus {
@@ -52,7 +52,7 @@ export declare class MaintenanceScheduleValidationError extends MaintenanceSched
 }
 export default class MaintenanceSchedules {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     private validateMaintenanceScheduleData;
     private mapResponse;
     list(params?: {

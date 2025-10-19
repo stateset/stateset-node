@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 interface PurchaseOrderLineItem {
   id: string;
@@ -19,7 +19,7 @@ interface PurchaseOrderLineItem {
 }
 
 class PurchaseOrderLines {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   /**
    * List all purchase order lines

@@ -1,5 +1,5 @@
 // lib/resources/Product.ts
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -102,7 +102,7 @@ export class ProductValidationError extends ProductError {
 }
 
 export default class Products {
-  constructor(private client: stateset) {}
+  constructor(private client: ApiClientLike) {}
 
   private validateProductData(data: ProductData): void {
     if (!data.name) throw new ProductValidationError('Product name is required');

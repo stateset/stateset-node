@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -66,7 +66,7 @@ export class QualityControlValidationError extends QualityControlError {
 }
 
 export default class QualityControl {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateQualityControlData(data: QualityControlData): void {
     if (!data.inspector_id) throw new QualityControlValidationError('Inspector ID is required');

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum WorkflowType {
     SEQUENTIAL = "sequential",
     PARALLEL = "parallel",
@@ -181,7 +181,7 @@ export declare class WorkflowExecutionError extends Error {
 }
 declare class Workflows {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List workflows with optional filtering
      * @param params - Filtering parameters

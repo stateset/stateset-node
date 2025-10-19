@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export declare enum WarehouseStatus {
     ACTIVE = "ACTIVE",
     INACTIVE = "INACTIVE",
@@ -200,7 +200,7 @@ export declare class InventoryOperationError extends Error {
 }
 declare class Warehouses {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * List warehouses with optional filtering
      * @param params - Filtering parameters

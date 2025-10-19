@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 export type ItemReceiptStatus = 'PENDING' | 'RECEIVED' | 'PARTIAL' | 'CANCELLED';
 
@@ -47,7 +47,7 @@ export interface ItemReceiptData {
 }
 
 class ItemReceipts {
-  constructor(private stateset: stateset) {}
+  constructor(private stateset: ApiClientLike) {}
 
   private handleCommandResponse(response: any): ItemReceiptResponse {
     if (response.error) {

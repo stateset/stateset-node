@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -213,7 +213,7 @@ export class PickOperationError extends PickError {
 
 // Main Picks Class
 export class Picks {
-  constructor(private readonly client: stateset) {}
+  constructor(private readonly client: ApiClientLike) {}
 
   private validatePickData(data: PickData): void {
     if (!data.warehouse_id) throw new PickValidationError('Warehouse ID is required');

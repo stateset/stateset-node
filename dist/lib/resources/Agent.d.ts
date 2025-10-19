@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 export type AgentStatus = 'AVAILABLE' | 'BUSY' | 'OFFLINE' | 'ON_BREAK';
 export type AgentRole = 'CUSTOMER_SERVICE' | 'SALES' | 'SUPPORT' | 'ADMIN';
 export type AgentCapability = 'CHAT' | 'VOICE' | 'EMAIL' | 'VIDEO';
@@ -68,7 +68,7 @@ export declare class AgentOperationError extends Error {
 }
 declare class Agents {
     private readonly stateset;
-    constructor(stateset: stateset);
+    constructor(stateset: ApiClientLike);
     /**
      * Transforms API response into a strongly-typed AgentResponse
      */

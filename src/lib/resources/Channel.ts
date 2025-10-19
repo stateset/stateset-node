@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for channel management
 export enum ChannelType {
@@ -177,7 +177,7 @@ export class ChannelOperationError extends Error {
 
 // Main Channels Class
 class Channels {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List channels with optional filtering

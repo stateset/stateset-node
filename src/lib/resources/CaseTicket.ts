@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -73,7 +73,7 @@ export class CaseTicketValidationError extends CaseTicketError {
 }
 
 export default class CasesTickets {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateCaseTicketData(data: CaseTicketData): void {
     if (!data.customer_id) throw new CaseTicketValidationError('Customer ID is required');

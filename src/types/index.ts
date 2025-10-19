@@ -19,6 +19,11 @@ export interface StatesetConfig {
   };
 }
 
+// Minimal client interface used by resource classes
+export interface ApiClientLike {
+  request(method: string, path: string, data?: any, options?: any): Promise<any>;
+}
+
 // HTTP Types
 export interface RequestOptions {
   timeout?: number;

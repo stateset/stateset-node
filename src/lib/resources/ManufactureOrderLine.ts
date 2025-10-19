@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -113,7 +113,7 @@ export class ManufactureOrderLineValidationError extends ManufactureOrderLineErr
 
 // Main ManufactureOrderLines Class
 export default class ManufactureOrderLines {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   private validateManufactureOrderLineData(data: ManufactureOrderLineData): void {
     if (!data.manufacture_order_id) {

@@ -1,4 +1,4 @@
-import { stateset } from '../../stateset-client';
+import type { ApiClientLike } from '../../types';
 
 // Enums for schedule management
 export enum ScheduleType {
@@ -185,7 +185,7 @@ export class ScheduleExecutionError extends Error {
 
 // Main Schedule Class
 class Schedule {
-  constructor(private readonly stateset: stateset) {}
+  constructor(private readonly stateset: ApiClientLike) {}
 
   /**
    * List schedules with optional filtering
