@@ -271,17 +271,22 @@ Keep the repo healthy by running the standard toolchain before opening a pull re
 
 ## Try out a sample app
 
-This repository contains sample Node and web apps demonstrating how the SDK can access and utilize the Stateset API for various use cases.
+This repository contains sample Node scripts demonstrating how to use the SDK with both live and mocked transports. Highlights:
 
-**To try out the sample Node app, follow these steps:**
+- `samples/orders-flow-sample.ts` – exercises resource helpers, cache invalidation, and metrics generation using an in-memory mock transport.
+- `samples/inventory-cache-sample.ts` – shows advanced cache configuration, explicit invalidation, and bypassing cache for live reads.
+- `samples/openai-integration-sample.ts` – illustrates the OpenAI helper’s happy-path and error handling without calling the real API.
+- Legacy integration examples (e.g., `shipStationSample.js`) remain available for direct API experimentation.
 
-1. **Check out the Stateset Node.js Library repository.**
-2. **Obtain an API key from the Stateset Cloud Platform Dashboard.**
-3. **Navigate to the `samples` folder and run `npm install`.**
-4. **Set your API key as an environment variable: `export STATESET_API_KEY=YOUR_API_KEY`.**
-   You can also override the API base URL with `export STATESET_BASE_URL=https://your-endpoint`.
-5. **Open the sample file you're interested in, e.g., `returns_list.js`.**
-6. **Run the sample file: `node returns_list.js`.**
+To run the TypeScript samples locally:
+
+1. Install dependencies: `npm install`.
+2. Build the SDK: `npm run build` (ensures TypeScript paths resolve).
+3. Execute a sample with `npx ts-node`, for example:
+   ```bash
+   npx ts-node samples/orders-flow-sample.ts
+   ```
+   The new samples do not require live API keys because the HTTP layer is mocked. For legacy samples that call real services, export the required credentials (e.g., `STATESET_API_KEY`) before running them with `node`.
 
 ## Documentation
 
