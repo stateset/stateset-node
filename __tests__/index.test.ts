@@ -1,4 +1,4 @@
-import StatesetClient, { OpenAIIntegration, stateset } from '../src';
+import StatesetClient, { OpenAIIntegration, OpenAIIntegrationError, stateset } from '../src';
 
 test('exports stateset class', () => {
   expect(typeof StatesetClient).toBe('function');
@@ -47,18 +47,43 @@ test('new client has proper resources', () => {
   expect(client.inventory).toBeDefined();
 });
 
-test('OpenAIIntegration sends chat completion request', async () => {
-  const integration: any = new OpenAIIntegration('test-key', 'https://example.com');
+test('OpenAIIntegration sends chat completion request with defaults', async () => {
+  const integration: any = new OpenAIIntegration('test-key', { baseUrl: 'https://example.com' });
   const mockPost = jest.spyOn(integration.client, 'post').mockResolvedValue({
     data: {
       choices: [{ index: 0, message: { role: 'assistant', content: 'hi' }, finish_reason: 'stop' }],
     },
   });
 
-  const res = await integration.createChatCompletion([{ role: 'user', content: 'hello' }]);
+  const res = await integration.createChatCompletion([{ role: 'user', content: 'hello' }], {
+    temperature: 0.6,
+  });
 
-  expect(mockPost).toHaveBeenCalledWith('/chat/completions', expect.any(Object));
+  expect(mockPost).toHaveBeenCalledTimes(1);
+  const [path, payload] = mockPost.mock.calls[0];
+  expect(path).toBe('/chat/completions');
+  expect(payload).toMatchObject({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: 'hello' }],
+    temperature: 0.6,
+  });
   expect(res.choices[0].message.content).toBe('hi');
+});
+
+test('OpenAIIntegration wraps axios errors', async () => {
+  const integration: any = new OpenAIIntegration('test-key', { baseUrl: 'https://example.com' });
+  jest.spyOn(integration.client, 'post').mockRejectedValue({
+    isAxiosError: true,
+    message: 'Bad Request',
+    response: {
+      status: 400,
+      data: { error: { message: 'missing prompt' } },
+    },
+  });
+
+  await expect(
+    integration.createChatCompletion([{ role: 'user', content: 'hello' }])
+  ).rejects.toBeInstanceOf(OpenAIIntegrationError);
 });
 
 test.skip('Shipments.generateLabel sends request', async () => {

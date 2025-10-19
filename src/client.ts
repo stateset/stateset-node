@@ -425,8 +425,25 @@ export class StatesetClient {
   private parseProxyUrl(proxyUrl: string) {
     try {
       const parsed = new URL(proxyUrl);
+      const protocol = parsed.protocol.replace(':', '');
+
+      if (!['http', 'https'].includes(protocol)) {
+        logger.warn('Unsupported proxy protocol provided', {
+          operation: 'client.init',
+          metadata: { protocol },
+        });
+        return undefined;
+      }
+
+      if (!parsed.hostname) {
+        logger.warn('Proxy URL missing hostname', {
+          operation: 'client.init',
+        });
+        return undefined;
+      }
+
       return {
-        protocol: parsed.protocol.replace(':', ''),
+        protocol,
         host: parsed.hostname,
         port: Number(parsed.port) || (parsed.protocol === 'https:' ? 443 : 80),
         auth:

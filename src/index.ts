@@ -1,6 +1,6 @@
 import { StatesetClient } from './client';
 import { stateset as legacyStateset } from './stateset-client';
-import OpenAIIntegration from './lib/integrations/OpenAIIntegration';
+import OpenAIIntegration, { OpenAIIntegrationError } from './lib/integrations/OpenAIIntegration';
 import {
   StatesetError,
   StatesetAPIError,
@@ -23,6 +23,7 @@ export const stateset = legacyStateset;
 export {
   StatesetClient,
   OpenAIIntegration,
+  OpenAIIntegrationError,
   StatesetError,
   StatesetAPIError,
   StatesetAuthenticationError,
@@ -35,6 +36,12 @@ export {
 
 // Export types
 export * from './types';
+export type {
+  OpenAIIntegrationOptions,
+  ChatMessage,
+  ChatCompletionOptions,
+  ChatCompletionResponse,
+} from './lib/integrations/OpenAIIntegration';
 
 // Export utilities
 export { logger, LogLevel } from './utils/logger';

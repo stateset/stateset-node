@@ -146,13 +146,26 @@ console.log(notes);
 ### Generating responses with OpenAI
 
 ```javascript
-import { OpenAIIntegration } from 'stateset-node';
+import { OpenAIIntegration, OpenAIIntegrationError } from 'stateset-node';
 
-const openai = new OpenAIIntegration(process.env.OPENAI_API_KEY || 'sk-test');
-const completion = await openai.createChatCompletion([
-  { role: 'user', content: 'Where is my order?' }
-]);
-console.log(completion.choices[0].message.content);
+const openai = new OpenAIIntegration(process.env.OPENAI_API_KEY || 'sk-test', {
+  baseUrl: process.env.OPENAI_BASE_URL,
+  defaultModel: 'gpt-4o-mini',
+});
+
+try {
+  const completion = await openai.createChatCompletion(
+    [{ role: 'user', content: 'Where is my order?' }],
+    { temperature: 0.4 }
+  );
+  console.log(completion.choices[0].message.content);
+} catch (error) {
+  if (error instanceof OpenAIIntegrationError) {
+    console.error('OpenAI request failed', error.status, error.message);
+  } else {
+    throw error;
+  }
+}
 ```
 
 ### Advanced request options
@@ -175,7 +188,9 @@ const inventory = await client.request('GET', '/inventory', null, {
 });
 ```
 
-Disable caching entirely with `cache: false`, or override the default retry strategy globally via `client.setRetryStrategy()` when your deployment requires different backoff semantics.
+Disable caching for a single call with `cache: false`, or turn it off globally with `client.setCacheEnabled(false)`. Mutating requests automatically invalidate related cache keys based on their path plus any `invalidateCachePaths` you provide.
+
+Override the default retry strategy globally via `client.setRetryStrategy()` when your deployment requires different backoff semantics, or pass `retryOptions`/`onRetryAttempt` per request as shown above for fine-grained control.
 
 ### Managing orders
 

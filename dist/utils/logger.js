@@ -29,6 +29,9 @@ class Logger {
             this.handlers.splice(index, 1);
         }
     }
+    removeConsoleHandler() {
+        this.removeHandler(this.consoleHandler);
+    }
     log(level, message, context, error) {
         if (level <= this.level) {
             const entry = {
@@ -116,7 +119,7 @@ exports.logger = new Logger();
 // Configure logger based on environment
 if (process.env.NODE_ENV === 'production') {
     exports.logger.setLevel(LogLevel.WARN);
-    exports.logger.removeHandler(exports.logger['consoleHandler']);
+    exports.logger.removeConsoleHandler();
     exports.logger.addHandler(Logger.jsonHandler);
 }
 else if (process.env.NODE_ENV === 'development') {

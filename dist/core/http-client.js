@@ -205,14 +205,20 @@ class EnhancedHttpClient {
             if (status === 400) {
                 return new StatesetError_1.StatesetInvalidRequestError(raw);
             }
-            if (status === 401 || status === 403) {
-                return new StatesetError_1.StatesetAuthenticationError(raw);
+            if (status === 401) {
+                return new StatesetError_1.StatesetAuthenticationError({ ...raw, type: 'authentication_error' });
+            }
+            if (status === 403) {
+                return new StatesetError_1.StatesetPermissionError({ ...raw, type: 'permission_error' });
             }
             if (status === 404) {
                 return new StatesetError_1.StatesetNotFoundError(raw);
             }
+            if (status === 429) {
+                return new StatesetError_1.StatesetRateLimitError({ ...raw, type: 'rate_limit_error' });
+            }
             if (status >= 500) {
-                return new StatesetError_1.StatesetAPIError(raw);
+                return new StatesetError_1.StatesetAPIError({ ...raw, type: 'api_error' });
             }
         }
         // Network errors

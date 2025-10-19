@@ -28,6 +28,10 @@ declare class StatesetBaseError extends Error implements ErrorInterface {
     request_id?: string;
     constructor(type: string, message: string, raw?: StatesetErrorRaw);
     populate(raw: StatesetErrorRaw): void;
+    toJSON(): StatesetErrorRaw;
+    /**
+     * @deprecated Dynamic subclassing via extend is legacy. Use native `class extends` instead.
+     */
     static extend(subClass: Partial<typeof StatesetBaseError>): typeof StatesetBaseError;
 }
 declare class StatesetError extends StatesetBaseError {
@@ -50,10 +54,10 @@ declare class StatesetConnectionError extends StatesetError {
     constructor(raw: StatesetErrorRaw);
 }
 declare class StatesetPermissionError extends StatesetError {
-    constructor(message: string);
+    constructor(raw: StatesetErrorRaw | string);
 }
 declare class StatesetRateLimitError extends StatesetError {
-    constructor(message: string);
+    constructor(raw: StatesetErrorRaw | string);
 }
 export { StatesetBaseError, StatesetError, StatesetNotFoundError, StatesetInvalidRequestError, StatesetAPIError, StatesetAuthenticationError, StatesetConnectionError, StatesetPermissionError, StatesetRateLimitError, };
 //# sourceMappingURL=StatesetError.d.ts.map

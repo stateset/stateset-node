@@ -16,6 +16,8 @@ import {
   StatesetConnectionError,
   StatesetInvalidRequestError,
   StatesetNotFoundError,
+  StatesetPermissionError,
+  StatesetRateLimitError,
 } from '../StatesetError';
 
 export interface HttpClientOptions {
@@ -268,14 +270,20 @@ export class EnhancedHttpClient {
       if (status === 400) {
         return new StatesetInvalidRequestError(raw);
       }
-      if (status === 401 || status === 403) {
-        return new StatesetAuthenticationError(raw);
+      if (status === 401) {
+        return new StatesetAuthenticationError({ ...raw, type: 'authentication_error' });
+      }
+      if (status === 403) {
+        return new StatesetPermissionError({ ...raw, type: 'permission_error' });
       }
       if (status === 404) {
         return new StatesetNotFoundError(raw);
       }
+      if (status === 429) {
+        return new StatesetRateLimitError({ ...raw, type: 'rate_limit_error' });
+      }
       if (status >= 500) {
-        return new StatesetAPIError(raw);
+        return new StatesetAPIError({ ...raw, type: 'api_error' });
       }
     }
 

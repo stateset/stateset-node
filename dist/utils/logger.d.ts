@@ -26,6 +26,7 @@ declare class Logger {
     setLevel(level: LogLevel): void;
     addHandler(handler: LogHandler): void;
     removeHandler(handler: LogHandler): void;
+    removeConsoleHandler(): void;
     private log;
     error(message: string, context?: LogContext, error?: Error): void;
     warn(message: string, context?: LogContext): void;
