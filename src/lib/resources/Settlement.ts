@@ -20,7 +20,7 @@ export default class Settlements {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'settlements', params);
+    return this.client.request('GET', 'settlements', undefined, { params });
   }
 
   async delete(id: string) {

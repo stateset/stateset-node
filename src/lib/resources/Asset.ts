@@ -110,7 +110,7 @@ export default class Assets {
    * @returns Array of AssetResponse objects
    */
   async list(params?: any): Promise<AssetResponse[]> {
-    const response = await this.client.request('GET', 'assets', params);
+    const response = await this.client.request('GET', 'assets', undefined, { params });
     return response.map((asset: any) => this.handleCommandResponse({ update_assets_by_pk: asset }));
   }
 

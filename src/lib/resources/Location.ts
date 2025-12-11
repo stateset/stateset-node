@@ -41,7 +41,7 @@ export default class Locations {
    * @returns Array of LocationResponse objects
    */
   async list(params?: any) {
-    return this.client.request('GET', 'locations', params);
+    return this.client.request('GET', 'locations', undefined, { params });
   }
 
   /**

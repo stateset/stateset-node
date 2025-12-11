@@ -163,11 +163,12 @@ class Agents {
       throw new AgentOperationError(response.error.message, response.error.code);
     }
 
-    if (!response.update_agents_by_pk) {
+    const agentData =
+      response?.update_agents_by_pk || response?.agent || (response?.object === 'agent' ? response : null);
+
+    if (!agentData?.id) {
       throw new Error('Unexpected response format');
     }
-
-    const agentData = response.update_agents_by_pk;
 
     const baseResponse: BaseAgentResponse = {
       id: agentData.id,

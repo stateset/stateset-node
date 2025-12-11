@@ -20,7 +20,7 @@ export default class Leads {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'leads', params);
+    return this.client.request('GET', 'leads', undefined, { params });
   }
 
   async delete(id: string) {

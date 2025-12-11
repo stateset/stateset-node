@@ -120,7 +120,7 @@ export default class CycleCounts {
    * @returns Array of CycleCountResponse objects
    */
   async list(params?: any): Promise<CycleCountResponse[]> {
-    const response = await this.client.request('GET', 'cycle-counts', params);
+    const response = await this.client.request('GET', 'cycle-counts', undefined, { params });
     return response.map((cycleCount: any) =>
       this.handleCommandResponse({ update_cycle_counts_by_pk: cycleCount })
     );

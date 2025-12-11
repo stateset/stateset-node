@@ -128,7 +128,7 @@ export default class Invoices {
    * @returns Array of InvoiceResponse objects
    */
   async list(params?: any): Promise<InvoiceResponse[]> {
-    const response = await this.client.request('GET', 'invoices', params);
+    const response = await this.client.request('GET', 'invoices', undefined, { params });
     return response.map((invoice: any) =>
       this.handleCommandResponse({ update_invoices_by_pk: invoice })
     );

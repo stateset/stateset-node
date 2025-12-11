@@ -20,7 +20,7 @@ export default class Payouts {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'payouts', params);
+    return this.client.request('GET', 'payouts', undefined, { params });
   }
 
   async delete(id: string) {

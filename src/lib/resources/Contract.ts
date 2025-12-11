@@ -20,7 +20,7 @@ export default class Contracts {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'contracts', params);
+    return this.client.request('GET', 'contracts', undefined, { params });
   }
 
   async delete(id: string) {

@@ -124,7 +124,7 @@ export default class WasteAndScrap {
    * @returns Array of WasteAndScrapResponse objects
    */
   async list(params?: any): Promise<WasteAndScrapResponse[]> {
-    const response = await this.client.request('GET', 'waste-and-scrap', params);
+    const response = await this.client.request('GET', 'waste-and-scrap', undefined, { params });
     return response.map((item: any) =>
       this.handleCommandResponse({ update_waste_and_scrap_by_pk: item })
     );
@@ -142,7 +142,7 @@ export default class WasteAndScrap {
    * @returns Array of WasteAndScrapResponse objects
    */
   async generateReport(params: ReportParams): Promise<any> {
-    return this.client.request('GET', 'waste-and-scrap/report', params);
+    return this.client.request('GET', 'waste-and-scrap/report', undefined, { params });
   }
 
   /**

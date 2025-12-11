@@ -143,7 +143,7 @@ export default class Fulfillment {
    * @returns Array of FulfillmentResponse objects
    */
   async list(params?: any): Promise<FulfillmentResponse[]> {
-    const response = await this.client.request('GET', 'fulfillments', params);
+    const response = await this.client.request('GET', 'fulfillments', undefined, { params });
     return response.map((fulfillment: any) =>
       this.handleCommandResponse({ update_fulfillments_by_pk: fulfillment })
     );

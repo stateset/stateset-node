@@ -800,6 +800,7 @@ class Returns {
       const response = await this.stateset.request(
         'GET',
         `returns/export?${queryParams.toString()}`,
+        null,
         { responseType: 'arraybuffer' }
       );
 

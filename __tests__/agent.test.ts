@@ -205,4 +205,24 @@ describe('Agent Resource', () => {
       expect(result.skills).toEqual(agentData.skills);
     });
   });
+
+  describe('status transitions', () => {
+    it('parses agent payloads returned directly under agent key', async () => {
+      const agentId = 'agent-1';
+      const agentData = {
+        id: agentId,
+        object: 'agent',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        status: 'AVAILABLE',
+      };
+
+      mockRequest.mockResolvedValue({ agent: agentData });
+
+      const result = await agents.setAvailable(agentId);
+
+      expect(mockRequest).toHaveBeenCalledWith('POST', `agents/${agentId}/set-available`);
+      expect(result).toMatchObject({ id: agentId, status: 'AVAILABLE', available: true });
+    });
+  });
 });

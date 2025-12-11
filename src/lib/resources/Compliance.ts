@@ -20,7 +20,7 @@ export default class Compliance {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'compliance', params);
+    return this.client.request('GET', 'compliance', undefined, { params });
   }
 
   async delete(id: string) {

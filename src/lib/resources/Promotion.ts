@@ -20,7 +20,7 @@ export default class Promotions {
   }
 
   async list(params?: any) {
-    return this.client.request('GET', 'promotions', params);
+    return this.client.request('GET', 'promotions', undefined, { params });
   }
 
   async delete(id: string) {

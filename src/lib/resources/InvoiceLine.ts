@@ -41,7 +41,7 @@ export default class InvoiceLines {
    * @returns Array of InvoiceLineItem objects
    */
   async list(params?: any) {
-    return this.client.request('GET', 'invoice-lines', params);
+    return this.client.request('GET', 'invoice-lines', undefined, { params });
   }
 
   /**
