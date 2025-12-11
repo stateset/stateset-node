@@ -112,21 +112,8 @@ export class BillOfMaterials {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      const response = await this.client.request(method, path, data);
-      return response.update_billofmaterials_by_pk || response;
-    } catch (error: any) {
-      if (error?.error) {
-        throw new BOMValidationError(error.error);
-      }
-      if (error.status === 404) {
-        throw new BOMNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        throw new BOMStateError(error.message);
-      }
-      throw error;
-    }
+    const response = await this.client.request(method, path, data);
+    return response.update_billofmaterials_by_pk || response;
   }
 
   private validateComponent(component: Component): void {

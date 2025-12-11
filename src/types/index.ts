@@ -176,9 +176,14 @@ export enum OrderStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
   PROCESSING = 'PROCESSING',
+  PICKING = 'PICKING',
+  PACKING = 'PACKING',
   SHIPPED = 'SHIPPED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
   DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED',
+  RETURNED = 'RETURNED',
   REFUNDED = 'REFUNDED',
 }
 
@@ -195,7 +200,14 @@ export interface OrderItem {
 
 export interface PaymentDetails {
   payment_method: string;
-  status: 'pending' | 'authorized' | 'captured' | 'failed' | 'refunded';
+  status:
+    | 'pending'
+    | 'authorized'
+    | 'paid'
+    | 'captured'
+    | 'partially_refunded'
+    | 'refunded'
+    | 'failed';
   amount_paid: number;
   currency: string;
   transaction_id?: string;
@@ -234,6 +246,8 @@ export enum ReturnStatus {
   COMPLETED = 'COMPLETED',
   REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED',
+  CLOSED = 'CLOSED',
+  REOPENED = 'REOPENED',
 }
 
 export enum ReturnReason {

@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 type PackingListStatus = 'DRAFT' | 'SUBMITTED' | 'VERIFIED' | 'SHIPPED' | 'CANCELLED';
 
@@ -81,8 +82,19 @@ interface PackingListData {
   [key: string]: any;
 }
 
-class PackingList {
-  constructor(private stateset: ApiClientLike) {}
+class PackingList extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'packinglists', 'packinglists');
+    this.singleKey = 'update_packinglists_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_packinglists_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): PackingListResponse {
     if (response.error) {
@@ -121,11 +133,8 @@ class PackingList {
    * Get all packing lists
    * @returns Array of PackingListResponse objects
    */
-  async list(): Promise<PackingListResponse[]> {
-    const response = await this.stateset.request('GET', 'packinglists');
-    return response.map((packingList: any) =>
-      this.handleCommandResponse({ update_packinglists_by_pk: packingList })
-    );
+  override async list(): Promise<PackingListResponse[]> {
+    return super.list();
   }
 
   /**
@@ -133,9 +142,8 @@ class PackingList {
    * @param packingListId - Packing list ID
    * @returns PackingListResponse object
    */
-  async get(packingListId: string): Promise<PackingListResponse> {
-    const response = await this.stateset.request('GET', `packinglists/${packingListId}`);
-    return this.handleCommandResponse({ update_packinglists_by_pk: response });
+  override async get(packingListId: string): Promise<PackingListResponse> {
+    return super.get(packingListId);
   }
 
   /**
@@ -143,9 +151,8 @@ class PackingList {
    * @param packingListData - PackingListData object
    * @returns PackingListResponse object
    */
-  async create(packingListData: PackingListData): Promise<PackingListResponse> {
-    const response = await this.stateset.request('POST', 'packinglists', packingListData);
-    return this.handleCommandResponse(response);
+  override async create(packingListData: PackingListData): Promise<PackingListResponse> {
+    return super.create(packingListData);
   }
 
   /**
@@ -154,24 +161,19 @@ class PackingList {
    * @param packingListData - Partial<PackingListData> object
    * @returns PackingListResponse object
    */
-  async update(
+  override async update(
     packingListId: string,
     packingListData: Partial<PackingListData>
   ): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
-      'PUT',
-      `packinglists/${packingListId}`,
-      packingListData
-    );
-    return this.handleCommandResponse(response);
+    return super.update(packingListId, packingListData);
   }
 
   /**
    * Delete a packing list
    * @param packingListId - Packing list ID
    */
-  async delete(packingListId: string): Promise<void> {
-    await this.stateset.request('DELETE', `packinglists/${packingListId}`);
+  override async delete(packingListId: string): Promise<void> {
+    await super.delete(packingListId);
   }
 
   /**
@@ -180,7 +182,7 @@ class PackingList {
    * @returns SubmittedPackingListResponse object
    */
   async submit(packingListId: string): Promise<SubmittedPackingListResponse> {
-    const response = await this.stateset.request('POST', `packinglists/${packingListId}/submit`);
+    const response = await this.client.request('POST', `packinglists/${packingListId}/submit`);
     return this.handleCommandResponse(response) as SubmittedPackingListResponse;
   }
 
@@ -198,7 +200,7 @@ class PackingList {
       verification_notes?: string;
     }
   ): Promise<VerifiedPackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `packinglists/${packingListId}/verify`,
       verificationDetails
@@ -220,7 +222,7 @@ class PackingList {
       shipping_notes?: string;
     }
   ): Promise<ShippedPackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `packinglists/${packingListId}/ship`,
       shippingDetails
@@ -234,7 +236,7 @@ class PackingList {
    * @returns CancelledPackingListResponse object
    */
   async cancel(packingListId: string): Promise<CancelledPackingListResponse> {
-    const response = await this.stateset.request('POST', `packinglists/${packingListId}/cancel`);
+    const response = await this.client.request('POST', `packinglists/${packingListId}/cancel`);
     return this.handleCommandResponse(response) as CancelledPackingListResponse;
   }
 
@@ -245,7 +247,7 @@ class PackingList {
    * @returns PackingListResponse object
    */
   async addPackage(packingListId: string, packageData: Package): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `packinglists/${packingListId}/packages`,
       packageData
@@ -265,7 +267,7 @@ class PackingList {
     packageNumber: string,
     packageData: Partial<Package>
   ): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `packinglists/${packingListId}/packages/${packageNumber}`,
       packageData
@@ -280,7 +282,7 @@ class PackingList {
    * @returns PackingListResponse object
    */
   async removePackage(packingListId: string, packageNumber: string): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'DELETE',
       `packinglists/${packingListId}/packages/${packageNumber}`
     );
@@ -299,7 +301,7 @@ class PackingList {
     packageNumber: string,
     item: PackageItem
   ): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `packinglists/${packingListId}/packages/${packageNumber}/items`,
       item
@@ -319,7 +321,7 @@ class PackingList {
     packageNumber: string,
     purchaseOrderItemId: string
   ): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'DELETE',
       `packinglists/${packingListId}/packages/${packageNumber}/items/${purchaseOrderItemId}`
     );
@@ -336,7 +338,7 @@ class PackingList {
     packingListId: string,
     qualityCheckData: PackingListData['quality_check']
   ): Promise<PackingListResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `packinglists/${packingListId}/quality-check`,
       qualityCheckData

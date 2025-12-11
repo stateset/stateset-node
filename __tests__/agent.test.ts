@@ -157,7 +157,9 @@ describe('Agent Resource', () => {
 
       const result = await agents.list({ status: 'AVAILABLE' });
 
-      expect(mockRequest).toHaveBeenCalledWith('GET', 'agents?status=AVAILABLE');
+      expect(mockRequest).toHaveBeenCalledWith('GET', 'agents', undefined, {
+        params: { status: 'AVAILABLE' },
+      });
       expect(result).toHaveLength(2);
       expect(result[0].agent_name).toBe('Agent 1');
       expect(result[1].agent_name).toBe('Agent 2');

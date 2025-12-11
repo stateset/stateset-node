@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -65,8 +66,20 @@ export class DeliveryConfirmationValidationError extends DeliveryConfirmationErr
   }
 }
 
-export default class DeliveryConfirmations {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class DeliveryConfirmations extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'delivery_confirmations', 'delivery_confirmations');
+    this.singleKey = 'delivery_confirmation';
+    this.listKey = 'delivery_confirmations';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateDeliveryConfirmationData(data: DeliveryConfirmationData): void {
     if (!data.shipment_id) throw new DeliveryConfirmationValidationError('Shipment ID is required');
@@ -94,7 +107,7 @@ export default class DeliveryConfirmations {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     shipment_id?: string;
     status?: DeliveryConfirmationStatus;
     org_id?: string;
@@ -106,79 +119,41 @@ export default class DeliveryConfirmations {
     delivery_confirmations: DeliveryConfirmationResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.shipment_id) queryParams.append('shipment_id', params.shipment_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `delivery_confirmations?${queryParams.toString()}`
-      );
-      return {
-        delivery_confirmations: response.delivery_confirmations.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.delivery_confirmations.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const delivery_confirmations = (response as any).delivery_confirmations ?? response;
+
+    return {
+      delivery_confirmations,
+      pagination: (response as any).pagination || {
+        total: delivery_confirmations.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(deliveryConfirmationId: NonEmptyString<string>): Promise<DeliveryConfirmationResponse> {
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `delivery_confirmations/${deliveryConfirmationId}`
-      );
-      return this.mapResponse(response.delivery_confirmation);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', deliveryConfirmationId);
-    }
+  override async get(deliveryConfirmationId: NonEmptyString<string>): Promise<DeliveryConfirmationResponse> {
+    return super.get(deliveryConfirmationId);
   }
 
-  async create(data: DeliveryConfirmationData): Promise<DeliveryConfirmationResponse> {
+  override async create(data: DeliveryConfirmationData): Promise<DeliveryConfirmationResponse> {
     this.validateDeliveryConfirmationData(data);
-    try {
-      const response = await this.stateset.request('POST', 'delivery_confirmations', data);
-      return this.mapResponse(response.delivery_confirmation);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     deliveryConfirmationId: NonEmptyString<string>,
     data: Partial<DeliveryConfirmationData>
   ): Promise<DeliveryConfirmationResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `delivery_confirmations/${deliveryConfirmationId}`,
-        data
-      );
-      return this.mapResponse(response.delivery_confirmation);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', deliveryConfirmationId);
-    }
+    return super.update(deliveryConfirmationId, data);
   }
 
-  async delete(deliveryConfirmationId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `delivery_confirmations/${deliveryConfirmationId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', deliveryConfirmationId);
-    }
+  override async delete(deliveryConfirmationId: NonEmptyString<string>): Promise<void> {
+    await super.delete(deliveryConfirmationId);
   }
 
   async confirmDelivery(
@@ -189,25 +164,18 @@ export default class DeliveryConfirmations {
     }
   ): Promise<DeliveryConfirmationResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `delivery_confirmations/${deliveryConfirmationId}/confirm`,
         confirmationData
       );
-      return this.mapResponse(response.delivery_confirmation);
+      return this.mapResponse((response as any).delivery_confirmation ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'confirmDelivery', deliveryConfirmationId);
     }
   }
 
-  private handleError(error: any, operation: string, deliveryConfirmationId?: string): never {
-    if (error.status === 404)
-      throw new DeliveryConfirmationNotFoundError(deliveryConfirmationId || 'unknown');
-    if (error.status === 400)
-      throw new DeliveryConfirmationValidationError(error.message, error.errors);
-    throw new DeliveryConfirmationError(
-      `Failed to ${operation} delivery confirmation: ${error.message}`,
-      { operation, originalError: error }
-    );
+  private handleError(error: any, _operation: string, _deliveryConfirmationId?: string): never {
+    throw error;
   }
 }

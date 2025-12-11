@@ -293,13 +293,8 @@ export class ReturnLines {
     }
   }
 
-  private handleError(error: any, operation: string, returnLineId?: string): never {
-    if (error.status === 404) throw new ReturnLineNotFoundError(returnLineId || 'unknown');
-    if (error.status === 400) throw new ReturnLineValidationError(error.message, error.errors);
-    throw new ReturnLineError(`Failed to ${operation} return line: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _returnLineId?: string): never {
+    throw error;
   }
 }
 

@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 export type ItemReceiptStatus = 'PENDING' | 'RECEIVED' | 'PARTIAL' | 'CANCELLED';
 
@@ -44,8 +45,19 @@ export interface ItemReceiptData {
   [key: string]: any;
 }
 
-class ItemReceipts {
-  constructor(private stateset: ApiClientLike) {}
+class ItemReceipts extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'itemreceipts', 'itemreceipts');
+    this.singleKey = 'update_itemreceipts_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_itemreceipts_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): ItemReceiptResponse {
     if (response.error) {
@@ -78,37 +90,33 @@ class ItemReceipts {
     }
   }
 
-  async list(): Promise<ItemReceiptResponse[]> {
-    const response = await this.stateset.request('GET', 'itemreceipts');
-    return response.map((r: any) => this.handleCommandResponse({ update_itemreceipts_by_pk: r }));
+  override async list(): Promise<ItemReceiptResponse[]> {
+    return super.list();
   }
 
-  async get(id: string): Promise<ItemReceiptResponse> {
-    const response = await this.stateset.request('GET', `itemreceipts/${id}`);
-    return this.handleCommandResponse({ update_itemreceipts_by_pk: response });
+  override async get(id: string): Promise<ItemReceiptResponse> {
+    return super.get(id);
   }
 
-  async create(data: ItemReceiptData): Promise<ItemReceiptResponse> {
-    const response = await this.stateset.request('POST', 'itemreceipts', data);
-    return this.handleCommandResponse(response);
+  override async create(data: ItemReceiptData): Promise<ItemReceiptResponse> {
+    return super.create(data);
   }
 
-  async update(id: string, data: Partial<ItemReceiptData>): Promise<ItemReceiptResponse> {
-    const response = await this.stateset.request('PUT', `itemreceipts/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<ItemReceiptData>): Promise<ItemReceiptResponse> {
+    return super.update(id, data);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.stateset.request('DELETE', `itemreceipts/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   async receive(id: string): Promise<ReceivedItemReceiptResponse> {
-    const response = await this.stateset.request('POST', `itemreceipts/${id}/receive`);
+    const response = await this.client.request('POST', `itemreceipts/${id}/receive`);
     return this.handleCommandResponse(response) as ReceivedItemReceiptResponse;
   }
 
   async cancel(id: string): Promise<CancelledItemReceiptResponse> {
-    const response = await this.stateset.request('POST', `itemreceipts/${id}/cancel`);
+    const response = await this.client.request('POST', `itemreceipts/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledItemReceiptResponse;
   }
 }

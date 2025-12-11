@@ -91,18 +91,8 @@ export class ASN {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      const response = await this.client.request(method, path, data);
-      return this.normalizeResponse(response);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ASNNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        throw new ASNStateError(error.message);
-      }
-      throw error;
-    }
+    const response = await this.client.request(method, path, data);
+    return this.normalizeResponse(response);
   }
 
   private normalizeResponse(response: any): any {

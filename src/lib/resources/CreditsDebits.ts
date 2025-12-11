@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -69,8 +70,20 @@ export class CreditsDebitsValidationError extends CreditsDebitsError {
   }
 }
 
-export default class CreditsDebits {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class CreditsDebits extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'credits_debits', 'credits_debits');
+    this.singleKey = 'credit_debit';
+    this.listKey = 'credits_debits';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateCreditsDebitsData(data: CreditsDebitsData): void {
     if (!data.customer_id) throw new CreditsDebitsValidationError('Customer ID is required');
@@ -103,7 +116,7 @@ export default class CreditsDebits {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     customer_id?: string;
     type?: CreditDebitType;
     status?: CreditDebitStatus;
@@ -116,77 +129,41 @@ export default class CreditsDebits {
     credits_debits: CreditsDebitsResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.customer_id) queryParams.append('customer_id', params.customer_id);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `credits_debits?${queryParams.toString()}`
-      );
-      return {
-        credits_debits: response.credits_debits.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.credits_debits.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const credits_debits = (response as any).credits_debits ?? response;
+
+    return {
+      credits_debits,
+      pagination: (response as any).pagination || {
+        total: credits_debits.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(creditsDebitsId: NonEmptyString<string>): Promise<CreditsDebitsResponse> {
-    try {
-      const response = await this.stateset.request('GET', `credits_debits/${creditsDebitsId}`);
-      return this.mapResponse(response.credit_debit);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', creditsDebitsId);
-    }
+  override async get(creditsDebitsId: NonEmptyString<string>): Promise<CreditsDebitsResponse> {
+    return super.get(creditsDebitsId);
   }
 
-  async create(data: CreditsDebitsData): Promise<CreditsDebitsResponse> {
+  override async create(data: CreditsDebitsData): Promise<CreditsDebitsResponse> {
     this.validateCreditsDebitsData(data);
-    try {
-      const response = await this.stateset.request('POST', 'credits_debits', data);
-      return this.mapResponse(response.credit_debit);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     creditsDebitsId: NonEmptyString<string>,
     data: Partial<CreditsDebitsData>
   ): Promise<CreditsDebitsResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `credits_debits/${creditsDebitsId}`,
-        data
-      );
-      return this.mapResponse(response.credit_debit);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', creditsDebitsId);
-    }
+    return super.update(creditsDebitsId, data);
   }
 
-  async delete(creditsDebitsId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `credits_debits/${creditsDebitsId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', creditsDebitsId);
-    }
+  override async delete(creditsDebitsId: NonEmptyString<string>): Promise<void> {
+    await super.delete(creditsDebitsId);
   }
 
   async applyCreditDebit(
@@ -194,23 +171,18 @@ export default class CreditsDebits {
     appliedDate: Timestamp
   ): Promise<CreditsDebitsResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `credits_debits/${creditsDebitsId}/apply`,
         { applied_date: appliedDate }
       );
-      return this.mapResponse(response.credit_debit);
+      return this.mapResponse((response as any).credit_debit ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'applyCreditDebit', creditsDebitsId);
     }
   }
 
-  private handleError(error: any, operation: string, creditsDebitsId?: string): never {
-    if (error.status === 404) throw new CreditsDebitsNotFoundError(creditsDebitsId || 'unknown');
-    if (error.status === 400) throw new CreditsDebitsValidationError(error.message, error.errors);
-    throw new CreditsDebitsError(`Failed to ${operation} credit/debit: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _creditsDebitsId?: string): never {
+    throw error;
   }
 }

@@ -339,12 +339,7 @@ export default class Suppliers {
     }
   }
 
-  private handleError(error: any, operation: string, supplierId?: string): never {
-    if (error.status === 404) throw new SupplierNotFoundError(supplierId || 'unknown');
-    if (error.status === 400) throw new SupplierValidationError(error.message, error.errors);
-    throw new SupplierError(`Failed to ${operation} supplier: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _supplierId?: string): never {
+    throw error;
   }
 }

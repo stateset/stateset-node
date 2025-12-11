@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -120,8 +121,20 @@ export class ManufactureOrderLineValidationError extends ManufactureOrderLineErr
 }
 
 // Main ManufactureOrderLines Class
-export default class ManufactureOrderLines {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class ManufactureOrderLines extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'manufacture_order_line_items', 'manufacture_order_line_items');
+    this.singleKey = 'manufacture_order_line';
+    this.listKey = 'manufacture_order_lines';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateManufactureOrderLineData(data: ManufactureOrderLineData): void {
     if (!data.manufacture_order_id) {
@@ -164,7 +177,7 @@ export default class ManufactureOrderLines {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     manufacture_order_id?: string;
     status?: ManufactureOrderLineStatus;
     type?: ManufactureOrderLineType;
@@ -178,86 +191,41 @@ export default class ManufactureOrderLines {
     manufacture_order_lines: ManufactureOrderLineResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    if (params) {
-      if (params.manufacture_order_id)
-        queryParams.append('manufacture_order_id', params.manufacture_order_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.work_center_id) queryParams.append('work_center_id', params.work_center_id);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const response = await super.list(requestParams as any);
+    const manufacture_order_lines = (response as any).manufacture_order_lines ?? response;
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `manufacture_order_line_items?${queryParams.toString()}`
-      );
-      return {
-        manufacture_order_lines: response.manufacture_order_lines.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.manufacture_order_lines.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    return {
+      manufacture_order_lines,
+      pagination: (response as any).pagination || {
+        total: manufacture_order_lines.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(manufactureOrderLineId: NonEmptyString<string>): Promise<ManufactureOrderLineResponse> {
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `manufacture_order_line_items/${manufactureOrderLineId}`
-      );
-      return this.mapResponse(response.manufacture_order_line);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', manufactureOrderLineId);
-    }
+  override async get(manufactureOrderLineId: NonEmptyString<string>): Promise<ManufactureOrderLineResponse> {
+    return super.get(manufactureOrderLineId);
   }
 
-  async create(data: ManufactureOrderLineData): Promise<ManufactureOrderLineResponse> {
+  override async create(data: ManufactureOrderLineData): Promise<ManufactureOrderLineResponse> {
     this.validateManufactureOrderLineData(data);
-    try {
-      const response = await this.stateset.request('POST', 'manufacture_order_line_items', data);
-      return this.mapResponse(response.manufacture_order_line);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     manufactureOrderLineId: NonEmptyString<string>,
     data: Partial<ManufactureOrderLineData>
   ): Promise<ManufactureOrderLineResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `manufacture_order_line_items/${manufactureOrderLineId}`,
-        data
-      );
-      return this.mapResponse(response.manufacture_order_line);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', manufactureOrderLineId);
-    }
+    return super.update(manufactureOrderLineId, data);
   }
 
-  async delete(manufactureOrderLineId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request(
-        'DELETE',
-        `manufacture_order_line_items/${manufactureOrderLineId}`
-      );
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', manufactureOrderLineId);
-    }
+  override async delete(manufactureOrderLineId: NonEmptyString<string>): Promise<void> {
+    await super.delete(manufactureOrderLineId);
   }
 
   async updateStatus(
@@ -266,12 +234,12 @@ export default class ManufactureOrderLines {
     reason?: string
   ): Promise<ManufactureOrderLineResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'PUT',
         `manufacture_order_line_items/${manufactureOrderLineId}/status`,
         { status, reason }
       );
-      return this.mapResponse(response.manufacture_order_line);
+      return this.mapResponse((response as any).manufacture_order_line ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'updateStatus', manufactureOrderLineId);
     }
@@ -282,12 +250,12 @@ export default class ManufactureOrderLines {
     productionData: Partial<ManufactureOrderLineData['production']>
   ): Promise<ManufactureOrderLineResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `manufacture_order_line_items/${manufactureOrderLineId}/production`,
         productionData
       );
-      return this.mapResponse(response.manufacture_order_line);
+      return this.mapResponse((response as any).manufacture_order_line ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'recordProduction', manufactureOrderLineId);
     }
@@ -298,12 +266,12 @@ export default class ManufactureOrderLines {
     qualityCheckData: ManufactureOrderLineData['quality_check']
   ): Promise<ManufactureOrderLineResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `manufacture_order_line_items/${manufactureOrderLineId}/quality-check`,
         qualityCheckData
       );
-      return this.mapResponse(response.manufacture_order_line);
+      return this.mapResponse((response as any).manufacture_order_line ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'submitQualityCheck', manufactureOrderLineId);
     }
@@ -322,35 +290,27 @@ export default class ManufactureOrderLines {
     average_cost_per_unit: number;
     quality_pass_rate: number;
   }> {
-    const queryParams = new URLSearchParams();
-
-    if (params) {
-      if (params.manufacture_order_id)
-        queryParams.append('manufacture_order_id', params.manufacture_order_id);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    }
+    const requestParams: Record<string, unknown> = {};
+    if (params?.manufacture_order_id)
+      requestParams.manufacture_order_id = params.manufacture_order_id;
+    if (params?.org_id) requestParams.org_id = params.org_id;
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'GET',
-        `manufacture_order_line_items/metrics?${queryParams.toString()}`
+        'manufacture_order_line_items/metrics',
+        undefined,
+        { params: requestParams }
       );
-      return response.metrics;
+      return (response as any).metrics ?? response;
     } catch (error: any) {
       throw this.handleError(error, 'getMetrics');
     }
   }
 
-  private handleError(error: any, operation: string, manufactureOrderLineId?: string): never {
-    if (error.status === 404)
-      throw new ManufactureOrderLineNotFoundError(manufactureOrderLineId || 'unknown');
-    if (error.status === 400)
-      throw new ManufactureOrderLineValidationError(error.message, error.errors);
-    throw new ManufactureOrderLineError(
-      `Failed to ${operation} manufacture order line: ${error.message}`,
-      { operation, originalError: error }
-    );
+  private handleError(error: any, _operation: string, _manufactureOrderLineId?: string): never {
+    throw error;
   }
 }

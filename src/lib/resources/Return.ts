@@ -339,7 +339,7 @@ class Returns {
   private readonly logger: Logger;
 
   constructor(
-    private readonly stateset: ApiClientLike,
+    private readonly client: ApiClientLike,
     options?: {
       logger?: Logger;
     }
@@ -373,7 +373,7 @@ class Returns {
       if (params?.sort_order) queryParams.append('sort_order', params.sort_order);
 
       this.logger.debug('Listing returns', { params });
-      const response = await this.stateset.request('GET', `returns?${queryParams.toString()}`);
+      const response = await this.client.request('GET', `returns?${queryParams.toString()}`);
       return {
         returns: response.returns,
         total_count: response.total_count,
@@ -394,13 +394,10 @@ class Returns {
   async get(returnId: string): Promise<ReturnResponse> {
     try {
       this.logger.debug('Getting return', { returnId });
-      const response = await this.stateset.request('GET', `returns/${returnId}`);
+      const response = await this.client.request('GET', `returns/${returnId}`);
       return response.return;
     } catch (error: any) {
       this.logger.error('Error getting return', { error, returnId });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
     }
   }
@@ -431,7 +428,7 @@ class Returns {
         customer_id: returnData.customer_id,
         item_count: returnData.items.length,
       });
-      const response = await this.stateset.request('POST', 'returns', returnData);
+      const response = await this.client.request('POST', 'returns', returnData);
       return response.return;
     } catch (error: any) {
       this.logger.error('Error creating return', {
@@ -452,13 +449,10 @@ class Returns {
   async update(returnId: string, returnData: Partial<ReturnData>): Promise<ReturnResponse> {
     try {
       this.logger.debug('Updating return', { returnId });
-      const response = await this.stateset.request('PUT', `returns/${returnId}`, returnData);
+      const response = await this.client.request('PUT', `returns/${returnId}`, returnData);
       return response.return;
     } catch (error: any) {
       this.logger.error('Error updating return', { error, returnId });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
     }
   }
@@ -478,7 +472,7 @@ class Returns {
   ): Promise<ApprovedReturnResponse> {
     try {
       this.logger.debug('Approving return', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/approve`,
         approvalData
@@ -506,7 +500,7 @@ class Returns {
   ): Promise<ReceivedReturnResponse> {
     try {
       this.logger.debug('Marking return as received', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/receive`,
         receiptData
@@ -530,7 +524,7 @@ class Returns {
   ): Promise<InspectingReturnResponse> {
     try {
       this.logger.debug('Submitting inspection for return', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/inspect`,
         inspection
@@ -558,7 +552,7 @@ class Returns {
         method: refundDetails.method,
         amount: refundDetails.amount,
       });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/refund`,
         refundDetails
@@ -589,7 +583,7 @@ class Returns {
   ): Promise<RejectedReturnResponse> {
     try {
       this.logger.debug('Rejecting return', { returnId, reason: rejectionData.reason });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/reject`,
         rejectionData
@@ -616,7 +610,7 @@ class Returns {
   ): Promise<CancelledReturnResponse> {
     try {
       this.logger.debug('Cancelling return', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/cancel`,
         cancellationData
@@ -643,7 +637,7 @@ class Returns {
   ): Promise<ClosedReturnResponse> {
     try {
       this.logger.debug('Closing return', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/close`,
         closeData || {}
@@ -670,7 +664,7 @@ class Returns {
   ): Promise<ReopenedReturnResponse> {
     try {
       this.logger.debug('Reopening return', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/reopen`,
         reopenData
@@ -708,7 +702,7 @@ class Returns {
   ): Promise<ShippingLabel> {
     try {
       this.logger.debug('Generating shipping label', { returnId });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `returns/${returnId}/generate-label`,
         shippingData || {}
@@ -716,9 +710,6 @@ class Returns {
       return response.shipping_label;
     } catch (error: any) {
       this.logger.error('Error generating shipping label', { error, returnId });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
     }
   }
@@ -743,7 +734,7 @@ class Returns {
         queryParams.append('product_limit', params.product_limit.toString());
 
       this.logger.debug('Getting return metrics', { params });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'GET',
         `returns/metrics?${queryParams.toString()}`
       );
@@ -763,13 +754,10 @@ class Returns {
   async addNote(returnId: string, note: string): Promise<ReturnResponse> {
     try {
       this.logger.debug('Adding note to return', { returnId });
-      const response = await this.stateset.request('POST', `returns/${returnId}/notes`, { note });
+      const response = await this.client.request('POST', `returns/${returnId}/notes`, { note });
       return response.return;
     } catch (error: any) {
       this.logger.error('Error adding note', { error, returnId });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
     }
   }
@@ -797,7 +785,7 @@ class Returns {
       queryParams.append('format', format);
 
       this.logger.debug('Exporting returns data', { params, format });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'GET',
         `returns/export?${queryParams.toString()}`,
         null,
@@ -820,16 +808,13 @@ class Returns {
   async canTransitionTo(returnId: string, targetState: ReturnStatus): Promise<boolean> {
     try {
       this.logger.debug('Checking state transition', { returnId, targetState });
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'GET',
         `returns/${returnId}/can-transition?target=${targetState}`
       );
       return response.can_transition;
     } catch (error: any) {
       this.logger.error('Error checking transition', { error, returnId, targetState });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
       return false;
     }
@@ -855,40 +840,21 @@ class Returns {
   > {
     try {
       this.logger.debug('Getting return history', { returnId });
-      const response = await this.stateset.request('GET', `returns/${returnId}/history`);
+      const response = await this.client.request('GET', `returns/${returnId}/history`);
       return response.history;
     } catch (error: any) {
       this.logger.error('Error getting history', { error, returnId });
-      if (error.status === 404) {
-        throw new ReturnNotFoundError(returnId);
-      }
       this.handleApiError(error);
     }
   }
 
   // Helper method to handle API errors
   private handleApiError(error: any): never {
-    if (error.status && error.message) {
-      throw new ReturnApiError(error.message, error.status, error.code);
-    }
     throw error;
   }
 
   // Helper method to handle state transition errors
-  private handleStateTransitionError(error: any, returnId: string): never {
-    if (error.status === 404) {
-      throw new ReturnNotFoundError(returnId);
-    }
-
-    if (error.status === 400 && error.message?.includes('Invalid state transition')) {
-      const currentState = error.data?.current_state;
-      const requiredState = error.data?.required_state;
-
-      if (currentState && requiredState) {
-        throw new ReturnStateError(currentState, requiredState);
-      }
-    }
-
+  private handleStateTransitionError(error: any, _returnId: string): never {
     this.handleApiError(error);
   }
 }

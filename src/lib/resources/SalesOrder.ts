@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 export type SalesOrderStatus =
   | 'DRAFT'
@@ -61,8 +62,19 @@ export interface SalesOrderData {
   [key: string]: any;
 }
 
-class SalesOrders {
-  constructor(private stateset: ApiClientLike) {}
+class SalesOrders extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'salesorders', 'salesorders');
+    this.singleKey = 'update_salesorders_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_salesorders_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): SalesOrderResponse {
     if (response.error) {
@@ -99,52 +111,48 @@ class SalesOrders {
     }
   }
 
-  async list(): Promise<SalesOrderResponse[]> {
-    const response = await this.stateset.request('GET', 'salesorders');
-    return response.map((so: any) => this.handleCommandResponse({ update_salesorders_by_pk: so }));
+  override async list(): Promise<SalesOrderResponse[]> {
+    return super.list();
   }
 
-  async get(id: string): Promise<SalesOrderResponse> {
-    const response = await this.stateset.request('GET', `salesorders/${id}`);
-    return this.handleCommandResponse({ update_salesorders_by_pk: response });
+  override async get(id: string): Promise<SalesOrderResponse> {
+    return super.get(id);
   }
 
-  async create(data: SalesOrderData): Promise<SalesOrderResponse> {
-    const response = await this.stateset.request('POST', 'salesorders', data);
-    return this.handleCommandResponse(response);
+  override async create(data: SalesOrderData): Promise<SalesOrderResponse> {
+    return super.create(data);
   }
 
-  async update(id: string, data: Partial<SalesOrderData>): Promise<SalesOrderResponse> {
-    const response = await this.stateset.request('PUT', `salesorders/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<SalesOrderData>): Promise<SalesOrderResponse> {
+    return super.update(id, data);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.stateset.request('DELETE', `salesorders/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   async submit(id: string): Promise<SubmittedSalesOrderResponse> {
-    const response = await this.stateset.request('POST', `salesorders/${id}/submit`);
+    const response = await this.client.request('POST', `salesorders/${id}/submit`);
     return this.handleCommandResponse(response) as SubmittedSalesOrderResponse;
   }
 
   async fulfill(id: string): Promise<FulfilledSalesOrderResponse> {
-    const response = await this.stateset.request('POST', `salesorders/${id}/fulfill`);
+    const response = await this.client.request('POST', `salesorders/${id}/fulfill`);
     return this.handleCommandResponse(response) as FulfilledSalesOrderResponse;
   }
 
   async invoice(id: string): Promise<InvoicedSalesOrderResponse> {
-    const response = await this.stateset.request('POST', `salesorders/${id}/invoice`);
+    const response = await this.client.request('POST', `salesorders/${id}/invoice`);
     return this.handleCommandResponse(response) as InvoicedSalesOrderResponse;
   }
 
   async pay(id: string): Promise<PaidSalesOrderResponse> {
-    const response = await this.stateset.request('POST', `salesorders/${id}/pay`);
+    const response = await this.client.request('POST', `salesorders/${id}/pay`);
     return this.handleCommandResponse(response) as PaidSalesOrderResponse;
   }
 
   async cancel(id: string): Promise<CancelledSalesOrderResponse> {
-    const response = await this.stateset.request('POST', `salesorders/${id}/cancel`);
+    const response = await this.client.request('POST', `salesorders/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledSalesOrderResponse;
   }
 }

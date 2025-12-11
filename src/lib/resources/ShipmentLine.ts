@@ -305,13 +305,8 @@ export class ShipmentLine {
     }
   }
 
-  private handleError(error: any, operation: string, shipmentLineId?: string): never {
-    if (error.status === 404) throw new ShipmentLineNotFoundError(shipmentLineId || 'unknown');
-    if (error.status === 400) throw new ShipmentLineValidationError(error.message, error.errors);
-    throw new ShipmentLineError(`Failed to ${operation} shipment line: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _shipmentLineId?: string): never {
+    throw error;
   }
 }
 

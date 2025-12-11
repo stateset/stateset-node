@@ -391,10 +391,8 @@ export class Picks {
     return response.metrics;
   }
 
-  private handleError(error: any, operation: string, pickId?: string): never {
-    if (error.status === 404) throw new PickNotFoundError(pickId || 'unknown');
-    if (error.status === 400) throw new PickValidationError(error.message, error.errors);
-    throw new PickOperationError(`Failed to ${operation} pick: ${error.message}`, operation);
+  private handleError(error: any, _operation: string, _pickId?: string): never {
+    throw error;
   }
 }
 

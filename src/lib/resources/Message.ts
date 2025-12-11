@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for message management
 export enum MessageType {
@@ -158,15 +159,19 @@ export class MessageDeliveryError extends Error {
 }
 
 // Main Messages Class
-class Messages {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Messages extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'messages', 'messages');
+    this.singleKey = 'message';
+    this.listKey = 'messages';
+  }
 
   /**
    * List messages with optional filtering
    * @param params - Optional filtering parameters
    * @returns Array of MessageResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     type?: MessageType;
     from?: string;
     to?: string;
@@ -178,23 +183,12 @@ class Messages {
     is_public?: boolean;
     org_id?: string;
   }): Promise<MessageResponse[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.from) queryParams.append('from', params.from);
-    if (params?.to) queryParams.append('to', params.to);
-    if (params?.chat_id) queryParams.append('chat_id', params.chat_id);
-    if (params?.channel_id) queryParams.append('channel_id', params.channel_id.toString());
-    if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
-    if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    if (params?.fromAgent !== undefined)
-      queryParams.append('fromAgent', params.fromAgent.toString());
-    if (params?.is_public !== undefined)
-      queryParams.append('is_public', params.is_public.toString());
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `messages?${queryParams.toString()}`);
-    return response.messages;
+    const response = await super.list(requestParams as any);
+    return (response as any).messages ?? response;
   }
 
   /**
@@ -202,16 +196,8 @@ class Messages {
    * @param messageId - Message ID
    * @returns MessageResponse object
    */
-  async get(messageId: string): Promise<MessageResponse> {
-    try {
-      const response = await this.stateset.request('GET', `messages/${messageId}`);
-      return response.message;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new MessageNotFoundError(messageId);
-      }
-      throw error;
-    }
+  override async get(messageId: string): Promise<MessageResponse> {
+    return super.get(messageId);
   }
 
   /**
@@ -219,18 +205,9 @@ class Messages {
    * @param messageData - MessageData object
    * @returns MessageResponse object
    */
-  async create(messageData: MessageData): Promise<MessageResponse> {
+  override async create(messageData: MessageData): Promise<MessageResponse> {
     this.validateMessageData(messageData);
-
-    try {
-      const response = await this.stateset.request('POST', 'messages', messageData);
-      return response.message;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new MessageValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(messageData);
   }
 
   /**
@@ -239,31 +216,16 @@ class Messages {
    * @param messageData - Partial<MessageData> object
    * @returns MessageResponse object
    */
-  async update(messageId: string, messageData: Partial<MessageData>): Promise<MessageResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `messages/${messageId}`, messageData);
-      return response.message;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new MessageNotFoundError(messageId);
-      }
-      throw error;
-    }
+  override async update(messageId: string, messageData: Partial<MessageData>): Promise<MessageResponse> {
+    return super.update(messageId, messageData);
   }
 
   /**
    * Delete message
    * @param messageId - Message ID
    */
-  async delete(messageId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `messages/${messageId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new MessageNotFoundError(messageId);
-      }
-      throw error;
-    }
+  override async delete(messageId: string): Promise<void> {
+    await super.delete(messageId);
   }
 
   /**
@@ -272,8 +234,8 @@ class Messages {
    * @returns MessageResponse object
    */
   async like(messageId: string): Promise<MessageResponse> {
-    const response = await this.stateset.request('POST', `messages/${messageId}/like`);
-    return response.message;
+    const response = await this.client.request('POST', `messages/${messageId}/like`);
+    return (response as any).message ?? response;
   }
 
   /**
@@ -282,8 +244,8 @@ class Messages {
    * @returns MessageResponse object
    */
   async unlike(messageId: string): Promise<MessageResponse> {
-    const response = await this.stateset.request('POST', `messages/${messageId}/unlike`);
-    return response.message;
+    const response = await this.client.request('POST', `messages/${messageId}/unlike`);
+    return (response as any).message ?? response;
   }
 
   /**
@@ -292,8 +254,8 @@ class Messages {
    * @returns MessageResponse object
    */
   async markAsRead(messageId: string): Promise<MessageResponse> {
-    const response = await this.stateset.request('POST', `messages/${messageId}/read`);
-    return response.message;
+    const response = await this.client.request('POST', `messages/${messageId}/read`);
+    return (response as any).message ?? response;
   }
 
   /**
@@ -302,8 +264,8 @@ class Messages {
    * @returns MessageAnalytics object
    */
   async getAnalytics(messageId: string): Promise<MessageAnalytics> {
-    const response = await this.stateset.request('GET', `messages/${messageId}/analytics`);
-    return response.analytics;
+    const response = await this.client.request('GET', `messages/${messageId}/analytics`);
+    return (response as any).analytics ?? response;
   }
 
   /**
@@ -312,7 +274,7 @@ class Messages {
    * @param params - Optional filtering parameters
    * @returns Array of MessageResponse objects
    */
-  async search(
+  override async search(
     query: string,
     params?: {
       type?: MessageType;
@@ -323,20 +285,12 @@ class Messages {
       org_id?: string;
     }
   ): Promise<MessageResponse[]> {
-    const queryParams = new URLSearchParams({ query });
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.date_from) queryParams.append('date_from', params.date_from.toISOString());
-    if (params?.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    if (params?.channel_id) queryParams.append('channel_id', params.channel_id.toString());
-    if (params?.chat_id) queryParams.append('chat_id', params.chat_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request(
-      'GET',
-      `messages/search?${queryParams.toString()}`
-    );
-    return response.messages;
+    const response = await super.search(query, requestParams as any);
+    return (response as any).messages ?? response;
   }
 
   /**
@@ -352,18 +306,13 @@ class Messages {
       include_context?: boolean;
     }
   ): Promise<MessageResponse[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.include_context !== undefined) {
-      queryParams.append('include_context', params.include_context.toString());
-    }
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `messages/${messageId}/thread?${queryParams.toString()}`
+      `messages/${messageId}/thread`,
+      undefined,
+      { params: params as any }
     );
-    return response.messages;
+    return (response as any).messages ?? response;
   }
 
   /**

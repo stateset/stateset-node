@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for warehouse management
 export enum WarehouseStatus {
@@ -228,31 +229,27 @@ export class InventoryOperationError extends Error {
 }
 
 // Main Warehouses Class
-class Warehouses {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Warehouses extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'warehouses', 'warehouses');
+    this.singleKey = 'warehouse';
+    this.listKey = 'warehouses';
+  }
 
   /**
    * List warehouses with optional filtering
    * @param params - Filtering parameters
    * @returns Array of WarehouseResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     status?: WarehouseStatus;
     country?: string;
     state?: string;
     specialization?: string;
     org_id?: string;
   }): Promise<WarehouseResponse[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.country) queryParams.append('country', params.country);
-    if (params?.state) queryParams.append('state', params.state);
-    if (params?.specialization) queryParams.append('specialization', params.specialization);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `warehouses?${queryParams.toString()}`);
-    return response.warehouses;
+    const response = await super.list(params as any);
+    return (response as any).warehouses ?? response;
   }
 
   /**
@@ -260,16 +257,8 @@ class Warehouses {
    * @param warehouseId - Warehouse ID
    * @returns WarehouseResponse object
    */
-  async get(warehouseId: string): Promise<WarehouseResponse> {
-    try {
-      const response = await this.stateset.request('GET', `warehouses/${warehouseId}`);
-      return response.warehouse;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WarehouseNotFoundError(warehouseId);
-      }
-      throw error;
-    }
+  override async get(warehouseId: string): Promise<WarehouseResponse> {
+    return super.get(warehouseId);
   }
 
   /**
@@ -277,18 +266,9 @@ class Warehouses {
    * @param warehouseData - WarehouseData object
    * @returns WarehouseResponse object
    */
-  async create(warehouseData: WarehouseData): Promise<WarehouseResponse> {
+  override async create(warehouseData: WarehouseData): Promise<WarehouseResponse> {
     this.validateWarehouseData(warehouseData);
-
-    try {
-      const response = await this.stateset.request('POST', 'warehouses', warehouseData);
-      return response.warehouse;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new WarehouseValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(warehouseData);
   }
 
   /**
@@ -297,38 +277,19 @@ class Warehouses {
    * @param warehouseData - Partial<WarehouseData> object
    * @returns WarehouseResponse object
    */
-  async update(
+  override async update(
     warehouseId: string,
     warehouseData: Partial<WarehouseData>
   ): Promise<WarehouseResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `warehouses/${warehouseId}`,
-        warehouseData
-      );
-      return response.warehouse;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WarehouseNotFoundError(warehouseId);
-      }
-      throw error;
-    }
+    return super.update(warehouseId, warehouseData);
   }
 
   /**
    * Delete warehouse
    * @param warehouseId - Warehouse ID
    */
-  async delete(warehouseId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `warehouses/${warehouseId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WarehouseNotFoundError(warehouseId);
-      }
-      throw error;
-    }
+  override async delete(warehouseId: string): Promise<void> {
+    await super.delete(warehouseId);
   }
 
   /**
@@ -345,19 +306,13 @@ class Warehouses {
       below_reorder_point?: boolean;
     }
   ): Promise<InventoryItem[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.zone_id) queryParams.append('zone_id', params.zone_id);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.below_reorder_point !== undefined) {
-      queryParams.append('below_reorder_point', params.below_reorder_point.toString());
-    }
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `warehouses/${warehouseId}/inventory?${queryParams.toString()}`
+      `warehouses/${warehouseId}/inventory`,
+      undefined,
+      { params: params as any }
     );
-    return response.inventory;
+    return (response as any).inventory ?? response;
   }
 
   /**
@@ -367,12 +322,12 @@ class Warehouses {
    * @returns WarehouseResponse object
    */
   async addZone(warehouseId: string, zoneData: Zone): Promise<WarehouseResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `warehouses/${warehouseId}/zones`,
       zoneData
     );
-    return response.warehouse;
+    return (response as any).warehouse ?? response;
   }
 
   /**
@@ -387,12 +342,12 @@ class Warehouses {
     equipmentId: string,
     status: string
   ): Promise<Equipment> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `warehouses/${warehouseId}/equipment/${equipmentId}/status`,
       { status }
     );
-    return response.equipment;
+    return (response as any).equipment ?? response;
   }
 
   /**
@@ -407,12 +362,12 @@ class Warehouses {
     staffId: string,
     zoneId: string
   ): Promise<StaffMember> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `warehouses/${warehouseId}/staff/${staffId}/assign`,
       { zone_id: zoneId }
     );
-    return response.staff_member;
+    return (response as any).staff_member ?? response;
   }
 
   /**
@@ -428,16 +383,17 @@ class Warehouses {
       end_date?: Date;
     }
   ): Promise<WarehouseMetrics> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `warehouses/${warehouseId}/metrics?${queryParams.toString()}`
+      `warehouses/${warehouseId}/metrics`,
+      undefined,
+      { params: requestParams }
     );
-    return response.metrics;
+    return (response as any).metrics ?? response;
   }
 
   /**

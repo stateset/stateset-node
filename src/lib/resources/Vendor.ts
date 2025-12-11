@@ -277,12 +277,7 @@ export default class Vendors {
     }
   }
 
-  private handleError(error: any, operation: string, vendorId?: string): never {
-    if (error.status === 404) throw new VendorNotFoundError(vendorId || 'unknown');
-    if (error.status === 400) throw new VendorValidationError(error.message, error.errors);
-    throw new VendorError(`Failed to ${operation} vendor: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _vendorId?: string): never {
+    throw error;
   }
 }

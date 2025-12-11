@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for attribute types and categories
 export enum AttributeType {
@@ -104,8 +105,12 @@ export class AttributeOperationError extends Error {
 }
 
 // Main Attributes class
-class Attributes {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Attributes extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'attributes', 'attributes');
+    this.singleKey = 'attribute';
+    this.listKey = 'attributes';
+  }
 
   /**
    * Validates attribute value against min/max constraints
@@ -125,63 +130,37 @@ class Attributes {
   /**
    * List all attributes with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     attribute_type?: AttributeType;
     category?: AttributeCategory;
     agent_id?: string;
     org_id?: string;
     activated?: boolean;
   }): Promise<AttributeData[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.attribute_type) queryParams.append('attribute_type', params.attribute_type);
-    if (params?.category) queryParams.append('category', params.category);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.activated !== undefined)
-      queryParams.append('activated', params.activated.toString());
-
-    const response = await this.stateset.request('GET', `attributes?${queryParams.toString()}`);
-    return response.attributes;
+    const response = await super.list(params as any);
+    return (response as any).attributes ?? response;
   }
 
   /**
    * Get a specific attribute by ID
    */
-  async get(attributeId: string): Promise<AttributeData> {
-    try {
-      const response = await this.stateset.request('GET', `attributes/${attributeId}`);
-      return response.attribute;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new AttributeNotFoundError(attributeId);
-      }
-      throw error;
-    }
+  override async get(attributeId: string): Promise<AttributeData> {
+    return super.get(attributeId);
   }
 
   /**
    * Create a new attribute
    */
-  async create(params: CreateAttributeParams): Promise<AttributeData> {
+  override async create(params: CreateAttributeParams): Promise<AttributeData> {
     // Validate value constraints
     this.validateAttributeValue(params.value, params.min_value, params.max_value);
-
-    try {
-      const response = await this.stateset.request('POST', 'attributes', params);
-      return response.attribute;
-    } catch (error: any) {
-      throw new AttributeOperationError(
-        error.message || 'Failed to create attribute',
-        error.code || 'CREATION_FAILED'
-      );
-    }
+    return super.create(params);
   }
 
   /**
    * Update an existing attribute
    */
-  async update(attributeId: string, params: UpdateAttributeParams): Promise<AttributeData> {
+  override async update(attributeId: string, params: UpdateAttributeParams): Promise<AttributeData> {
     try {
       // Get current attribute to validate against existing constraints
       const currentAttribute = await this.get(attributeId);
@@ -192,9 +171,7 @@ class Attributes {
 
       // Validate new value against constraints
       this.validateAttributeValue(params.value, minValue, maxValue);
-
-      const response = await this.stateset.request('PUT', `attributes/${attributeId}`, params);
-      return response.attribute;
+      return await super.update(attributeId, params);
     } catch (error: any) {
       if (error instanceof AttributeNotFoundError) {
         throw error;
@@ -209,39 +186,32 @@ class Attributes {
   /**
    * Delete an attribute
    */
-  async delete(attributeId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `attributes/${attributeId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new AttributeNotFoundError(attributeId);
-      }
-      throw error;
-    }
+  override async delete(attributeId: string): Promise<void> {
+    await super.delete(attributeId);
   }
 
   /**
    * Bulk create attributes
    */
-  async bulkCreate(attributes: CreateAttributeParams[]): Promise<AttributeData[]> {
+  override async bulkCreate(attributes: CreateAttributeParams[]): Promise<AttributeData[]> {
     // Validate all attributes before sending request
     attributes.forEach(attr => {
       this.validateAttributeValue(attr.value, attr.min_value, attr.max_value);
     });
 
-    const response = await this.stateset.request('POST', 'attributes/bulk', { attributes });
-    return response.attributes;
+    const response = await this.client.request('POST', 'attributes/bulk', { attributes });
+    return (response as any).attributes ?? response;
   }
 
   /**
    * Copy attributes from one agent to another
    */
   async copyAttributes(sourceAgentId: string, targetAgentId: string): Promise<AttributeData[]> {
-    const response = await this.stateset.request('POST', 'attributes/copy', {
+    const response = await this.client.request('POST', 'attributes/copy', {
       source_agent_id: sourceAgentId,
       target_agent_id: targetAgentId,
     });
-    return response.attributes;
+    return (response as any).attributes ?? response;
   }
 
   /**
@@ -255,17 +225,18 @@ class Attributes {
       limit?: number;
     }
   ): Promise<Array<AttributeData & { timestamp: string }>> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
+    if (params?.limit) requestParams.limit = params.limit;
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `attributes/${attributeId}/history?${queryParams.toString()}`
+      `attributes/${attributeId}/history`,
+      undefined,
+      { params: requestParams }
     );
-    return response.history;
+    return (response as any).history ?? response;
   }
 }
 

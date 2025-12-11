@@ -148,21 +148,8 @@ export class Inventory {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      const response = await this.client.request(method, path, data);
-      return response.inventory || response;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new InventoryNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        if (error.code === 'INSUFFICIENT_QUANTITY') {
-          throw new InsufficientInventoryError(error.message);
-        }
-        throw new InventoryValidationError(error.message);
-      }
-      throw error;
-    }
+    const response = await this.client.request(method, path, data);
+    return response.inventory || response;
   }
 
   private validateInventoryData(data: Partial<InventoryData>): void {

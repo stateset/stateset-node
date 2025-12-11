@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -76,8 +77,20 @@ export class ContactValidationError extends ContactError {
   }
 }
 
-export default class Contacts {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Contacts extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'contacts', 'contacts');
+    this.singleKey = 'contact';
+    this.listKey = 'contacts';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateContactData(data: ContactData): void {
     if (!data.entity_id) throw new ContactValidationError('Entity ID is required');
@@ -112,7 +125,7 @@ export default class Contacts {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     entity_id?: string;
     type?: ContactType;
     status?: ContactStatus;
@@ -123,85 +136,53 @@ export default class Contacts {
     contacts: ContactResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.entity_id) queryParams.append('entity_id', params.entity_id);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const response = await super.list(params as any);
+    const contacts = (response as any).contacts ?? response;
 
-    try {
-      const response = await this.stateset.request('GET', `contacts?${queryParams.toString()}`);
-      return {
-        contacts: response.contacts.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.contacts.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    return {
+      contacts,
+      pagination: (response as any).pagination || {
+        total: contacts.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(contactId: NonEmptyString<string>): Promise<ContactResponse> {
-    try {
-      const response = await this.stateset.request('GET', `contacts/${contactId}`);
-      return this.mapResponse(response.contact);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', contactId);
-    }
+  override async get(contactId: NonEmptyString<string>): Promise<ContactResponse> {
+    return super.get(contactId);
   }
 
-  async create(data: ContactData): Promise<ContactResponse> {
+  override async create(data: ContactData): Promise<ContactResponse> {
     this.validateContactData(data);
-    try {
-      const response = await this.stateset.request('POST', 'contacts', data);
-      return this.mapResponse(response.contact);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     contactId: NonEmptyString<string>,
     data: Partial<ContactData>
   ): Promise<ContactResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `contacts/${contactId}`, data);
-      return this.mapResponse(response.contact);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', contactId);
-    }
+    return super.update(contactId, data);
   }
 
-  async delete(contactId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `contacts/${contactId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', contactId);
-    }
+  override async delete(contactId: NonEmptyString<string>): Promise<void> {
+    await super.delete(contactId);
   }
 
   async setPrimary(contactId: NonEmptyString<string>): Promise<ContactResponse> {
     try {
-      const response = await this.stateset.request('POST', `contacts/${contactId}/set_primary`, {});
-      return this.mapResponse(response.contact);
+      const response = await this.client.request(
+        'POST',
+        `contacts/${contactId}/set_primary`,
+        {}
+      );
+      return this.mapResponse((response as any).contact ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'setPrimary', contactId);
     }
   }
 
-  private handleError(error: any, operation: string, contactId?: string): never {
-    if (error.status === 404) throw new ContactNotFoundError(contactId || 'unknown');
-    if (error.status === 400) throw new ContactValidationError(error.message, error.errors);
-    throw new ContactError(`Failed to ${operation} contact: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _contactId?: string): never {
+    throw error;
   }
 }

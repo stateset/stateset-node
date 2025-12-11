@@ -352,13 +352,8 @@ export class Warranty {
     return response.metrics;
   }
 
-  private handleError(error: any, operation: string, warrantyId?: string): never {
-    if (error.status === 404) throw new WarrantyNotFoundError(warrantyId || 'unknown');
-    if (error.status === 400) throw new WarrantyValidationError(error.message, error.errors);
-    throw new WarrantyOperationError(
-      `Failed to ${operation} warranty: ${error.message}`,
-      operation
-    );
+  private handleError(error: any, _operation: string, _warrantyId?: string): never {
+    throw error;
   }
 }
 

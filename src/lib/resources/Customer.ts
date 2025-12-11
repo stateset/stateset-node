@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -100,8 +101,20 @@ export class CustomerValidationError extends CustomerError {
 }
 
 // Main Customers Class
-export class Customers {
-  constructor(private readonly client: ApiClientLike) {}
+export class Customers extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'customers', 'customers');
+    this.singleKey = 'customer';
+    this.listKey = 'customers';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateCustomerData(data: CustomerData): void {
     if (!data.name) throw new CustomerValidationError('Customer name is required');
@@ -138,7 +151,7 @@ export class Customers {
     };
   }
 
-  async list(
+  override async list(
     params: {
       status?: CustomerStatus;
       type?: CustomerType;
@@ -152,69 +165,41 @@ export class Customers {
     customers: CustomerResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const query = new URLSearchParams({
-      ...(params.status && { status: params.status }),
-      ...(params.type && { type: params.type }),
-      ...(params.org_id && { org_id: params.org_id }),
-      ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
-      ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
-      ...(params.limit && { limit: params.limit.toString() }),
-      ...(params.offset && { offset: params.offset.toString() }),
-      ...(params.search && { search: params.search }),
-    });
+    const { date_range, ...rest } = params;
+    const requestParams: Record<string, unknown> = { ...rest };
+    if (date_range?.from) requestParams.from = date_range.from.toISOString();
+    if (date_range?.to) requestParams.to = date_range.to.toISOString();
 
-    try {
-      const response = await this.client.request('GET', `customers?${query.toString()}`);
-      return {
-        customers: response.customers.map(this.mapResponse),
-        pagination: response.pagination || {
-          total: response.customers.length,
-          limit: params.limit || 100,
-          offset: params.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const customers = (response as any).customers ?? response;
+    return {
+      customers,
+      pagination: (response as any).pagination || {
+        total: customers.length,
+        limit: params.limit || 100,
+        offset: params.offset || 0,
+      },
+    };
   }
 
-  async get(customerId: NonEmptyString<string>): Promise<CustomerResponse> {
-    try {
-      const response = await this.client.request('GET', `customers/${customerId}`);
-      return this.mapResponse(response.customer);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', customerId);
-    }
+  override async get(customerId: NonEmptyString<string>): Promise<CustomerResponse> {
+    return super.get(customerId);
   }
 
-  async create(data: CustomerData): Promise<CustomerResponse> {
+  override async create(data: CustomerData): Promise<CustomerResponse> {
     this.validateCustomerData(data);
-    try {
-      const response = await this.client.request('POST', 'customers', data);
-      return this.mapResponse(response.customer);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     customerId: NonEmptyString<string>,
     data: Partial<CustomerData>
   ): Promise<CustomerResponse> {
-    try {
-      const response = await this.client.request('PUT', `customers/${customerId}`, data);
-      return this.mapResponse(response.customer);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', customerId);
-    }
+    return super.update(customerId, data);
   }
 
-  async delete(customerId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.client.request('DELETE', `customers/${customerId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', customerId);
-    }
+  override async delete(customerId: NonEmptyString<string>): Promise<void> {
+    await super.delete(customerId);
   }
 
   async addAddress(
@@ -277,13 +262,8 @@ export class Customers {
     }
   }
 
-  private handleError(error: any, operation: string, customerId?: string): never {
-    if (error.status === 404) throw new CustomerNotFoundError(customerId || 'unknown');
-    if (error.status === 400) throw new CustomerValidationError(error.message, error.errors);
-    throw new CustomerError(`Failed to ${operation} customer: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _customerId?: string): never {
+    throw error;
   }
 }
 

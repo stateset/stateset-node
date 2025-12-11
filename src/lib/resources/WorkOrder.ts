@@ -534,7 +534,6 @@ export class Workorders {
       );
       return this.mapResponse(response.workorder);
     } catch (error: any) {
-      if (error.status === 409) throw new ResourceConflictError(error.message, resourceData.id);
       throw this.handleError(error, 'assignResource', workorderId);
     }
   }
@@ -591,13 +590,8 @@ export class Workorders {
     }
   }
 
-  private handleError(error: any, operation: string, workorderId?: string): never {
-    if (error.status === 404) throw new WorkorderNotFoundError(workorderId || 'unknown');
-    if (error.status === 400) throw new WorkorderValidationError(error.message, error.errors);
-    throw new WorkorderError(`Failed to ${operation} work order: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _workorderId?: string): never {
+    throw error;
   }
 }
 

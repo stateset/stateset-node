@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 export type FulfillmentOrderStatus =
   | 'OPEN'
@@ -60,8 +61,19 @@ export interface FulfillmentOrderData {
   [key: string]: any;
 }
 
-class FulfillmentOrders {
-  constructor(private stateset: ApiClientLike) {}
+class FulfillmentOrders extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'fulfillmentorders', 'fulfillmentorders');
+    this.singleKey = 'update_fulfillmentorders_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_fulfillmentorders_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): FulfillmentOrderResponse {
     if (response.error) {
@@ -98,54 +110,48 @@ class FulfillmentOrders {
     }
   }
 
-  async list(): Promise<FulfillmentOrderResponse[]> {
-    const response = await this.stateset.request('GET', 'fulfillmentorders');
-    return response.map((fo: any) =>
-      this.handleCommandResponse({ update_fulfillmentorders_by_pk: fo })
-    );
+  override async list(): Promise<FulfillmentOrderResponse[]> {
+    return super.list();
   }
 
-  async get(id: string): Promise<FulfillmentOrderResponse> {
-    const response = await this.stateset.request('GET', `fulfillmentorders/${id}`);
-    return this.handleCommandResponse({ update_fulfillmentorders_by_pk: response });
+  override async get(id: string): Promise<FulfillmentOrderResponse> {
+    return super.get(id);
   }
 
-  async create(data: FulfillmentOrderData): Promise<FulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', 'fulfillmentorders', data);
-    return this.handleCommandResponse(response);
+  override async create(data: FulfillmentOrderData): Promise<FulfillmentOrderResponse> {
+    return super.create(data);
   }
 
-  async update(id: string, data: Partial<FulfillmentOrderData>): Promise<FulfillmentOrderResponse> {
-    const response = await this.stateset.request('PUT', `fulfillmentorders/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<FulfillmentOrderData>): Promise<FulfillmentOrderResponse> {
+    return super.update(id, data);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.stateset.request('DELETE', `fulfillmentorders/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   async allocate(id: string): Promise<AllocatedFulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', `fulfillmentorders/${id}/allocate`);
+    const response = await this.client.request('POST', `fulfillmentorders/${id}/allocate`);
     return this.handleCommandResponse(response) as AllocatedFulfillmentOrderResponse;
   }
 
   async pick(id: string): Promise<PickedFulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', `fulfillmentorders/${id}/pick`);
+    const response = await this.client.request('POST', `fulfillmentorders/${id}/pick`);
     return this.handleCommandResponse(response) as PickedFulfillmentOrderResponse;
   }
 
   async pack(id: string): Promise<PackedFulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', `fulfillmentorders/${id}/pack`);
+    const response = await this.client.request('POST', `fulfillmentorders/${id}/pack`);
     return this.handleCommandResponse(response) as PackedFulfillmentOrderResponse;
   }
 
   async ship(id: string): Promise<ShippedFulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', `fulfillmentorders/${id}/ship`);
+    const response = await this.client.request('POST', `fulfillmentorders/${id}/ship`);
     return this.handleCommandResponse(response) as ShippedFulfillmentOrderResponse;
   }
 
   async cancel(id: string): Promise<CancelledFulfillmentOrderResponse> {
-    const response = await this.stateset.request('POST', `fulfillmentorders/${id}/cancel`);
+    const response = await this.client.request('POST', `fulfillmentorders/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledFulfillmentOrderResponse;
   }
 }

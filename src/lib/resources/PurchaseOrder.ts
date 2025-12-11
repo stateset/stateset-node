@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 type PurchaseOrderStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'RECEIVED' | 'CANCELLED';
 
@@ -51,8 +52,19 @@ interface PurchaseOrderData {
   [key: string]: any;
 }
 
-class PurchaseOrders {
-  constructor(private stateset: ApiClientLike) {}
+class PurchaseOrders extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'purchaseorders', 'purchaseorders');
+    this.singleKey = 'update_purchaseorders_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_purchaseorders_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): PurchaseOrderResponse {
     if (response.error) {
@@ -91,11 +103,8 @@ class PurchaseOrders {
    * List all purchase orders
    * @returns Array of PurchaseOrderResponse objects
    */
-  async list(): Promise<PurchaseOrderResponse[]> {
-    const response = await this.stateset.request('GET', 'purchaseorders');
-    return response.map((purchaseOrder: any) =>
-      this.handleCommandResponse({ update_purchaseorders_by_pk: purchaseOrder })
-    );
+  override async list(): Promise<PurchaseOrderResponse[]> {
+    return super.list();
   }
 
   /**
@@ -103,9 +112,8 @@ class PurchaseOrders {
    * @param purchaseOrderId - Purchase order ID
    * @returns PurchaseOrderResponse object
    */
-  async get(purchaseOrderId: string): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request('GET', `purchaseorders/${purchaseOrderId}`);
-    return this.handleCommandResponse({ update_purchaseorders_by_pk: response });
+  override async get(purchaseOrderId: string): Promise<PurchaseOrderResponse> {
+    return super.get(purchaseOrderId);
   }
 
   /**
@@ -113,9 +121,8 @@ class PurchaseOrders {
    * @param purchaseOrderData - PurchaseOrderData object
    * @returns PurchaseOrderResponse object
    */
-  async create(purchaseOrderData: PurchaseOrderData): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request('POST', 'purchaseorders', purchaseOrderData);
-    return this.handleCommandResponse(response);
+  override async create(purchaseOrderData: PurchaseOrderData): Promise<PurchaseOrderResponse> {
+    return super.create(purchaseOrderData);
   }
 
   /**
@@ -124,24 +131,19 @@ class PurchaseOrders {
    * @param purchaseOrderData - Partial<PurchaseOrderData> object
    * @returns PurchaseOrderResponse object
    */
-  async update(
+  override async update(
     purchaseOrderId: string,
     purchaseOrderData: Partial<PurchaseOrderData>
   ): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request(
-      'PUT',
-      `purchaseorders/${purchaseOrderId}`,
-      purchaseOrderData
-    );
-    return this.handleCommandResponse(response);
+    return super.update(purchaseOrderId, purchaseOrderData);
   }
 
   /**
    * Delete a purchase order
    * @param purchaseOrderId - Purchase order ID
    */
-  async delete(purchaseOrderId: string): Promise<void> {
-    await this.stateset.request('DELETE', `purchaseorders/${purchaseOrderId}`);
+  override async delete(purchaseOrderId: string): Promise<void> {
+    await super.delete(purchaseOrderId);
   }
 
   /**
@@ -150,7 +152,7 @@ class PurchaseOrders {
    * @returns SubmittedPurchaseOrderResponse object
    */
   async submit(purchaseOrderId: string): Promise<SubmittedPurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `purchaseorders/${purchaseOrderId}/submit`
     );
@@ -163,7 +165,7 @@ class PurchaseOrders {
    * @returns ApprovedPurchaseOrderResponse object
    */
   async approve(purchaseOrderId: string): Promise<ApprovedPurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `purchaseorders/${purchaseOrderId}/approve`
     );
@@ -180,7 +182,7 @@ class PurchaseOrders {
     purchaseOrderId: string,
     receivedItems: { item_id: string; quantity_received: number }[]
   ): Promise<ReceivedPurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `purchaseorders/${purchaseOrderId}/receive`,
       { received_items: receivedItems }
@@ -194,7 +196,7 @@ class PurchaseOrders {
    * @returns CancelledPurchaseOrderResponse object
    */
   async cancel(purchaseOrderId: string): Promise<CancelledPurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `purchaseorders/${purchaseOrderId}/cancel`
     );
@@ -211,7 +213,7 @@ class PurchaseOrders {
     purchaseOrderId: string,
     item: PurchaseOrderData['items'][0]
   ): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `purchaseorders/${purchaseOrderId}/items`,
       item
@@ -226,7 +228,7 @@ class PurchaseOrders {
    * @returns PurchaseOrderResponse object
    */
   async removeItem(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'DELETE',
       `purchaseorders/${purchaseOrderId}/items/${itemId}`
     );

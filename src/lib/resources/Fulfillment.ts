@@ -1,3 +1,5 @@
+import { BaseResource } from './BaseResource';
+
 // lib/resources/Fulfillment.ts
 
 type FulfillmentStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
@@ -70,8 +72,19 @@ interface TrackingData {
   [key: string]: any;
 }
 
-export default class Fulfillment {
-  constructor(private client: any) {}
+export default class Fulfillment extends BaseResource {
+  constructor(client: any) {
+    super(client, 'fulfillments', 'fulfillments');
+    this.singleKey = 'update_fulfillments_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_fulfillments_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): FulfillmentResponse {
     if (response.error) {
@@ -111,9 +124,8 @@ export default class Fulfillment {
    * @param data - FulfillmentData object
    * @returns FulfillmentResponse object
    */
-  async create(data: FulfillmentData): Promise<FulfillmentResponse> {
-    const response = await this.client.request('POST', 'fulfillments', data);
-    return this.handleCommandResponse(response);
+  override async create(data: FulfillmentData): Promise<FulfillmentResponse> {
+    return super.create(data);
   }
 
   /**
@@ -121,9 +133,8 @@ export default class Fulfillment {
    * @param id - Fulfillment ID
    * @returns FulfillmentResponse object
    */
-  async get(id: string): Promise<FulfillmentResponse> {
-    const response = await this.client.request('GET', `fulfillments/${id}`);
-    return this.handleCommandResponse({ update_fulfillments_by_pk: response });
+  override async get(id: string): Promise<FulfillmentResponse> {
+    return super.get(id);
   }
 
   /**
@@ -132,9 +143,8 @@ export default class Fulfillment {
    * @param data - Partial<FulfillmentData> object
    * @returns FulfillmentResponse object
    */
-  async update(id: string, data: Partial<FulfillmentData>): Promise<FulfillmentResponse> {
-    const response = await this.client.request('PUT', `fulfillments/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<FulfillmentData>): Promise<FulfillmentResponse> {
+    return super.update(id, data);
   }
 
   /**
@@ -142,11 +152,8 @@ export default class Fulfillment {
    * @param params - Optional filtering parameters
    * @returns Array of FulfillmentResponse objects
    */
-  async list(params?: any): Promise<FulfillmentResponse[]> {
-    const response = await this.client.request('GET', 'fulfillments', undefined, { params });
-    return response.map((fulfillment: any) =>
-      this.handleCommandResponse({ update_fulfillments_by_pk: fulfillment })
-    );
+  override async list(params?: any): Promise<FulfillmentResponse[]> {
+    return super.list(params);
   }
 
   /**

@@ -181,21 +181,8 @@ export class Machines {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      const response = await this.client.request(method, path, data);
-      return response.machine || response.machines || response;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new MachineNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        throw new MachineValidationError(error.message);
-      }
-      if (error.status === 409) {
-        throw new MachineStateError(error.message || 'Invalid state transition');
-      }
-      throw error;
-    }
+    const response = await this.client.request(method, path, data);
+    return response.machine || response.machines || response;
   }
 
   private validateRuntimeData(data: RuntimeData): void {

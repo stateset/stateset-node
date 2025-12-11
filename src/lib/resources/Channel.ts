@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for channel management
 export enum ChannelType {
@@ -179,31 +180,30 @@ export class ChannelOperationError extends Error {
 }
 
 // Main Channels Class
-class Channels {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Channels extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'channels', 'channels');
+    this.singleKey = 'channel';
+    this.listKey = 'channels';
+  }
 
   /**
    * List channels with optional filtering
    * @param params - Optional filtering parameters
    * @returns Array of ChannelResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     type?: ChannelType;
     status?: ChannelStatus;
     agent_id?: string;
     org_id?: string;
     tags?: string[];
   }): Promise<ChannelResponse[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.tags) requestParams.tags = JSON.stringify(params.tags);
 
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.tags) queryParams.append('tags', JSON.stringify(params.tags));
-
-    const response = await this.stateset.request('GET', `channels?${queryParams.toString()}`);
-    return response.channels;
+    const response = await super.list(requestParams as any);
+    return (response as any).channels ?? response;
   }
 
   /**
@@ -211,16 +211,8 @@ class Channels {
    * @param channelId - Channel ID
    * @returns ChannelResponse object
    */
-  async get(channelId: string): Promise<ChannelResponse> {
-    try {
-      const response = await this.stateset.request('GET', `channels/${channelId}`);
-      return response.channel;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ChannelNotFoundError(channelId);
-      }
-      throw error;
-    }
+  override async get(channelId: string): Promise<ChannelResponse> {
+    return super.get(channelId);
   }
 
   /**
@@ -228,18 +220,9 @@ class Channels {
    * @param channelData - ChannelData object
    * @returns ChannelResponse object
    */
-  async create(channelData: ChannelData): Promise<ChannelResponse> {
+  override async create(channelData: ChannelData): Promise<ChannelResponse> {
     this.validateChannelData(channelData);
-
-    try {
-      const response = await this.stateset.request('POST', 'channels', channelData);
-      return response.channel;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new ChannelValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(channelData);
   }
 
   /**
@@ -248,31 +231,16 @@ class Channels {
    * @param channelData - Partial<ChannelData> object
    * @returns ChannelResponse object
    */
-  async update(channelId: string, channelData: Partial<ChannelData>): Promise<ChannelResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `channels/${channelId}`, channelData);
-      return response.channel;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ChannelNotFoundError(channelId);
-      }
-      throw error;
-    }
+  override async update(channelId: string, channelData: Partial<ChannelData>): Promise<ChannelResponse> {
+    return super.update(channelId, channelData);
   }
 
   /**
    * Delete channel
    * @param channelId - Channel ID
    */
-  async delete(channelId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `channels/${channelId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ChannelNotFoundError(channelId);
-      }
-      throw error;
-    }
+  override async delete(channelId: string): Promise<void> {
+    await super.delete(channelId);
   }
 
   /**
@@ -287,11 +255,11 @@ class Channels {
     status: ChannelStatus,
     reason?: string
   ): Promise<ChannelResponse> {
-    const response = await this.stateset.request('POST', `channels/${channelId}/status`, {
+    const response = await this.client.request('POST', `channels/${channelId}/status`, {
       status,
       reason,
     });
-    return response.channel;
+    return (response as any).channel ?? response;
   }
 
   /**
@@ -307,16 +275,17 @@ class Channels {
       end_date?: Date;
     }
   ): Promise<ChannelMetrics> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `channels/${channelId}/metrics?${queryParams.toString()}`
+      `channels/${channelId}/metrics`,
+      undefined,
+      { params: requestParams }
     );
-    return response.metrics;
+    return (response as any).metrics ?? response;
   }
 
   /**
@@ -336,8 +305,8 @@ class Channels {
     latency: number;
     error?: string;
   }> {
-    const response = await this.stateset.request('POST', `channels/${channelId}/test`, testData);
-    return response.result;
+    const response = await this.client.request('POST', `channels/${channelId}/test`, testData);
+    return (response as any).result ?? response;
   }
 
   /**
@@ -347,12 +316,12 @@ class Channels {
    * @returns ChannelResponse object
    */
   async updateVoiceConfig(channelId: string, voiceConfig: VoiceConfig): Promise<ChannelResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `channels/${channelId}/voice-config`,
       voiceConfig
     );
-    return response.channel;
+    return (response as any).channel ?? response;
   }
 
   /**
@@ -365,12 +334,12 @@ class Channels {
     channelId: string,
     responseConfig: ResponseConfig
   ): Promise<ChannelResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `channels/${channelId}/response-config`,
       responseConfig
     );
-    return response.channel;
+    return (response as any).channel ?? response;
   }
 
   /**

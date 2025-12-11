@@ -420,11 +420,8 @@ export class Shipments {
     return response.metrics;
   }
 
-  private handleApiError(error: any, shipmentId?: string): never {
-    if (error.status === 404) throw new ShipmentNotFoundError(shipmentId || 'unknown');
-    if (error.status === 400) throw new ShipmentValidationError(error.message, error.errors);
-    if (error.carrier_error) throw new CarrierApiError(error.message, error.carrier, error.code);
-    throw new ShipmentError('Unexpected error occurred', { originalError: error });
+  private handleApiError(error: any, _shipmentId?: string): never {
+    throw error;
   }
 }
 

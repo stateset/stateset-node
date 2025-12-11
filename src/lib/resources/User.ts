@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -79,8 +80,20 @@ export class UserValidationError extends UserError {
   }
 }
 
-export default class Users {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Users extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'users', 'users');
+    this.singleKey = 'user';
+    this.listKey = 'users';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateUserData(data: UserData): void {
     if (!data.first_name || !data.last_name) {
@@ -115,7 +128,7 @@ export default class Users {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     status?: UserStatus;
     role?: UserRole;
     org_id?: string;
@@ -125,73 +138,43 @@ export default class Users {
     users: UserResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.status) queryParams.append('status', params.status);
-      if (params.role) queryParams.append('role', params.role);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const response = await super.list(params as any);
+    const users = (response as any).users ?? response;
 
-    try {
-      const response = await this.stateset.request('GET', `users?${queryParams.toString()}`);
-      return {
-        users: response.users.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.users.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    return {
+      users,
+      pagination: (response as any).pagination || {
+        total: users.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(userId: NonEmptyString<string>): Promise<UserResponse> {
-    try {
-      const response = await this.stateset.request('GET', `users/${userId}`);
-      return this.mapResponse(response.user);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', userId);
-    }
+  override async get(userId: NonEmptyString<string>): Promise<UserResponse> {
+    return super.get(userId);
   }
 
-  async create(data: UserData): Promise<UserResponse> {
+  override async create(data: UserData): Promise<UserResponse> {
     this.validateUserData(data);
-    try {
-      const response = await this.stateset.request('POST', 'users', data);
-      return this.mapResponse(response.user);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(userId: NonEmptyString<string>, data: Partial<UserData>): Promise<UserResponse> {
+  override async update(userId: NonEmptyString<string>, data: Partial<UserData>): Promise<UserResponse> {
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       throw new UserValidationError('Invalid email format');
     }
-    try {
-      const response = await this.stateset.request('PUT', `users/${userId}`, data);
-      return this.mapResponse(response.user);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', userId);
-    }
+    return super.update(userId, data);
   }
 
-  async delete(userId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `users/${userId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', userId);
-    }
+  override async delete(userId: NonEmptyString<string>): Promise<void> {
+    await super.delete(userId);
   }
 
   async updateRole(userId: NonEmptyString<string>, role: UserRole): Promise<UserResponse> {
     try {
-      const response = await this.stateset.request('PUT', `users/${userId}/role`, { role });
-      return this.mapResponse(response.user);
+      const response = await this.client.request('PUT', `users/${userId}/role`, { role });
+      return this.mapResponse((response as any).user ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'updateRole', userId);
     }
@@ -202,7 +185,7 @@ export default class Users {
       throw new UserValidationError('New password must be at least 8 characters long');
     }
     try {
-      await this.stateset.request('POST', `users/${userId}/reset-password`, {
+      await this.client.request('POST', `users/${userId}/reset-password`, {
         password: newPassword,
       });
     } catch (error: any) {
@@ -216,30 +199,22 @@ export default class Users {
     role_breakdown: Record<UserRole, number>;
     average_login_frequency: number; // logins per day
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    }
+    const requestParams: Record<string, unknown> = {};
+    if (params?.org_id) requestParams.org_id = params.org_id;
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
     try {
-      const response = await this.stateset.request(
-        'GET',
-        `users/metrics?${queryParams.toString()}`
-      );
-      return response.metrics;
+      const response = await this.client.request('GET', 'users/metrics', undefined, {
+        params: requestParams,
+      });
+      return (response as any).metrics ?? response;
     } catch (error: any) {
       throw this.handleError(error, 'getMetrics');
     }
   }
 
-  private handleError(error: any, operation: string, userId?: string): never {
-    if (error.status === 404) throw new UserNotFoundError(userId || 'unknown');
-    if (error.status === 400) throw new UserValidationError(error.message, error.errors);
-    throw new UserError(`Failed to ${operation} user: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _userId?: string): never {
+    throw error;
   }
 }

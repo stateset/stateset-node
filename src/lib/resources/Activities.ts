@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for activity management
 export enum ActivityType {
@@ -224,15 +225,19 @@ export class ActivityExecutionError extends Error {
 }
 
 // Main Activities Class
-class Activities {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Activities extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'activities', 'activities');
+    this.singleKey = 'activity';
+    this.listKey = 'activities';
+  }
 
   /**
    * List activities with optional filtering
    * @param params - Optional filtering parameters
    * @returns Array of ActivityResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     workflow_id?: string;
     type?: ActivityType;
     status?: ActivityStatus;
@@ -240,17 +245,11 @@ class Activities {
     org_id?: string;
     tags?: string[];
   }): Promise<ActivityResponse[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.tags) requestParams.tags = JSON.stringify(params.tags);
 
-    if (params?.workflow_id) queryParams.append('workflow_id', params.workflow_id);
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.tags) queryParams.append('tags', JSON.stringify(params.tags));
-
-    const response = await this.stateset.request('GET', `activities?${queryParams.toString()}`);
-    return response.activities;
+    const response = await super.list(requestParams as any);
+    return (response as any).activities ?? response;
   }
 
   /**
@@ -258,16 +257,8 @@ class Activities {
    * @param activityId - Activity ID
    * @returns ActivityResponse object
    */
-  async get(activityId: string): Promise<ActivityResponse> {
-    try {
-      const response = await this.stateset.request('GET', `activities/${activityId}`);
-      return response.activity;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ActivityNotFoundError(activityId);
-      }
-      throw error;
-    }
+  override async get(activityId: string): Promise<ActivityResponse> {
+    return super.get(activityId);
   }
 
   /**
@@ -275,18 +266,9 @@ class Activities {
    * @param activityData - ActivityData object
    * @returns ActivityResponse object
    */
-  async create(activityData: ActivityData): Promise<ActivityResponse> {
+  override async create(activityData: ActivityData): Promise<ActivityResponse> {
     this.validateActivityData(activityData);
-
-    try {
-      const response = await this.stateset.request('POST', 'activities', activityData);
-      return response.activity;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new ActivityValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(activityData);
   }
 
   /**
@@ -295,31 +277,16 @@ class Activities {
    * @param activityData - Partial<ActivityData> object
    * @returns ActivityResponse object
    */
-  async update(activityId: string, activityData: Partial<ActivityData>): Promise<ActivityResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `activities/${activityId}`, activityData);
-      return response.activity;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ActivityNotFoundError(activityId);
-      }
-      throw error;
-    }
+  override async update(activityId: string, activityData: Partial<ActivityData>): Promise<ActivityResponse> {
+    return super.update(activityId, activityData);
   }
 
   /**
    * Delete activity
    * @param activityId - Activity ID
    */
-  async delete(activityId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `activities/${activityId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ActivityNotFoundError(activityId);
-      }
-      throw error;
-    }
+  override async delete(activityId: string): Promise<void> {
+    await super.delete(activityId);
   }
 
   /**
@@ -330,10 +297,10 @@ class Activities {
    */
   async start(activityId: string, input?: Record<string, any>): Promise<ActivityResponse> {
     try {
-      const response = await this.stateset.request('POST', `activities/${activityId}/start`, {
+      const response = await this.client.request('POST', `activities/${activityId}/start`, {
         input,
       });
-      return response.activity;
+      return (response as any).activity ?? response;
     } catch (error: any) {
       throw new ActivityExecutionError(error.message, activityId);
     }
@@ -346,10 +313,10 @@ class Activities {
    * @returns ActivityResponse object
    */
   async complete(activityId: string, output: Record<string, any>): Promise<ActivityResponse> {
-    const response = await this.stateset.request('POST', `activities/${activityId}/complete`, {
+    const response = await this.client.request('POST', `activities/${activityId}/complete`, {
       output,
     });
-    return response.activity;
+    return (response as any).activity ?? response;
   }
 
   /**
@@ -366,10 +333,10 @@ class Activities {
       details?: any;
     }
   ): Promise<ActivityResponse> {
-    const response = await this.stateset.request('POST', `activities/${activityId}/fail`, {
+    const response = await this.client.request('POST', `activities/${activityId}/fail`, {
       error,
     });
-    return response.activity;
+    return (response as any).activity ?? response;
   }
 
   /**
@@ -379,10 +346,10 @@ class Activities {
    * @returns ActivityResponse object
    */
   async cancel(activityId: string, reason?: string): Promise<ActivityResponse> {
-    const response = await this.stateset.request('POST', `activities/${activityId}/cancel`, {
+    const response = await this.client.request('POST', `activities/${activityId}/cancel`, {
       reason,
     });
-    return response.activity;
+    return (response as any).activity ?? response;
   }
 
   /**
@@ -391,8 +358,8 @@ class Activities {
    * @returns ActivityMetrics object
    */
   async getMetrics(activityId: string): Promise<ActivityMetrics> {
-    const response = await this.stateset.request('GET', `activities/${activityId}/metrics`);
-    return response.metrics;
+    const response = await this.client.request('GET', `activities/${activityId}/metrics`);
+    return (response as any).metrics ?? response;
   }
 
   /**
@@ -401,8 +368,8 @@ class Activities {
    * @returns ActivityResponse object
    */
   async retry(activityId: string): Promise<ActivityResponse> {
-    const response = await this.stateset.request('POST', `activities/${activityId}/retry`);
-    return response.activity;
+    const response = await this.client.request('POST', `activities/${activityId}/retry`);
+    return (response as any).activity ?? response;
   }
 
   /**

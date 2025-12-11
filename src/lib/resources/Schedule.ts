@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for schedule management
 export enum ScheduleType {
@@ -187,31 +188,27 @@ export class ScheduleExecutionError extends Error {
 }
 
 // Main Schedule Class
-class Schedule {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Schedule extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'schedules', 'schedules');
+    this.singleKey = 'schedule';
+    this.listKey = 'schedules';
+  }
 
   /**
    * List schedules with optional filtering
    * @param params - Filtering parameters
    * @returns Array of ScheduleResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     status?: ScheduleStatus;
     schedule_type?: ScheduleType;
     priority?: TaskPriority;
     agent_id?: string;
     org_id?: string;
   }): Promise<ScheduleResponse[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.schedule_type) queryParams.append('schedule_type', params.schedule_type);
-    if (params?.priority) queryParams.append('priority', params.priority);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `schedules?${queryParams.toString()}`);
-    return response.schedules;
+    const response = await super.list(params as any);
+    return (response as any).schedules ?? response;
   }
 
   /**
@@ -219,16 +216,8 @@ class Schedule {
    * @param scheduleId - Schedule ID
    * @returns ScheduleResponse object
    */
-  async get(scheduleId: string): Promise<ScheduleResponse> {
-    try {
-      const response = await this.stateset.request('GET', `schedules/${scheduleId}`);
-      return response.schedule;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ScheduleNotFoundError(scheduleId);
-      }
-      throw error;
-    }
+  override async get(scheduleId: string): Promise<ScheduleResponse> {
+    return super.get(scheduleId);
   }
 
   /**
@@ -236,18 +225,9 @@ class Schedule {
    * @param scheduleData - ScheduleData object
    * @returns ScheduleResponse object
    */
-  async create(scheduleData: ScheduleData): Promise<ScheduleResponse> {
+  override async create(scheduleData: ScheduleData): Promise<ScheduleResponse> {
     this.validateScheduleData(scheduleData);
-
-    try {
-      const response = await this.stateset.request('POST', 'schedules', scheduleData);
-      return response.schedule;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new ScheduleValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(scheduleData);
   }
 
   /**
@@ -256,35 +236,19 @@ class Schedule {
    * @param scheduleData - Partial<ScheduleData> object
    * @returns ScheduleResponse object
    */
-  async update(scheduleId: string, scheduleData: Partial<ScheduleData>): Promise<ScheduleResponse> {
+  override async update(scheduleId: string, scheduleData: Partial<ScheduleData>): Promise<ScheduleResponse> {
     if (Object.keys(scheduleData).length > 0) {
       this.validateScheduleData(scheduleData as ScheduleData, true);
     }
-
-    try {
-      const response = await this.stateset.request('PUT', `schedules/${scheduleId}`, scheduleData);
-      return response.schedule;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ScheduleNotFoundError(scheduleId);
-      }
-      throw error;
-    }
+    return super.update(scheduleId, scheduleData);
   }
 
   /**
    * Delete schedule
    * @param scheduleId - Schedule ID
    */
-  async delete(scheduleId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `schedules/${scheduleId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ScheduleNotFoundError(scheduleId);
-      }
-      throw error;
-    }
+  override async delete(scheduleId: string): Promise<void> {
+    await super.delete(scheduleId);
   }
 
   /**
@@ -293,8 +257,8 @@ class Schedule {
    * @returns ScheduleResponse object
    */
   async pause(scheduleId: string): Promise<ScheduleResponse> {
-    const response = await this.stateset.request('POST', `schedules/${scheduleId}/pause`);
-    return response.schedule;
+    const response = await this.client.request('POST', `schedules/${scheduleId}/pause`);
+    return (response as any).schedule ?? response;
   }
 
   /**
@@ -303,8 +267,8 @@ class Schedule {
    * @returns ScheduleResponse object
    */
   async resume(scheduleId: string): Promise<ScheduleResponse> {
-    const response = await this.stateset.request('POST', `schedules/${scheduleId}/resume`);
-    return response.schedule;
+    const response = await this.client.request('POST', `schedules/${scheduleId}/resume`);
+    return (response as any).schedule ?? response;
   }
 
   /**
@@ -321,12 +285,8 @@ class Schedule {
     }
   ): Promise<ExecutionResult> {
     try {
-      const response = await this.stateset.request(
-        'POST',
-        `schedules/${scheduleId}/trigger`,
-        params
-      );
-      return response.execution;
+      const response = await this.client.request('POST', `schedules/${scheduleId}/trigger`, params);
+      return (response as any).execution ?? response;
     } catch (error: any) {
       throw new ScheduleExecutionError(error.message, scheduleId);
     }
@@ -347,18 +307,19 @@ class Schedule {
       limit?: number;
     }
   ): Promise<ExecutionResult[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
+    if (params?.status) requestParams.status = params.status;
+    if (params?.limit) requestParams.limit = params.limit;
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `schedules/${scheduleId}/execution-history?${queryParams.toString()}`
+      `schedules/${scheduleId}/execution-history`,
+      undefined,
+      { params: requestParams }
     );
-    return response.executions;
+    return (response as any).executions ?? response;
   }
 
   /**
@@ -371,11 +332,13 @@ class Schedule {
     scheduleId: string,
     limit: number = 10
   ): Promise<Array<{ scheduled_time: string; estimation_basis: string }>> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `schedules/${scheduleId}/next-executions?limit=${limit}`
+      `schedules/${scheduleId}/next-executions`,
+      undefined,
+      { params: { limit } }
     );
-    return response.executions;
+    return (response as any).executions ?? response;
   }
 
   /**

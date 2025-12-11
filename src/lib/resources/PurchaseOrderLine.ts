@@ -19,7 +19,7 @@ interface PurchaseOrderLineItem {
 }
 
 class PurchaseOrderLines {
-  constructor(private stateset: ApiClientLike) {}
+  constructor(private client: ApiClientLike) {}
 
   /**
    * List all purchase order lines
@@ -30,7 +30,7 @@ class PurchaseOrderLines {
     const endpoint = purchaseOrderId
       ? `purchase_orders/${purchaseOrderId}/line_items`
       : 'purchase_order_line_items';
-    return this.stateset.request('GET', endpoint);
+    return this.client.request('GET', endpoint);
   }
 
   /**
@@ -39,7 +39,7 @@ class PurchaseOrderLines {
    * @returns PurchaseOrderLineItem object
    */
   async get(lineItemId: string): Promise<PurchaseOrderLineItem> {
-    return this.stateset.request('GET', `purchase_order_line_items/${lineItemId}`);
+    return this.client.request('GET', `purchase_order_line_items/${lineItemId}`);
   }
 
   /**
@@ -48,7 +48,7 @@ class PurchaseOrderLines {
    * @returns PurchaseOrderLineItem object
    */
   async create(lineItemData: Omit<PurchaseOrderLineItem, 'id'>): Promise<PurchaseOrderLineItem> {
-    return this.stateset.request('POST', 'purchase_order_line_items', lineItemData);
+    return this.client.request('POST', 'purchase_order_line_items', lineItemData);
   }
 
   /**
@@ -61,7 +61,7 @@ class PurchaseOrderLines {
     lineItemId: string,
     lineItemData: Partial<PurchaseOrderLineItem>
   ): Promise<PurchaseOrderLineItem> {
-    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}`, lineItemData);
+    return this.client.request('PUT', `purchase_order_line_items/${lineItemId}`, lineItemData);
   }
 
   /**
@@ -69,7 +69,7 @@ class PurchaseOrderLines {
    * @param lineItemId - Purchase order line ID
    */
   async delete(lineItemId: string): Promise<void> {
-    return this.stateset.request('DELETE', `purchase_order_line_items/${lineItemId}`);
+    return this.client.request('DELETE', `purchase_order_line_items/${lineItemId}`);
   }
 
   /**
@@ -82,7 +82,7 @@ class PurchaseOrderLines {
     purchaseOrderId: string,
     lineItems: Array<Omit<PurchaseOrderLineItem, 'id' | 'purchase_order_id'>>
   ): Promise<PurchaseOrderLineItem[]> {
-    return this.stateset.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, {
+    return this.client.request('POST', `purchase_orders/${purchaseOrderId}/line_items/bulk`, {
       line_items: lineItems,
     });
   }
@@ -97,7 +97,7 @@ class PurchaseOrderLines {
     lineItemId: string,
     quantityReceived: number
   ): Promise<PurchaseOrderLineItem> {
-    return this.stateset.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, {
+    return this.client.request('PUT', `purchase_order_line_items/${lineItemId}/receive`, {
       quantity_received: quantityReceived,
     });
   }

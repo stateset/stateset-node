@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for workflow management
 export enum WorkflowType {
@@ -210,31 +211,30 @@ export class WorkflowExecutionError extends Error {
 }
 
 // Main Workflows Class
-class Workflows {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Workflows extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'workflows', 'workflows');
+    this.singleKey = 'workflow';
+    this.listKey = 'workflows';
+  }
 
   /**
    * List workflows with optional filtering
    * @param params - Filtering parameters
    * @returns Array of WorkflowResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     type?: WorkflowType;
     status?: WorkflowStatus;
     agent_id?: string;
     org_id?: string;
     tags?: string[];
   }): Promise<WorkflowResponse[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.tags) requestParams.tags = JSON.stringify(params.tags);
 
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.tags) queryParams.append('tags', JSON.stringify(params.tags));
-
-    const response = await this.stateset.request('GET', `workflows?${queryParams.toString()}`);
-    return response.workflows;
+    const response = await super.list(requestParams as any);
+    return (response as any).workflows ?? response;
   }
 
   /**
@@ -242,16 +242,8 @@ class Workflows {
    * @param workflowId - Workflow ID
    * @returns WorkflowResponse object
    */
-  async get(workflowId: string): Promise<WorkflowResponse> {
-    try {
-      const response = await this.stateset.request('GET', `workflows/${workflowId}`);
-      return response.workflow;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WorkflowNotFoundError(workflowId);
-      }
-      throw error;
-    }
+  override async get(workflowId: string): Promise<WorkflowResponse> {
+    return super.get(workflowId);
   }
 
   /**
@@ -259,18 +251,9 @@ class Workflows {
    * @param workflowData - WorkflowData object
    * @returns WorkflowResponse object
    */
-  async create(workflowData: WorkflowData): Promise<WorkflowResponse> {
+  override async create(workflowData: WorkflowData): Promise<WorkflowResponse> {
     this.validateWorkflowData(workflowData);
-
-    try {
-      const response = await this.stateset.request('POST', 'workflows', workflowData);
-      return response.workflow;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new WorkflowValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(workflowData);
   }
 
   /**
@@ -279,31 +262,16 @@ class Workflows {
    * @param workflowData - Partial<WorkflowData> object
    * @returns WorkflowResponse object
    */
-  async update(workflowId: string, workflowData: Partial<WorkflowData>): Promise<WorkflowResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `workflows/${workflowId}`, workflowData);
-      return response.workflow;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WorkflowNotFoundError(workflowId);
-      }
-      throw error;
-    }
+  override async update(workflowId: string, workflowData: Partial<WorkflowData>): Promise<WorkflowResponse> {
+    return super.update(workflowId, workflowData);
   }
 
   /**
    * Delete workflow
    * @param workflowId - Workflow ID
    */
-  async delete(workflowId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `workflows/${workflowId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new WorkflowNotFoundError(workflowId);
-      }
-      throw error;
-    }
+  override async delete(workflowId: string): Promise<void> {
+    await super.delete(workflowId);
   }
 
   /**
@@ -314,10 +282,10 @@ class Workflows {
    */
   async execute(workflowId: string, input: Record<string, any>): Promise<WorkflowExecution> {
     try {
-      const response = await this.stateset.request('POST', `workflows/${workflowId}/execute`, {
+      const response = await this.client.request('POST', `workflows/${workflowId}/execute`, {
         input,
       });
-      return response.execution;
+      return (response as any).execution ?? response;
     } catch (error: any) {
       throw new WorkflowExecutionError(error.message, error.execution_id);
     }
@@ -330,11 +298,11 @@ class Workflows {
    * @returns WorkflowExecution object
    */
   async getExecutionStatus(workflowId: string, executionId: string): Promise<WorkflowExecution> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
       `workflows/${workflowId}/executions/${executionId}`
     );
-    return response.execution;
+    return (response as any).execution ?? response;
   }
 
   /**
@@ -352,18 +320,19 @@ class Workflows {
       limit?: number;
     }
   ): Promise<WorkflowExecution[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
+    if (params?.status) requestParams.status = params.status;
+    if (params?.limit) requestParams.limit = params.limit;
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `workflows/${workflowId}/executions?${queryParams.toString()}`
+      `workflows/${workflowId}/executions`,
+      undefined,
+      { params: requestParams }
     );
-    return response.executions;
+    return (response as any).executions ?? response;
   }
 
   /**
@@ -379,8 +348,8 @@ class Workflows {
       new_version?: string;
     }
   ): Promise<WorkflowResponse> {
-    const response = await this.stateset.request('POST', `workflows/${workflowId}/clone`, options);
-    return response.workflow;
+    const response = await this.client.request('POST', `workflows/${workflowId}/clone`, options);
+    return (response as any).workflow ?? response;
   }
 
   /**

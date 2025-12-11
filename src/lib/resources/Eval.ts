@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for evaluation management
 export enum EvalType {
@@ -44,48 +45,37 @@ export class EvalValidationError extends Error {
   }
 }
 
-class Evals {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Evals extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'evals', 'evals');
+    this.singleKey = 'eval';
+    this.listKey = 'evals';
+  }
 
   /**
    * List evaluations with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     eval_type?: EvalType;
     subject_id?: string;
     agent_id?: string;
     org_id?: string;
   }): Promise<EvalRecord[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.eval_type) queryParams.append('eval_type', params.eval_type);
-    if (params?.subject_id) queryParams.append('subject_id', params.subject_id);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `evals?${queryParams.toString()}`);
-    return response.evals;
+    const response = await super.list(params as any);
+    return (response as any).evals ?? response;
   }
 
   /**
    * Get a specific evaluation
    */
-  async get(evalId: string): Promise<EvalRecord> {
-    try {
-      const response = await this.stateset.request('GET', `evals/${evalId}`);
-      return response.eval;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new EvalNotFoundError(evalId);
-      }
-      throw error;
-    }
+  override async get(evalId: string): Promise<EvalRecord> {
+    return super.get(evalId);
   }
 
   /**
    * Create evaluation
    */
-  async create(data: EvalData): Promise<EvalRecord> {
+  override async create(data: EvalData): Promise<EvalRecord> {
     if (!data.subject_id) {
       throw new EvalValidationError('subject_id is required');
     }
@@ -93,22 +83,14 @@ class Evals {
       throw new EvalValidationError('at least one metric is required');
     }
 
-    const response = await this.stateset.request('POST', 'evals', data);
-    return response.eval;
+    return super.create(data);
   }
 
   /**
    * Delete evaluation
    */
-  async delete(evalId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `evals/${evalId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new EvalNotFoundError(evalId);
-      }
-      throw error;
-    }
+  override async delete(evalId: string): Promise<void> {
+    await super.delete(evalId);
   }
 }
 

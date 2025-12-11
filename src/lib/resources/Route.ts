@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -73,8 +74,20 @@ export class RouteValidationError extends RouteError {
   }
 }
 
-export default class Routes {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Routes extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'routes', 'routes');
+    this.singleKey = 'route';
+    this.listKey = 'routes';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateRouteData(data: RouteData): void {
     if (!data.carrier_id) throw new RouteValidationError('Carrier ID is required');
@@ -119,7 +132,7 @@ export default class Routes {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     carrier_id?: string;
     status?: RouteStatus;
     org_id?: string;
@@ -131,83 +144,50 @@ export default class Routes {
     routes: RouteResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.carrier_id) queryParams.append('carrier_id', params.carrier_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request('GET', `routes?${queryParams.toString()}`);
-      return {
-        routes: response.routes.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.routes.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const routes = (response as any).routes ?? response;
+
+    return {
+      routes,
+      pagination: (response as any).pagination || {
+        total: routes.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(routeId: NonEmptyString<string>): Promise<RouteResponse> {
-    try {
-      const response = await this.stateset.request('GET', `routes/${routeId}`);
-      return this.mapResponse(response.route);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', routeId);
-    }
+  override async get(routeId: NonEmptyString<string>): Promise<RouteResponse> {
+    return super.get(routeId);
   }
 
-  async create(data: RouteData): Promise<RouteResponse> {
+  override async create(data: RouteData): Promise<RouteResponse> {
     this.validateRouteData(data);
-    try {
-      const response = await this.stateset.request('POST', 'routes', data);
-      return this.mapResponse(response.route);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(routeId: NonEmptyString<string>, data: Partial<RouteData>): Promise<RouteResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `routes/${routeId}`, data);
-      return this.mapResponse(response.route);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', routeId);
-    }
+  override async update(routeId: NonEmptyString<string>, data: Partial<RouteData>): Promise<RouteResponse> {
+    return super.update(routeId, data);
   }
 
-  async delete(routeId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `routes/${routeId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', routeId);
-    }
+  override async delete(routeId: NonEmptyString<string>): Promise<void> {
+    await super.delete(routeId);
   }
 
   async optimizeRoute(routeId: NonEmptyString<string>): Promise<RouteResponse> {
     try {
-      const response = await this.stateset.request('POST', `routes/${routeId}/optimize`, {});
-      return this.mapResponse(response.route);
+      const response = await this.client.request('POST', `routes/${routeId}/optimize`, {});
+      return this.mapResponse((response as any).route ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'optimizeRoute', routeId);
     }
   }
 
-  private handleError(error: any, operation: string, routeId?: string): never {
-    if (error.status === 404) throw new RouteNotFoundError(routeId || 'unknown');
-    if (error.status === 400) throw new RouteValidationError(error.message, error.errors);
-    throw new RouteError(`Failed to ${operation} route: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _routeId?: string): never {
+    throw error;
   }
 }

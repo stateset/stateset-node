@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -73,8 +74,20 @@ export class ResourceUtilizationValidationError extends ResourceUtilizationError
   }
 }
 
-export default class ResourceUtilization {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class ResourceUtilization extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'resource_utilizations', 'resource_utilizations');
+    this.singleKey = 'resource_utilization';
+    this.listKey = 'resource_utilizations';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateResourceUtilizationData(data: ResourceUtilizationData): void {
     if (!data.resource_id) throw new ResourceUtilizationValidationError('Resource ID is required');
@@ -114,7 +127,7 @@ export default class ResourceUtilization {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     resource_id?: string;
     category?: ResourceCategory;
     status?: ResourceUtilizationStatus;
@@ -127,80 +140,41 @@ export default class ResourceUtilization {
     resource_utilizations: ResourceUtilizationResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.resource_id) queryParams.append('resource_id', params.resource_id);
-      if (params.category) queryParams.append('category', params.category);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `resource_utilizations?${queryParams.toString()}`
-      );
-      return {
-        resource_utilizations: response.resource_utilizations.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.resource_utilizations.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const resource_utilizations = (response as any).resource_utilizations ?? response;
+
+    return {
+      resource_utilizations,
+      pagination: (response as any).pagination || {
+        total: resource_utilizations.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(resourceUtilizationId: NonEmptyString<string>): Promise<ResourceUtilizationResponse> {
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `resource_utilizations/${resourceUtilizationId}`
-      );
-      return this.mapResponse(response.resource_utilization);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', resourceUtilizationId);
-    }
+  override async get(resourceUtilizationId: NonEmptyString<string>): Promise<ResourceUtilizationResponse> {
+    return super.get(resourceUtilizationId);
   }
 
-  async create(data: ResourceUtilizationData): Promise<ResourceUtilizationResponse> {
+  override async create(data: ResourceUtilizationData): Promise<ResourceUtilizationResponse> {
     this.validateResourceUtilizationData(data);
-    try {
-      const response = await this.stateset.request('POST', 'resource_utilizations', data);
-      return this.mapResponse(response.resource_utilization);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     resourceUtilizationId: NonEmptyString<string>,
     data: Partial<ResourceUtilizationData>
   ): Promise<ResourceUtilizationResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `resource_utilizations/${resourceUtilizationId}`,
-        data
-      );
-      return this.mapResponse(response.resource_utilization);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', resourceUtilizationId);
-    }
+    return super.update(resourceUtilizationId, data);
   }
 
-  async delete(resourceUtilizationId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `resource_utilizations/${resourceUtilizationId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', resourceUtilizationId);
-    }
+  override async delete(resourceUtilizationId: NonEmptyString<string>): Promise<void> {
+    await super.delete(resourceUtilizationId);
   }
 
   async updateUtilization(
@@ -208,25 +182,18 @@ export default class ResourceUtilization {
     utilizationData: { utilized_capacity: number; efficiency: number; utilization_end?: Timestamp }
   ): Promise<ResourceUtilizationResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `resource_utilizations/${resourceUtilizationId}/utilization`,
         utilizationData
       );
-      return this.mapResponse(response.resource_utilization);
+      return this.mapResponse((response as any).resource_utilization ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'updateUtilization', resourceUtilizationId);
     }
   }
 
-  private handleError(error: any, operation: string, resourceUtilizationId?: string): never {
-    if (error.status === 404)
-      throw new ResourceUtilizationNotFoundError(resourceUtilizationId || 'unknown');
-    if (error.status === 400)
-      throw new ResourceUtilizationValidationError(error.message, error.errors);
-    throw new ResourceUtilizationError(
-      `Failed to ${operation} resource utilization: ${error.message}`,
-      { operation, originalError: error }
-    );
+  private handleError(error: any, _operation: string, _resourceUtilizationId?: string): never {
+    throw error;
   }
 }

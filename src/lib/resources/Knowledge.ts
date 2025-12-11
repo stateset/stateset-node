@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for knowledge management
 export enum KnowledgeType {
@@ -44,84 +45,56 @@ export class KnowledgeValidationError extends Error {
 }
 
 // Main Knowledge class
-class Knowledge {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Knowledge extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'knowledge', 'knowledge');
+    this.singleKey = 'knowledge';
+    this.listKey = 'knowledge';
+  }
 
   /**
    * List knowledge items with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     type?: KnowledgeType;
     agent_id?: string;
     org_id?: string;
     user_id?: string;
     tag?: string;
   }): Promise<KnowledgeRecord[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.type) queryParams.append('type', params.type);
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.user_id) queryParams.append('user_id', params.user_id);
-    if (params?.tag) queryParams.append('tag', params.tag);
-
-    const response = await this.stateset.request('GET', `knowledge?${queryParams.toString()}`);
-    return response.knowledge;
+    const response = await super.list(params as any);
+    return (response as any).knowledge ?? response;
   }
 
   /**
    * Get specific knowledge item
    */
-  async get(knowledgeId: string): Promise<KnowledgeRecord> {
-    try {
-      const response = await this.stateset.request('GET', `knowledge/${knowledgeId}`);
-      return response.knowledge;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new KnowledgeNotFoundError(knowledgeId);
-      }
-      throw error;
-    }
+  override async get(knowledgeId: string): Promise<KnowledgeRecord> {
+    return super.get(knowledgeId);
   }
 
   /**
    * Create knowledge
    */
-  async create(data: KnowledgeData): Promise<KnowledgeRecord> {
+  override async create(data: KnowledgeData): Promise<KnowledgeRecord> {
     if (!data.title || !data.content) {
       throw new KnowledgeValidationError('Title and content are required');
     }
-    const response = await this.stateset.request('POST', 'knowledge', data);
-    return response.knowledge;
+    return super.create(data);
   }
 
   /**
    * Update knowledge
    */
-  async update(knowledgeId: string, data: Partial<KnowledgeData>): Promise<KnowledgeRecord> {
-    try {
-      const response = await this.stateset.request('PUT', `knowledge/${knowledgeId}`, data);
-      return response.knowledge;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new KnowledgeNotFoundError(knowledgeId);
-      }
-      throw error;
-    }
+  override async update(knowledgeId: string, data: Partial<KnowledgeData>): Promise<KnowledgeRecord> {
+    return super.update(knowledgeId, data);
   }
 
   /**
    * Delete knowledge
    */
-  async delete(knowledgeId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `knowledge/${knowledgeId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new KnowledgeNotFoundError(knowledgeId);
-      }
-      throw error;
-    }
+  override async delete(knowledgeId: string): Promise<void> {
+    await super.delete(knowledgeId);
   }
 }
 

@@ -1,4 +1,4 @@
-import { StatesetClient } from '../../client';
+import type { StatesetClient } from '../../client';
 import { RequestOptions, ListResponse, PaginationParams } from '../../types';
 import { logger } from '../../utils/logger';
 import { performanceMonitor } from '../../utils/performance';
@@ -8,8 +8,8 @@ export interface BaseResourceInterface {
   get(id: string, options?: RequestOptions): Promise<any>;
   update(id: string, data: any, options?: RequestOptions): Promise<any>;
   delete(id: string, options?: RequestOptions): Promise<any>;
-  list(params?: PaginationParams & any, options?: RequestOptions): Promise<ListResponse<any>>;
-  search(query: string, params?: any, options?: RequestOptions): Promise<ListResponse<any>>;
+  list(params?: PaginationParams & any, options?: RequestOptions): Promise<any>;
+  search(query: string, params?: any, options?: RequestOptions): Promise<any>;
   count(params?: any, options?: RequestOptions): Promise<{ count: number }>;
   exists(id: string, options?: RequestOptions): Promise<{ exists: boolean }>;
 }
@@ -18,11 +18,55 @@ export abstract class BaseResource implements BaseResourceInterface {
   protected client: StatesetClient;
   protected resourcePath: string;
   protected resourceName: string;
+  protected singleKey?: string;
+  protected listKey?: string;
 
   constructor(client: StatesetClient, resourcePath: string, resourceName: string) {
     this.client = client;
     this.resourcePath = resourcePath;
     this.resourceName = resourceName;
+  }
+
+  protected mapSingle(data: any): any {
+    return data;
+  }
+
+  protected mapListItem(item: any): any {
+    return item;
+  }
+
+  protected extractSingle(response: any): any {
+    if (
+      this.singleKey &&
+      response &&
+      typeof response === 'object' &&
+      this.singleKey in response
+    ) {
+      return this.mapSingle((response as any)[this.singleKey]);
+    }
+
+    return this.mapSingle(response);
+  }
+
+  protected extractList(response: any): any {
+    if (
+      this.listKey &&
+      response &&
+      typeof response === 'object' &&
+      this.listKey in response
+    ) {
+      const rawList = (response as any)[this.listKey];
+      const mappedList = Array.isArray(rawList)
+        ? rawList.map(item => this.mapListItem(item))
+        : rawList;
+      return { ...(response as any), [this.listKey]: mappedList };
+    }
+
+    if (Array.isArray(response)) {
+      return response.map(item => this.mapListItem(item));
+    }
+
+    return response;
   }
 
   /**
@@ -37,15 +81,19 @@ export abstract class BaseResource implements BaseResourceInterface {
         metadata: { resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request('POST', this.resourcePath, data, options);
+      const hasOptions = options && Object.keys(options).length > 0;
+      const response = hasOptions
+        ? await this.client.request('POST', this.resourcePath, data, options)
+        : await this.client.request('POST', this.resourcePath, data);
 
       timer.end(true);
+      const result = this.extractSingle(response);
       logger.info(`${this.resourceName} created successfully`, {
         operation: `${this.resourceName}.create`,
-        metadata: { id: response.id },
+        metadata: { id: result?.id },
       });
 
-      return response;
+      return result;
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -71,15 +119,13 @@ export abstract class BaseResource implements BaseResourceInterface {
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request(
-        'GET',
-        `${this.resourcePath}/${id}`,
-        undefined,
-        options
-      );
+      const hasOptions = options && Object.keys(options).length > 0;
+      const response = hasOptions
+        ? await this.client.request('GET', `${this.resourcePath}/${id}`, undefined, options)
+        : await this.client.request('GET', `${this.resourcePath}/${id}`);
 
       timer.end(true);
-      return response;
+      return this.extractSingle(response);
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -106,20 +152,19 @@ export abstract class BaseResource implements BaseResourceInterface {
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request(
-        'PUT',
-        `${this.resourcePath}/${id}`,
-        data,
-        options
-      );
+      const hasOptions = options && Object.keys(options).length > 0;
+      const response = hasOptions
+        ? await this.client.request('PUT', `${this.resourcePath}/${id}`, data, options)
+        : await this.client.request('PUT', `${this.resourcePath}/${id}`, data);
 
       timer.end(true);
+      const result = this.extractSingle(response);
       logger.info(`${this.resourceName} updated successfully`, {
         operation: `${this.resourceName}.update`,
         metadata: { id },
       });
 
-      return response;
+      return result;
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -146,20 +191,19 @@ export abstract class BaseResource implements BaseResourceInterface {
         metadata: { id, resourcePath: this.resourcePath },
       });
 
-      const response = await this.client.request(
-        'DELETE',
-        `${this.resourcePath}/${id}`,
-        undefined,
-        options
-      );
+      const hasOptions = options && Object.keys(options).length > 0;
+      const response = hasOptions
+        ? await this.client.request('DELETE', `${this.resourcePath}/${id}`, undefined, options)
+        : await this.client.request('DELETE', `${this.resourcePath}/${id}`);
 
       timer.end(true);
+      const result = this.extractSingle(response);
       logger.info(`${this.resourceName} deleted successfully`, {
         operation: `${this.resourceName}.delete`,
         metadata: { id },
       });
 
-      return response;
+      return result;
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -180,7 +224,7 @@ export abstract class BaseResource implements BaseResourceInterface {
   async list(
     params: PaginationParams & any = {},
     options: RequestOptions = {}
-  ): Promise<ListResponse<any>> {
+  ): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.list`);
 
     try {
@@ -197,7 +241,7 @@ export abstract class BaseResource implements BaseResourceInterface {
       const response = await this.client.request('GET', this.resourcePath, undefined, config);
 
       timer.end(true);
-      return response;
+      return this.extractList(response);
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -218,7 +262,7 @@ export abstract class BaseResource implements BaseResourceInterface {
     query: string,
     params: any = {},
     options: RequestOptions = {}
-  ): Promise<ListResponse<any>> {
+  ): Promise<any> {
     const timer = performanceMonitor.startTimer(`${this.resourceName}.search`);
 
     try {
@@ -245,7 +289,7 @@ export abstract class BaseResource implements BaseResourceInterface {
       );
 
       timer.end(true);
-      return response;
+      return this.extractList(response);
     } catch (error) {
       timer.end(false, (error as Error).message);
       logger.error(
@@ -459,13 +503,29 @@ export abstract class BaseResource implements BaseResourceInterface {
 
     while (hasMore) {
       const response = await this.list({ ...params, cursor }, options);
+      const items = Array.isArray(response)
+        ? response
+        : this.listKey && response && typeof response === 'object' && this.listKey in response
+          ? (response as any)[this.listKey]
+          : (response as any)?.data;
 
-      for (const item of response.data) {
+      if (Array.isArray(items)) {
+        for (const item of items) {
         yield item;
+        }
       }
 
-      hasMore = response.has_more;
-      cursor = response.next_cursor;
+      const nextCursor = (response as any)?.next_cursor;
+      const hasMoreFlag =
+        (response as any)?.has_more ??
+        ((response as any)?.data ? Boolean(nextCursor) : false);
+
+      hasMore = Boolean(hasMoreFlag);
+      cursor = nextCursor;
+
+      if (!hasMore) {
+        break;
+      }
     }
   }
 

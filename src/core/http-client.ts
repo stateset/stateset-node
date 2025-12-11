@@ -283,6 +283,9 @@ export class EnhancedHttpClient {
       if (status === 429) {
         return new StatesetRateLimitError({ ...raw, type: 'rate_limit_error' });
       }
+      if (status >= 400 && status < 500) {
+        return new StatesetInvalidRequestError(raw);
+      }
       if (status >= 500) {
         return new StatesetAPIError({ ...raw, type: 'api_error' });
       }

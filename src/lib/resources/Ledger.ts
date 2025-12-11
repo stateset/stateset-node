@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -64,8 +65,20 @@ export class LedgerValidationError extends LedgerError {
   }
 }
 
-export default class Ledger {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Ledger extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'ledger_entries', 'ledger_entries');
+    this.singleKey = 'ledger_entry';
+    this.listKey = 'ledger_entries';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateLedgerData(data: LedgerData): void {
     if (!data.reference_id) throw new LedgerValidationError('Reference ID is required');
@@ -94,7 +107,7 @@ export default class Ledger {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     event_type?: LedgerEventType;
     reference_id?: string;
     customer_id?: string;
@@ -107,73 +120,40 @@ export default class Ledger {
     ledger_entries: LedgerResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.event_type) queryParams.append('event_type', params.event_type);
-      if (params.reference_id) queryParams.append('reference_id', params.reference_id);
-      if (params.customer_id) queryParams.append('customer_id', params.customer_id);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `ledger_entries?${queryParams.toString()}`
-      );
-      return {
-        ledger_entries: response.ledger_entries.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.ledger_entries.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const ledger_entries = (response as any).ledger_entries ?? response;
+    return {
+      ledger_entries,
+      pagination: (response as any).pagination || {
+        total: ledger_entries.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(ledgerId: NonEmptyString<string>): Promise<LedgerResponse> {
-    try {
-      const response = await this.stateset.request('GET', `ledger_entries/${ledgerId}`);
-      return this.mapResponse(response.ledger_entry);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', ledgerId);
-    }
+  override async get(ledgerId: NonEmptyString<string>): Promise<LedgerResponse> {
+    return super.get(ledgerId);
   }
 
-  async create(data: LedgerData): Promise<LedgerResponse> {
+  override async create(data: LedgerData): Promise<LedgerResponse> {
     this.validateLedgerData(data);
-    try {
-      const response = await this.stateset.request('POST', 'ledger_entries', data);
-      return this.mapResponse(response.ledger_entry);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     ledgerId: NonEmptyString<string>,
     data: Partial<LedgerData>
   ): Promise<LedgerResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `ledger_entries/${ledgerId}`, data);
-      return this.mapResponse(response.ledger_entry);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', ledgerId);
-    }
+    return super.update(ledgerId, data);
   }
 
-  async delete(ledgerId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `ledger_entries/${ledgerId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', ledgerId);
-    }
+  override async delete(ledgerId: NonEmptyString<string>): Promise<void> {
+    await super.delete(ledgerId);
   }
 
   async getBalance(params?: {
@@ -187,18 +167,18 @@ export default class Ledger {
     net_balance: number;
     currency: string;
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.customer_id) queryParams.append('customer_id', params.customer_id);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-    }
+    const requestParams: Record<string, unknown> = {};
+    if (params?.customer_id) requestParams.customer_id = params.customer_id;
+    if (params?.org_id) requestParams.org_id = params.org_id;
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'GET',
-        `ledger_entries/balance?${queryParams.toString()}`
+        `${this.resourcePath}/balance`,
+        undefined,
+        { params: requestParams }
       );
       return response;
     } catch (error: any) {
@@ -206,12 +186,7 @@ export default class Ledger {
     }
   }
 
-  private handleError(error: any, operation: string, ledgerId?: string): never {
-    if (error.status === 404) throw new LedgerNotFoundError(ledgerId || 'unknown');
-    if (error.status === 400) throw new LedgerValidationError(error.message, error.errors);
-    throw new LedgerError(`Failed to ${operation} ledger entry: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _ledgerId?: string): never {
+    throw error;
   }
 }

@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -77,8 +78,20 @@ export class MaintenanceScheduleValidationError extends MaintenanceScheduleError
   }
 }
 
-export default class MaintenanceSchedules {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class MaintenanceSchedules extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'maintenance_schedules', 'maintenance_schedules');
+    this.singleKey = 'maintenance_schedule';
+    this.listKey = 'maintenance_schedules';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateMaintenanceScheduleData(data: MaintenanceScheduleData): void {
     if (!data.asset_id) throw new MaintenanceScheduleValidationError('Asset ID is required');
@@ -120,7 +133,7 @@ export default class MaintenanceSchedules {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     asset_id?: string;
     status?: MaintenanceScheduleStatus;
     type?: MaintenanceType;
@@ -133,80 +146,41 @@ export default class MaintenanceSchedules {
     maintenance_schedules: MaintenanceScheduleResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.asset_id) queryParams.append('asset_id', params.asset_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `maintenance_schedules?${queryParams.toString()}`
-      );
-      return {
-        maintenance_schedules: response.maintenance_schedules.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.maintenance_schedules.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const maintenance_schedules = (response as any).maintenance_schedules ?? response;
+
+    return {
+      maintenance_schedules,
+      pagination: (response as any).pagination || {
+        total: maintenance_schedules.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(maintenanceScheduleId: NonEmptyString<string>): Promise<MaintenanceScheduleResponse> {
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `maintenance_schedules/${maintenanceScheduleId}`
-      );
-      return this.mapResponse(response.maintenance_schedule);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', maintenanceScheduleId);
-    }
+  override async get(maintenanceScheduleId: NonEmptyString<string>): Promise<MaintenanceScheduleResponse> {
+    return super.get(maintenanceScheduleId);
   }
 
-  async create(data: MaintenanceScheduleData): Promise<MaintenanceScheduleResponse> {
+  override async create(data: MaintenanceScheduleData): Promise<MaintenanceScheduleResponse> {
     this.validateMaintenanceScheduleData(data);
-    try {
-      const response = await this.stateset.request('POST', 'maintenance_schedules', data);
-      return this.mapResponse(response.maintenance_schedule);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     maintenanceScheduleId: NonEmptyString<string>,
     data: Partial<MaintenanceScheduleData>
   ): Promise<MaintenanceScheduleResponse> {
-    try {
-      const response = await this.stateset.request(
-        'PUT',
-        `maintenance_schedules/${maintenanceScheduleId}`,
-        data
-      );
-      return this.mapResponse(response.maintenance_schedule);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', maintenanceScheduleId);
-    }
+    return super.update(maintenanceScheduleId, data);
   }
 
-  async delete(maintenanceScheduleId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `maintenance_schedules/${maintenanceScheduleId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', maintenanceScheduleId);
-    }
+  override async delete(maintenanceScheduleId: NonEmptyString<string>): Promise<void> {
+    await super.delete(maintenanceScheduleId);
   }
 
   async complete(
@@ -214,25 +188,18 @@ export default class MaintenanceSchedules {
     completionData: { completed_date: Timestamp; actual_duration: number; actual_cost: number }
   ): Promise<MaintenanceScheduleResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `maintenance_schedules/${maintenanceScheduleId}/complete`,
         completionData
       );
-      return this.mapResponse(response.maintenance_schedule);
+      return this.mapResponse((response as any).maintenance_schedule ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'complete', maintenanceScheduleId);
     }
   }
 
-  private handleError(error: any, operation: string, maintenanceScheduleId?: string): never {
-    if (error.status === 404)
-      throw new MaintenanceScheduleNotFoundError(maintenanceScheduleId || 'unknown');
-    if (error.status === 400)
-      throw new MaintenanceScheduleValidationError(error.message, error.errors);
-    throw new MaintenanceScheduleError(
-      `Failed to ${operation} maintenance schedule: ${error.message}`,
-      { operation, originalError: error }
-    );
+  private handleError(error: any, _operation: string, _maintenanceScheduleId?: string): never {
+    throw error;
   }
 }

@@ -1,5 +1,6 @@
 // lib/resources/Product.ts
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -107,8 +108,20 @@ export class ProductValidationError extends ProductError {
   }
 }
 
-export default class Products {
-  constructor(private client: ApiClientLike) {}
+export default class Products extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'products', 'products');
+    this.singleKey = 'product';
+    this.listKey = 'products';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateProductData(data: ProductData): void {
     if (!data.name) throw new ProductValidationError('Product name is required');
@@ -145,35 +158,20 @@ export default class Products {
     };
   }
 
-  async create(data: ProductData): Promise<ProductResponse> {
+  override async create(data: ProductData): Promise<ProductResponse> {
     this.validateProductData(data);
-    try {
-      const response = await this.client.request('POST', 'products', data);
-      return this.mapResponse(response.product);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async get(id: NonEmptyString<string>): Promise<ProductResponse> {
-    try {
-      const response = await this.client.request('GET', `products/${id}`);
-      return this.mapResponse(response.product);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', id);
-    }
+  override async get(id: NonEmptyString<string>): Promise<ProductResponse> {
+    return super.get(id);
   }
 
-  async update(id: NonEmptyString<string>, data: Partial<ProductData>): Promise<ProductResponse> {
-    try {
-      const response = await this.client.request('PUT', `products/${id}`, data);
-      return this.mapResponse(response.product);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', id);
-    }
+  override async update(id: NonEmptyString<string>, data: Partial<ProductData>): Promise<ProductResponse> {
+    return super.update(id, data);
   }
 
-  async list(
+  override async list(
     params: {
       status?: ProductStatus;
       type?: ProductType;
@@ -189,40 +187,26 @@ export default class Products {
     products: ProductResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const query = new URLSearchParams({
-      ...(params.status && { status: params.status }),
-      ...(params.type && { type: params.type }),
-      ...(params.category && { category: params.category }),
-      ...(params.tag && { tag: params.tag }),
-      ...(params.org_id && { org_id: params.org_id }),
-      ...(params.date_range?.from && { from: params.date_range.from.toISOString() }),
-      ...(params.date_range?.to && { to: params.date_range.to.toISOString() }),
-      ...(params.limit && { limit: params.limit.toString() }),
-      ...(params.offset && { offset: params.offset.toString() }),
-      ...(params.search && { search: params.search }),
-    });
+    const { date_range, ...rest } = params;
+    const requestParams: Record<string, unknown> = { ...rest };
+    if (date_range?.from) requestParams.from = date_range.from.toISOString();
+    if (date_range?.to) requestParams.to = date_range.to.toISOString();
 
-    try {
-      const response = await this.client.request('GET', `products?${query.toString()}`);
-      return {
-        products: response.products.map(this.mapResponse),
-        pagination: response.pagination || {
-          total: response.products.length,
-          limit: params.limit || 100,
-          offset: params.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const products = (response as any).products ?? response;
+
+    return {
+      products,
+      pagination: (response as any).pagination || {
+        total: products.length,
+        limit: params.limit || 100,
+        offset: params.offset || 0,
+      },
+    };
   }
 
-  async delete(id: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.client.request('DELETE', `products/${id}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', id);
-    }
+  override async delete(id: NonEmptyString<string>): Promise<void> {
+    await super.delete(id);
   }
 
   async getInventory(id: NonEmptyString<string>): Promise<ProductInventory[]> {
@@ -295,12 +279,7 @@ export default class Products {
     }
   }
 
-  private handleError(error: any, operation: string, productId?: string): never {
-    if (error.status === 404) throw new ProductNotFoundError(productId || 'unknown');
-    if (error.status === 400) throw new ProductValidationError(error.message, error.errors);
-    throw new ProductError(`Failed to ${operation} product: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _productId?: string): never {
+    throw error;
   }
 }

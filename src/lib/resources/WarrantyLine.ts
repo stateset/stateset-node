@@ -262,13 +262,8 @@ export class WarrantyLines {
     }
   }
 
-  private handleError(error: any, operation: string, warrantyLineId?: string): never {
-    if (error.status === 404) throw new WarrantyLineNotFoundError(warrantyLineId || 'unknown');
-    if (error.status === 400) throw new WarrantyLineValidationError(error.message, error.errors);
-    throw new WarrantyLineError(`Failed to ${operation} warranty line: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _warrantyLineId?: string): never {
+    throw error;
   }
 }
 

@@ -1,3 +1,5 @@
+import { BaseResource } from './BaseResource';
+
 // lib/resources/Invoice.ts
 
 type InvoiceStatus = 'DRAFT' | 'SENT' | 'PAID' | 'OVERDUE' | 'CANCELLED';
@@ -55,8 +57,19 @@ interface InvoiceLineItem {
   [key: string]: any;
 }
 
-export default class Invoices {
-  constructor(private client: any) {}
+export default class Invoices extends BaseResource {
+  constructor(client: any) {
+    super(client, 'invoices', 'invoices');
+    this.singleKey = 'update_invoices_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_invoices_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): InvoiceResponse {
     if (response.error) {
@@ -96,9 +109,8 @@ export default class Invoices {
    * @param data - InvoiceData object
    * @returns InvoiceResponse object
    */
-  async create(data: InvoiceData): Promise<InvoiceResponse> {
-    const response = await this.client.request('POST', 'invoices', data);
-    return this.handleCommandResponse(response);
+  override async create(data: InvoiceData): Promise<InvoiceResponse> {
+    return super.create(data);
   }
 
   /**
@@ -106,9 +118,8 @@ export default class Invoices {
    * @param id - Invoice ID
    * @returns InvoiceResponse object
    */
-  async get(id: string): Promise<InvoiceResponse> {
-    const response = await this.client.request('GET', `invoices/${id}`);
-    return this.handleCommandResponse({ update_invoices_by_pk: response });
+  override async get(id: string): Promise<InvoiceResponse> {
+    return super.get(id);
   }
 
   /**
@@ -117,9 +128,8 @@ export default class Invoices {
    * @param data - Partial<InvoiceData> object
    * @returns InvoiceResponse object
    */
-  async update(id: string, data: Partial<InvoiceData>): Promise<InvoiceResponse> {
-    const response = await this.client.request('PUT', `invoices/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<InvoiceData>): Promise<InvoiceResponse> {
+    return super.update(id, data);
   }
 
   /**
@@ -127,19 +137,16 @@ export default class Invoices {
    * @param params - Optional filtering parameters
    * @returns Array of InvoiceResponse objects
    */
-  async list(params?: any): Promise<InvoiceResponse[]> {
-    const response = await this.client.request('GET', 'invoices', undefined, { params });
-    return response.map((invoice: any) =>
-      this.handleCommandResponse({ update_invoices_by_pk: invoice })
-    );
+  override async list(params?: any): Promise<InvoiceResponse[]> {
+    return super.list(params);
   }
 
   /**
    * Delete an invoice
    * @param id - Invoice ID
    */
-  async delete(id: string): Promise<void> {
-    await this.client.request('DELETE', `invoices/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   /**

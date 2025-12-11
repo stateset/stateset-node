@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for response management
 export enum ResponseType {
@@ -49,50 +50,38 @@ export class ResponseValidationError extends Error {
 }
 
 // Main Responses class
-class Responses {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Responses extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'responses', 'responses');
+    this.singleKey = 'response';
+    this.listKey = 'responses';
+  }
 
   /**
    * List responses with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     agent_id?: string;
     user_id?: string;
     org_id?: string;
     status?: ResponseStatus;
     type?: ResponseType;
   }): Promise<AgentResponseRecord[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.user_id) queryParams.append('user_id', params.user_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.type) queryParams.append('type', params.type);
-
-    const response = await this.stateset.request('GET', `responses?${queryParams.toString()}`);
-    return response.responses;
+    const response = await super.list(params as any);
+    return (response as any).responses ?? response;
   }
 
   /**
    * Get a specific response
    */
-  async get(responseId: string): Promise<AgentResponseRecord> {
-    try {
-      const response = await this.stateset.request('GET', `responses/${responseId}`);
-      return response.response;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ResponseNotFoundError(responseId);
-      }
-      throw error;
-    }
+  override async get(responseId: string): Promise<AgentResponseRecord> {
+    return super.get(responseId);
   }
 
   /**
    * Create a new response
    */
-  async create(data: ResponseData): Promise<AgentResponseRecord> {
+  override async create(data: ResponseData): Promise<AgentResponseRecord> {
     if (!data.content) {
       throw new ResponseValidationError('Response content is required');
     }
@@ -100,37 +89,21 @@ class Responses {
       throw new ResponseValidationError('Response type is required');
     }
 
-    const response = await this.stateset.request('POST', 'responses', data);
-    return response.response;
+    return super.create(data);
   }
 
   /**
    * Update an existing response
    */
-  async update(responseId: string, data: Partial<ResponseData>): Promise<AgentResponseRecord> {
-    try {
-      const response = await this.stateset.request('PUT', `responses/${responseId}`, data);
-      return response.response;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ResponseNotFoundError(responseId);
-      }
-      throw error;
-    }
+  override async update(responseId: string, data: Partial<ResponseData>): Promise<AgentResponseRecord> {
+    return super.update(responseId, data);
   }
 
   /**
    * Delete a response
    */
-  async delete(responseId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `responses/${responseId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ResponseNotFoundError(responseId);
-      }
-      throw error;
-    }
+  override async delete(responseId: string): Promise<void> {
+    await super.delete(responseId);
   }
 }
 

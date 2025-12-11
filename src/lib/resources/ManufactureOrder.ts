@@ -228,17 +228,7 @@ export class ManufacturerOrders {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      return await this.client.request(method, path, data);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ManufacturerOrderNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        throw new MaterialRequirementError(error.message);
-      }
-      throw error;
-    }
+    return this.client.request(method, path, data);
   }
 
   async list(

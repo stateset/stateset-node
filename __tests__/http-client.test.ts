@@ -115,4 +115,38 @@ describe('EnhancedHttpClient', () => {
     axiosInstance.defaults.adapter = originalAdapter;
     client.destroy();
   });
+
+  it('transforms unhandled 4xx responses into invalid request errors', async () => {
+    const client = new EnhancedHttpClient({
+      baseURL: 'https://example.com',
+      apiKey: 'test-key',
+    });
+
+    const axiosInstance = (client as any).axiosInstance;
+    const axiosError = {
+      isAxiosError: true,
+      config: { url: '/resource', method: 'GET' },
+      message: 'Conflict',
+      name: 'AxiosError',
+      toJSON: () => ({}),
+      response: {
+        status: 409,
+        statusText: 'Conflict',
+        headers: {},
+        config: {} as any,
+        data: { message: 'Conflict' },
+      },
+    } as AxiosError;
+
+    const originalAdapter = axiosInstance.defaults.adapter;
+    axiosInstance.defaults.adapter = jest.fn().mockRejectedValue(axiosError);
+
+    await expect(client.request({ url: '/resource', method: 'GET' })).rejects.toMatchObject({
+      name: 'StatesetInvalidRequestError',
+      statusCode: 409,
+    });
+
+    axiosInstance.defaults.adapter = originalAdapter;
+    client.destroy();
+  });
 });

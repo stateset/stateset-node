@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Agent Types and Interfaces
 export type AgentStatus = 'AVAILABLE' | 'BUSY' | 'OFFLINE' | 'ON_BREAK';
@@ -152,8 +153,20 @@ export class AgentOperationError extends Error {
 }
 
 // Main Agents Class
-class Agents {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Agents extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'agents', 'agents');
+    this.singleKey = 'agent';
+    this.listKey = 'agents';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_agents_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.handleCommandResponse({ update_agents_by_pk: item });
+  }
 
   /**
    * Transforms API response into a strongly-typed AgentResponse
@@ -221,35 +234,20 @@ class Agents {
   /**
    * List all agents with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     status?: AgentStatus;
     role?: AgentRole;
     capability?: AgentCapability;
   }): Promise<AgentResponse[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.role) queryParams.append('role', params.role);
-    if (params?.capability) queryParams.append('capability', params.capability);
-
-    const response = await this.stateset.request('GET', `agents?${queryParams.toString()}`);
-    return response.agents.map((agent: any) =>
-      this.handleCommandResponse({ update_agents_by_pk: agent })
-    );
+    const response = await super.list(params as any);
+    return (response as any).agents ?? response;
   }
 
   /**
    * Get a specific agent by ID
    */
-  async get(agentId: string): Promise<AgentResponse> {
-    try {
-      const response = await this.stateset.request('GET', `agents/${agentId}`);
-      return this.handleCommandResponse({ update_agents_by_pk: response.agent });
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new AgentNotFoundError(agentId);
-      }
-      throw error;
-    }
+  override async get(agentId: string): Promise<AgentResponse> {
+    return super.get(agentId);
   }
 
   /**
@@ -257,9 +255,8 @@ class Agents {
    * @param params - AgentCreateParams object
    * @returns AgentResponse object
    */
-  async create(params: AgentCreateParams): Promise<AgentResponse> {
-    const response = await this.stateset.request('POST', 'agents', params);
-    return this.handleCommandResponse({ update_agents_by_pk: response.agent });
+  override async create(params: AgentCreateParams): Promise<AgentResponse> {
+    return super.create(params);
   }
 
   /**
@@ -268,31 +265,16 @@ class Agents {
    * @param params - AgentUpdateParams object
    * @returns AgentResponse object
    */
-  async update(agentId: string, params: AgentUpdateParams): Promise<AgentResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `agents/${agentId}`, params);
-      return this.handleCommandResponse({ update_agents_by_pk: response.agent });
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new AgentNotFoundError(agentId);
-      }
-      throw error;
-    }
+  override async update(agentId: string, params: AgentUpdateParams): Promise<AgentResponse> {
+    return super.update(agentId, params);
   }
 
   /**
    * Delete an agent
    * @param agentId - Agent ID
    */
-  async delete(agentId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `agents/${agentId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new AgentNotFoundError(agentId);
-      }
-      throw error;
-    }
+  override async delete(agentId: string): Promise<void> {
+    await super.delete(agentId);
   }
 
   /**
@@ -301,22 +283,22 @@ class Agents {
    * @returns AgentResponse object
    */
   async setAvailable(agentId: string): Promise<AvailableAgentResponse> {
-    const response = await this.stateset.request('POST', `agents/${agentId}/set-available`);
+    const response = await this.client.request('POST', `agents/${agentId}/set-available`);
     return this.handleCommandResponse(response) as AvailableAgentResponse;
   }
 
   async setBusy(agentId: string): Promise<BusyAgentResponse> {
-    const response = await this.stateset.request('POST', `agents/${agentId}/set-busy`);
+    const response = await this.client.request('POST', `agents/${agentId}/set-busy`);
     return this.handleCommandResponse(response) as BusyAgentResponse;
   }
 
   async setOffline(agentId: string): Promise<OfflineAgentResponse> {
-    const response = await this.stateset.request('POST', `agents/${agentId}/set-offline`);
+    const response = await this.client.request('POST', `agents/${agentId}/set-offline`);
     return this.handleCommandResponse(response) as OfflineAgentResponse;
   }
 
   async setOnBreak(agentId: string): Promise<OnBreakAgentResponse> {
-    const response = await this.stateset.request('POST', `agents/${agentId}/set-on-break`);
+    const response = await this.client.request('POST', `agents/${agentId}/set-on-break`);
     return this.handleCommandResponse(response) as OnBreakAgentResponse;
   }
 
@@ -324,12 +306,12 @@ class Agents {
    * Task management methods
    */
   async assignTask(agentId: string, taskData: TaskData): Promise<BusyAgentResponse> {
-    const response = await this.stateset.request('POST', `agents/${agentId}/assign-task`, taskData);
+    const response = await this.client.request('POST', `agents/${agentId}/assign-task`, taskData);
     return this.handleCommandResponse(response) as BusyAgentResponse;
   }
 
   async completeTask(agentId: string, taskId: string): Promise<AvailableAgentResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `agents/${agentId}/complete-task/${taskId}`
     );
@@ -343,7 +325,9 @@ class Agents {
    * @returns Object containing metrics
    */
   async getMetrics(agentId: string, timeframe: 'day' | 'week' | 'month' = 'day') {
-    return this.stateset.request('GET', `agents/${agentId}/metrics?timeframe=${timeframe}`);
+    return this.client.request('GET', `agents/${agentId}/metrics`, undefined, {
+      params: { timeframe },
+    });
   }
 
   /**
@@ -354,11 +338,12 @@ class Agents {
    * @returns Object containing schedule
    */
   async getSchedule(agentId: string, startDate: Date, endDate: Date) {
-    const params = new URLSearchParams({
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
+    return this.client.request('GET', `agents/${agentId}/schedule`, undefined, {
+      params: {
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+      },
     });
-    return this.stateset.request('GET', `agents/${agentId}/schedule?${params.toString()}`);
   }
 }
 

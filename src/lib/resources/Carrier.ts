@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -75,8 +76,20 @@ export class CarrierValidationError extends CarrierError {
   }
 }
 
-export default class Carriers {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Carriers extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'carriers', 'carriers');
+    this.singleKey = 'carrier';
+    this.listKey = 'carriers';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateCarrierData(data: CarrierData): void {
     if (!data.name) throw new CarrierValidationError('Carrier name is required');
@@ -108,7 +121,7 @@ export default class Carriers {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     status?: CarrierStatus;
     type?: CarrierType;
     org_id?: string;
@@ -118,67 +131,36 @@ export default class Carriers {
     carriers: CarrierResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.status) queryParams.append('status', params.status);
-      if (params.type) queryParams.append('type', params.type);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
-
-    try {
-      const response = await this.stateset.request('GET', `carriers?${queryParams.toString()}`);
-      return {
-        carriers: response.carriers.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.carriers.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(params as any);
+    const carriers = (response as any).carriers ?? response;
+    return {
+      carriers,
+      pagination: (response as any).pagination || {
+        total: carriers.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(carrierId: NonEmptyString<string>): Promise<CarrierResponse> {
-    try {
-      const response = await this.stateset.request('GET', `carriers/${carrierId}`);
-      return this.mapResponse(response.carrier);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', carrierId);
-    }
+  override async get(carrierId: NonEmptyString<string>): Promise<CarrierResponse> {
+    return super.get(carrierId);
   }
 
-  async create(data: CarrierData): Promise<CarrierResponse> {
+  override async create(data: CarrierData): Promise<CarrierResponse> {
     this.validateCarrierData(data);
-    try {
-      const response = await this.stateset.request('POST', 'carriers', data);
-      return this.mapResponse(response.carrier);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     carrierId: NonEmptyString<string>,
     data: Partial<CarrierData>
   ): Promise<CarrierResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `carriers/${carrierId}`, data);
-      return this.mapResponse(response.carrier);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', carrierId);
-    }
+    return super.update(carrierId, data);
   }
 
-  async delete(carrierId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `carriers/${carrierId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', carrierId);
-    }
+  override async delete(carrierId: NonEmptyString<string>): Promise<void> {
+    await super.delete(carrierId);
   }
 
   async updatePerformance(
@@ -186,21 +168,16 @@ export default class Carriers {
     performance: CarrierData['performance']
   ): Promise<CarrierResponse> {
     try {
-      const response = await this.stateset.request('POST', `carriers/${carrierId}/performance`, {
+      const response = await this.client.request('POST', `carriers/${carrierId}/performance`, {
         performance,
       });
-      return this.mapResponse(response.carrier);
+      return this.mapResponse((response as any).carrier ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'updatePerformance', carrierId);
     }
   }
 
-  private handleError(error: any, operation: string, carrierId?: string): never {
-    if (error.status === 404) throw new CarrierNotFoundError(carrierId || 'unknown');
-    if (error.status === 400) throw new CarrierValidationError(error.message, error.errors);
-    throw new CarrierError(`Failed to ${operation} carrier: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _carrierId?: string): never {
+    throw error;
   }
 }

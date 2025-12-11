@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 export type CashSaleStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
@@ -45,8 +46,19 @@ export interface CashSaleData {
   [key: string]: any;
 }
 
-class CashSales {
-  constructor(private stateset: ApiClientLike) {}
+class CashSales extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'cashsales', 'cashsales');
+    this.singleKey = 'update_cashsales_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_cashsales_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): CashSaleResponse {
     if (response.error) {
@@ -79,42 +91,38 @@ class CashSales {
     }
   }
 
-  async list(): Promise<CashSaleResponse[]> {
-    const response = await this.stateset.request('GET', 'cashsales');
-    return response.map((cs: any) => this.handleCommandResponse({ update_cashsales_by_pk: cs }));
+  override async list(): Promise<CashSaleResponse[]> {
+    return super.list();
   }
 
-  async get(id: string): Promise<CashSaleResponse> {
-    const response = await this.stateset.request('GET', `cashsales/${id}`);
-    return this.handleCommandResponse({ update_cashsales_by_pk: response });
+  override async get(id: string): Promise<CashSaleResponse> {
+    return super.get(id);
   }
 
-  async create(data: CashSaleData): Promise<CashSaleResponse> {
-    const response = await this.stateset.request('POST', 'cashsales', data);
-    return this.handleCommandResponse(response);
+  override async create(data: CashSaleData): Promise<CashSaleResponse> {
+    return super.create(data);
   }
 
-  async update(id: string, data: Partial<CashSaleData>): Promise<CashSaleResponse> {
-    const response = await this.stateset.request('PUT', `cashsales/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<CashSaleData>): Promise<CashSaleResponse> {
+    return super.update(id, data);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.stateset.request('DELETE', `cashsales/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   async complete(id: string): Promise<CompletedCashSaleResponse> {
-    const response = await this.stateset.request('POST', `cashsales/${id}/complete`);
+    const response = await this.client.request('POST', `cashsales/${id}/complete`);
     return this.handleCommandResponse(response) as CompletedCashSaleResponse;
   }
 
   async refund(id: string): Promise<RefundedCashSaleResponse> {
-    const response = await this.stateset.request('POST', `cashsales/${id}/refund`);
+    const response = await this.client.request('POST', `cashsales/${id}/refund`);
     return this.handleCommandResponse(response) as RefundedCashSaleResponse;
   }
 
   async cancel(id: string): Promise<CancelledCashSaleResponse> {
-    const response = await this.stateset.request('POST', `cashsales/${id}/cancel`);
+    const response = await this.client.request('POST', `cashsales/${id}/cancel`);
     return this.handleCommandResponse(response) as CancelledCashSaleResponse;
   }
 }

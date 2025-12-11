@@ -49,8 +49,21 @@ interface CycleCountCompletionData {
   }[];
 }
 
-export default class CycleCounts {
-  constructor(private client: any) {}
+import { BaseResource } from './BaseResource';
+
+export default class CycleCounts extends BaseResource {
+  constructor(client: any) {
+    super(client, 'cycle-counts', 'cycle-counts');
+    this.singleKey = 'update_cycle_counts_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_cycle_counts_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): CycleCountResponse {
     if (response.error) {
@@ -88,9 +101,8 @@ export default class CycleCounts {
    * @param data - CycleCountData object
    * @returns CycleCountResponse object
    */
-  async create(data: CycleCountData): Promise<CycleCountResponse> {
-    const response = await this.client.request('POST', 'cycle-counts', data);
-    return this.handleCommandResponse(response);
+  override async create(data: CycleCountData): Promise<CycleCountResponse> {
+    return super.create(data);
   }
 
   /**
@@ -98,9 +110,8 @@ export default class CycleCounts {
    * @param id - Cycle count ID
    * @returns CycleCountResponse object
    */
-  async get(id: string): Promise<CycleCountResponse> {
-    const response = await this.client.request('GET', `cycle-counts/${id}`);
-    return this.handleCommandResponse({ update_cycle_counts_by_pk: response });
+  override async get(id: string): Promise<CycleCountResponse> {
+    return super.get(id);
   }
 
   /**
@@ -109,9 +120,8 @@ export default class CycleCounts {
    * @param data - Partial<CycleCountData> object
    * @returns CycleCountResponse object
    */
-  async update(id: string, data: Partial<CycleCountData>): Promise<CycleCountResponse> {
-    const response = await this.client.request('PUT', `cycle-counts/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<CycleCountData>): Promise<CycleCountResponse> {
+    return super.update(id, data);
   }
 
   /**
@@ -119,19 +129,16 @@ export default class CycleCounts {
    * @param params - Optional filtering parameters
    * @returns Array of CycleCountResponse objects
    */
-  async list(params?: any): Promise<CycleCountResponse[]> {
-    const response = await this.client.request('GET', 'cycle-counts', undefined, { params });
-    return response.map((cycleCount: any) =>
-      this.handleCommandResponse({ update_cycle_counts_by_pk: cycleCount })
-    );
+  override async list(params?: any): Promise<CycleCountResponse[]> {
+    return super.list(params);
   }
 
   /**
    * Delete cycle count
    * @param id - Cycle count ID
    */
-  async delete(id: string): Promise<void> {
-    await this.client.request('DELETE', `cycle-counts/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   /**

@@ -321,13 +321,8 @@ export class WorkOrderLines {
     }
   }
 
-  private handleError(error: any, operation: string, workOrderLineId?: string): never {
-    if (error.status === 404) throw new WorkOrderLineNotFoundError(workOrderLineId || 'unknown');
-    if (error.status === 400) throw new WorkOrderLineValidationError(error.message, error.errors);
-    throw new WorkOrderLineError(`Failed to ${operation} work order line: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _workOrderLineId?: string): never {
+    throw error;
   }
 }
 

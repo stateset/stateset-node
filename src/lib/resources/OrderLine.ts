@@ -288,13 +288,8 @@ export class OrderLines {
     }
   }
 
-  private handleError(error: any, operation: string, orderLineId?: string): never {
-    if (error.status === 404) throw new OrderLineNotFoundError(orderLineId || 'unknown');
-    if (error.status === 400) throw new OrderLineValidationError(error.message, error.errors);
-    throw new OrderLineError(`Failed to ${operation} order line: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _orderLineId?: string): never {
+    throw error;
   }
 }
 

@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums for rule management
 export enum RuleType {
@@ -168,32 +169,27 @@ export class RuleExecutionError extends Error {
 }
 
 // Main Rules Class
-class Rules {
-  constructor(private readonly stateset: ApiClientLike) {}
+class Rules extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'rules', 'rules');
+    this.singleKey = 'rule';
+    this.listKey = 'rules';
+  }
 
   /**
    * List rules with optional filtering
    * @param params - Filtering parameters
    * @returns Array of RuleResponse objects
    */
-  async list(params?: {
+  override async list(params?: {
     rule_type?: RuleType;
     activated?: boolean;
     agent_id?: string;
     priority?: RulePriority;
     org_id?: string;
   }): Promise<RuleResponse[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.rule_type) queryParams.append('rule_type', params.rule_type);
-    if (params?.activated !== undefined)
-      queryParams.append('activated', params.activated.toString());
-    if (params?.agent_id) queryParams.append('agent_id', params.agent_id);
-    if (params?.priority) queryParams.append('priority', params.priority);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-
-    const response = await this.stateset.request('GET', `rules?${queryParams.toString()}`);
-    return response.rules;
+    const response = await super.list(params as any);
+    return (response as any).rules ?? response;
   }
 
   /**
@@ -201,16 +197,8 @@ class Rules {
    * @param ruleId - Rule ID
    * @returns RuleResponse object
    */
-  async get(ruleId: string): Promise<RuleResponse> {
-    try {
-      const response = await this.stateset.request('GET', `rules/${ruleId}`);
-      return response.rule;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new RuleNotFoundError(ruleId);
-      }
-      throw error;
-    }
+  override async get(ruleId: string): Promise<RuleResponse> {
+    return super.get(ruleId);
   }
 
   /**
@@ -218,22 +206,14 @@ class Rules {
    * @param ruleData - RuleData object
    * @returns RuleResponse object
    */
-  async create(ruleData: RuleData): Promise<RuleResponse> {
+  override async create(ruleData: RuleData): Promise<RuleResponse> {
     // Validate rule conditions
     this.validateConditions(ruleData.conditions);
 
     // Validate rule actions
     this.validateActions(ruleData.actions);
 
-    try {
-      const response = await this.stateset.request('POST', 'rules', ruleData);
-      return response.rule;
-    } catch (error: any) {
-      if (error.status === 400) {
-        throw new RuleValidationError(error.message);
-      }
-      throw error;
-    }
+    return super.create(ruleData);
   }
 
   /**
@@ -242,7 +222,7 @@ class Rules {
    * @param ruleData - Partial<RuleData> object
    * @returns RuleResponse object
    */
-  async update(ruleId: string, ruleData: Partial<RuleData>): Promise<RuleResponse> {
+  override async update(ruleId: string, ruleData: Partial<RuleData>): Promise<RuleResponse> {
     if (ruleData.conditions) {
       this.validateConditions(ruleData.conditions);
     }
@@ -251,30 +231,15 @@ class Rules {
       this.validateActions(ruleData.actions);
     }
 
-    try {
-      const response = await this.stateset.request('PUT', `rules/${ruleId}`, ruleData);
-      return response.rule;
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new RuleNotFoundError(ruleId);
-      }
-      throw error;
-    }
+    return super.update(ruleId, ruleData);
   }
 
   /**
    * Delete rule
    * @param ruleId - Rule ID
    */
-  async delete(ruleId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `rules/${ruleId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new RuleNotFoundError(ruleId);
-      }
-      throw error;
-    }
+  override async delete(ruleId: string): Promise<void> {
+    await super.delete(ruleId);
   }
 
   /**
@@ -284,10 +249,10 @@ class Rules {
    * @returns RuleResponse object
    */
   async setActivation(ruleId: string, activated: boolean): Promise<RuleResponse> {
-    const response = await this.stateset.request('POST', `rules/${ruleId}/activation`, {
+    const response = await this.client.request('POST', `rules/${ruleId}/activation`, {
       activated,
     });
-    return response.rule;
+    return (response as any).rule ?? response;
   }
 
   /**
@@ -298,8 +263,8 @@ class Rules {
    */
   async testRule(ruleId: string, testData: Record<string, any>): Promise<RuleExecutionResult> {
     try {
-      const response = await this.stateset.request('POST', `rules/${ruleId}/test`, testData);
-      return response.result;
+      const response = await this.client.request('POST', `rules/${ruleId}/test`, testData);
+      return (response as any).result ?? response;
     } catch (error: any) {
       throw new RuleExecutionError(error.message, ruleId);
     }
@@ -320,18 +285,19 @@ class Rules {
       limit?: number;
     }
   ): Promise<RuleExecutionResult[]> {
-    const queryParams = new URLSearchParams();
+    const requestParams: Record<string, unknown> = {};
+    if (params?.start_date) requestParams.start_date = params.start_date.toISOString();
+    if (params?.end_date) requestParams.end_date = params.end_date.toISOString();
+    if (params?.status) requestParams.status = params.status;
+    if (params?.limit) requestParams.limit = params.limit;
 
-    if (params?.start_date) queryParams.append('start_date', params.start_date.toISOString());
-    if (params?.end_date) queryParams.append('end_date', params.end_date.toISOString());
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
-      `rules/${ruleId}/execution-history?${queryParams.toString()}`
+      `rules/${ruleId}/execution-history`,
+      undefined,
+      { params: requestParams }
     );
-    return response.history;
+    return (response as any).history ?? response;
   }
 
   /**
@@ -347,8 +313,8 @@ class Rules {
       activate?: boolean;
     }
   ): Promise<RuleResponse> {
-    const response = await this.stateset.request('POST', `rules/${ruleId}/clone`, options);
-    return response.rule;
+    const response = await this.client.request('POST', `rules/${ruleId}/clone`, options);
+    return (response as any).rule ?? response;
   }
 
   /**

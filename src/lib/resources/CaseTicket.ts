@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -78,8 +79,20 @@ export class CaseTicketValidationError extends CaseTicketError {
   }
 }
 
-export default class CasesTickets {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class CasesTickets extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'cases_tickets', 'cases_tickets');
+    this.singleKey = 'case_ticket';
+    this.listKey = 'cases_tickets';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateCaseTicketData(data: CaseTicketData): void {
     if (!data.customer_id) throw new CaseTicketValidationError('Customer ID is required');
@@ -111,7 +124,7 @@ export default class CasesTickets {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     customer_id?: string;
     order_id?: string;
     status?: CaseTicketStatus;
@@ -125,38 +138,24 @@ export default class CasesTickets {
     cases_tickets: CaseTicketResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.customer_id) queryParams.append('customer_id', params.customer_id);
-      if (params.order_id) queryParams.append('order_id', params.order_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.priority) queryParams.append('priority', params.priority);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `cases_tickets?${queryParams.toString()}`
-      );
-      return {
-        cases_tickets: response.cases_tickets.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.cases_tickets.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const cases_tickets = (response as any).cases_tickets ?? response;
+
+    return {
+      cases_tickets,
+      pagination: (response as any).pagination || {
+        total: cases_tickets.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async search(
+  override async search(
     query: string,
     params: {
       status?: CaseTicketStatus;
@@ -169,68 +168,37 @@ export default class CasesTickets {
     cases_tickets: CaseTicketResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams({ query });
-    if (params.status) queryParams.append('status', params.status);
-    if (params.priority) queryParams.append('priority', params.priority);
-    if (params.org_id) queryParams.append('org_id', params.org_id);
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.offset) queryParams.append('offset', params.offset.toString());
+    const response = await super.search(query, params as any);
+    const cases_tickets = (response as any).cases_tickets ?? response;
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `cases_tickets/search?${queryParams.toString()}`
-      );
-      return {
-        cases_tickets: response.cases_tickets.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.cases_tickets.length,
-          limit: params.limit || 100,
-          offset: params.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'search');
-    }
+    return {
+      cases_tickets,
+      pagination: (response as any).pagination || {
+        total: cases_tickets.length,
+        limit: params.limit || 100,
+        offset: params.offset || 0,
+      },
+    };
   }
 
-  async get(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse> {
-    try {
-      const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}`);
-      return this.mapResponse(response.case_ticket);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', caseTicketId);
-    }
+  override async get(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse> {
+    return super.get(caseTicketId);
   }
 
-  async create(data: CaseTicketData): Promise<CaseTicketResponse> {
+  override async create(data: CaseTicketData): Promise<CaseTicketResponse> {
     this.validateCaseTicketData(data);
-    try {
-      const response = await this.stateset.request('POST', 'cases_tickets', data);
-      return this.mapResponse(response.case_ticket);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     caseTicketId: NonEmptyString<string>,
     data: Partial<CaseTicketData>
   ): Promise<CaseTicketResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `cases_tickets/${caseTicketId}`, data);
-      return this.mapResponse(response.case_ticket);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', caseTicketId);
-    }
+    return super.update(caseTicketId, data);
   }
 
-  async delete(caseTicketId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `cases_tickets/${caseTicketId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', caseTicketId);
-    }
+  override async delete(caseTicketId: NonEmptyString<string>): Promise<void> {
+    await super.delete(caseTicketId);
   }
 
   async resolve(
@@ -238,12 +206,12 @@ export default class CasesTickets {
     resolutionNotes: string
   ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `cases_tickets/${caseTicketId}/resolve`,
         { notes: resolutionNotes }
       );
-      return this.mapResponse(response.case_ticket);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'resolve', caseTicketId);
     }
@@ -254,10 +222,10 @@ export default class CasesTickets {
     agentId: NonEmptyString<string>
   ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/assign`, {
+      const response = await this.client.request('POST', `cases_tickets/${caseTicketId}/assign`, {
         agent_id: agentId,
       });
-      return this.mapResponse(response.case_ticket);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'assign', caseTicketId);
     }
@@ -265,10 +233,10 @@ export default class CasesTickets {
 
   async addNote(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/notes`, {
+      const response = await this.client.request('POST', `cases_tickets/${caseTicketId}/notes`, {
         note,
       });
-      return this.mapResponse(response.case_ticket);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'addNote', caseTicketId);
     }
@@ -276,8 +244,8 @@ export default class CasesTickets {
 
   async listNotes(caseTicketId: NonEmptyString<string>): Promise<string[]> {
     try {
-      const response = await this.stateset.request('GET', `cases_tickets/${caseTicketId}/notes`);
-      return response.notes || [];
+      const response = await this.client.request('GET', `cases_tickets/${caseTicketId}/notes`);
+      return (response as any).notes || [];
     } catch (error: any) {
       throw this.handleError(error, 'listNotes', caseTicketId);
     }
@@ -288,12 +256,12 @@ export default class CasesTickets {
     level: EscalationLevel
   ): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `cases_tickets/${caseTicketId}/escalate`,
         { level }
       );
-      return this.mapResponse(response.case_ticket);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'escalate', caseTicketId);
     }
@@ -301,8 +269,8 @@ export default class CasesTickets {
 
   async close(caseTicketId: NonEmptyString<string>): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/close`);
-      return this.mapResponse(response.case_ticket);
+      const response = await this.client.request('POST', `cases_tickets/${caseTicketId}/close`);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'close', caseTicketId);
     }
@@ -310,21 +278,16 @@ export default class CasesTickets {
 
   async reopen(caseTicketId: NonEmptyString<string>, note: string): Promise<CaseTicketResponse> {
     try {
-      const response = await this.stateset.request('POST', `cases_tickets/${caseTicketId}/reopen`, {
+      const response = await this.client.request('POST', `cases_tickets/${caseTicketId}/reopen`, {
         note,
       });
-      return this.mapResponse(response.case_ticket);
+      return this.mapResponse((response as any).case_ticket ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'reopen', caseTicketId);
     }
   }
 
-  private handleError(error: any, operation: string, caseTicketId?: string): never {
-    if (error.status === 404) throw new CaseTicketNotFoundError(caseTicketId || 'unknown');
-    if (error.status === 400) throw new CaseTicketValidationError(error.message, error.errors);
-    throw new CaseTicketError(`Failed to ${operation} case/ticket: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _caseTicketId?: string): never {
+    throw error;
   }
 }

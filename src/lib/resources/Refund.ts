@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -70,8 +71,20 @@ export class RefundValidationError extends RefundError {
   }
 }
 
-export default class Refunds {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Refunds extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'refunds', 'refunds');
+    this.singleKey = 'refund';
+    this.listKey = 'refunds';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateRefundData(data: RefundData): void {
     if (!data.payment_id) throw new RefundValidationError('Payment ID is required');
@@ -101,7 +114,7 @@ export default class Refunds {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     payment_id?: string;
     return_id?: string;
     status?: RefundStatus;
@@ -114,70 +127,41 @@ export default class Refunds {
     refunds: RefundResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.payment_id) queryParams.append('payment_id', params.payment_id);
-      if (params.return_id) queryParams.append('return_id', params.return_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request('GET', `refunds?${queryParams.toString()}`);
-      return {
-        refunds: response.refunds.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.refunds.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const refunds = (response as any).refunds ?? response;
+
+    return {
+      refunds,
+      pagination: (response as any).pagination || {
+        total: refunds.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(refundId: NonEmptyString<string>): Promise<RefundResponse> {
-    try {
-      const response = await this.stateset.request('GET', `refunds/${refundId}`);
-      return this.mapResponse(response.refund);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', refundId);
-    }
+  override async get(refundId: NonEmptyString<string>): Promise<RefundResponse> {
+    return super.get(refundId);
   }
 
-  async create(data: RefundData): Promise<RefundResponse> {
+  override async create(data: RefundData): Promise<RefundResponse> {
     this.validateRefundData(data);
-    try {
-      const response = await this.stateset.request('POST', 'refunds', data);
-      return this.mapResponse(response.refund);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     refundId: NonEmptyString<string>,
     data: Partial<RefundData>
   ): Promise<RefundResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `refunds/${refundId}`, data);
-      return this.mapResponse(response.refund);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', refundId);
-    }
+    return super.update(refundId, data);
   }
 
-  async delete(refundId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `refunds/${refundId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', refundId);
-    }
+  override async delete(refundId: NonEmptyString<string>): Promise<void> {
+    await super.delete(refundId);
   }
 
   async processRefund(
@@ -185,21 +169,16 @@ export default class Refunds {
     refundDate: Timestamp
   ): Promise<RefundResponse> {
     try {
-      const response = await this.stateset.request('POST', `refunds/${refundId}/process`, {
+      const response = await this.client.request('POST', `refunds/${refundId}/process`, {
         refund_date: refundDate,
       });
-      return this.mapResponse(response.refund);
+      return this.mapResponse((response as any).refund ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'processRefund', refundId);
     }
   }
 
-  private handleError(error: any, operation: string, refundId?: string): never {
-    if (error.status === 404) throw new RefundNotFoundError(refundId || 'unknown');
-    if (error.status === 400) throw new RefundValidationError(error.message, error.errors);
-    throw new RefundError(`Failed to ${operation} refund: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _refundId?: string): never {
+    throw error;
   }
 }

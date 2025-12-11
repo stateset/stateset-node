@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Utility Types
 type NonEmptyString<T extends string> = T extends '' ? never : T;
@@ -72,8 +73,20 @@ export class OpportunityValidationError extends OpportunityError {
   }
 }
 
-export default class Opportunities {
-  constructor(private readonly stateset: ApiClientLike) {}
+export default class Opportunities extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'opportunities', 'opportunities');
+    this.singleKey = 'opportunity';
+    this.listKey = 'opportunities';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.mapResponse(data);
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapResponse(item);
+  }
 
   private validateOpportunityData(data: OpportunityData): void {
     if (!data.lead_id) throw new OpportunityValidationError('Lead ID is required');
@@ -108,7 +121,7 @@ export default class Opportunities {
     };
   }
 
-  async list(params?: {
+  override async list(params?: {
     lead_id?: string;
     customer_id?: string;
     status?: OpportunityStatus;
@@ -122,74 +135,41 @@ export default class Opportunities {
     opportunities: OpportunityResponse[];
     pagination: { total: number; limit: number; offset: number };
   }> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      if (params.lead_id) queryParams.append('lead_id', params.lead_id);
-      if (params.customer_id) queryParams.append('customer_id', params.customer_id);
-      if (params.status) queryParams.append('status', params.status);
-      if (params.stage) queryParams.append('stage', params.stage);
-      if (params.org_id) queryParams.append('org_id', params.org_id);
-      if (params.date_from) queryParams.append('date_from', params.date_from.toISOString());
-      if (params.date_to) queryParams.append('date_to', params.date_to.toISOString());
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (params.offset) queryParams.append('offset', params.offset.toString());
-    }
+    const requestParams: Record<string, unknown> = { ...(params || {}) };
+    if (params?.date_from) requestParams.date_from = params.date_from.toISOString();
+    if (params?.date_to) requestParams.date_to = params.date_to.toISOString();
 
-    try {
-      const response = await this.stateset.request(
-        'GET',
-        `opportunities?${queryParams.toString()}`
-      );
-      return {
-        opportunities: response.opportunities.map(this.mapResponse),
-        pagination: {
-          total: response.total || response.opportunities.length,
-          limit: params?.limit || 100,
-          offset: params?.offset || 0,
-        },
-      };
-    } catch (error: any) {
-      throw this.handleError(error, 'list');
-    }
+    const response = await super.list(requestParams as any);
+    const opportunities = (response as any).opportunities ?? response;
+
+    return {
+      opportunities,
+      pagination: (response as any).pagination || {
+        total: opportunities.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      },
+    };
   }
 
-  async get(opportunityId: NonEmptyString<string>): Promise<OpportunityResponse> {
-    try {
-      const response = await this.stateset.request('GET', `opportunities/${opportunityId}`);
-      return this.mapResponse(response.opportunity);
-    } catch (error: any) {
-      throw this.handleError(error, 'get', opportunityId);
-    }
+  override async get(opportunityId: NonEmptyString<string>): Promise<OpportunityResponse> {
+    return super.get(opportunityId);
   }
 
-  async create(data: OpportunityData): Promise<OpportunityResponse> {
+  override async create(data: OpportunityData): Promise<OpportunityResponse> {
     this.validateOpportunityData(data);
-    try {
-      const response = await this.stateset.request('POST', 'opportunities', data);
-      return this.mapResponse(response.opportunity);
-    } catch (error: any) {
-      throw this.handleError(error, 'create');
-    }
+    return super.create(data);
   }
 
-  async update(
+  override async update(
     opportunityId: NonEmptyString<string>,
     data: Partial<OpportunityData>
   ): Promise<OpportunityResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `opportunities/${opportunityId}`, data);
-      return this.mapResponse(response.opportunity);
-    } catch (error: any) {
-      throw this.handleError(error, 'update', opportunityId);
-    }
+    return super.update(opportunityId, data);
   }
 
-  async delete(opportunityId: NonEmptyString<string>): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `opportunities/${opportunityId}`);
-    } catch (error: any) {
-      throw this.handleError(error, 'delete', opportunityId);
-    }
+  override async delete(opportunityId: NonEmptyString<string>): Promise<void> {
+    await super.delete(opportunityId);
   }
 
   async convertToCustomer(
@@ -197,23 +177,18 @@ export default class Opportunities {
     customerId: NonEmptyString<string>
   ): Promise<OpportunityResponse> {
     try {
-      const response = await this.stateset.request(
+      const response = await this.client.request(
         'POST',
         `opportunities/${opportunityId}/convert`,
         { customer_id: customerId }
       );
-      return this.mapResponse(response.opportunity);
+      return this.mapResponse((response as any).opportunity ?? response);
     } catch (error: any) {
       throw this.handleError(error, 'convertToCustomer', opportunityId);
     }
   }
 
-  private handleError(error: any, operation: string, opportunityId?: string): never {
-    if (error.status === 404) throw new OpportunityNotFoundError(opportunityId || 'unknown');
-    if (error.status === 400) throw new OpportunityValidationError(error.message, error.errors);
-    throw new OpportunityError(`Failed to ${operation} opportunity: ${error.message}`, {
-      operation,
-      originalError: error,
-    });
+  private handleError(error: any, _operation: string, _opportunityId?: string): never {
+    throw error;
   }
 }

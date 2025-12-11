@@ -74,17 +74,7 @@ export class ASNLines {
     path: string,
     data?: any
   ): Promise<T> {
-    try {
-      return await this.client.request(method, path, data);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new ASNLineNotFoundError(path.split('/')[2] || 'unknown');
-      }
-      if (error.status === 400) {
-        throw new ASNLineValidationError(error.message);
-      }
-      throw error;
-    }
+    return this.client.request(method, path, data);
   }
 
   private validateLineItem(data: Partial<ASNLineItem>): void {

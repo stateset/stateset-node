@@ -57,8 +57,21 @@ interface ReportParams {
   [key: string]: any;
 }
 
-export default class WasteAndScrap {
-  constructor(private client: any) {}
+import { BaseResource } from './BaseResource';
+
+export default class WasteAndScrap extends BaseResource {
+  constructor(client: any) {
+    super(client, 'waste-and-scrap', 'waste-and-scrap');
+    this.singleKey = 'update_waste_and_scrap_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_waste_and_scrap_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): WasteAndScrapResponse {
     if (response.error) {
@@ -95,18 +108,16 @@ export default class WasteAndScrap {
    * @param data - WasteAndScrapData object
    * @returns WasteAndScrapResponse object
    */
-  async create(data: WasteAndScrapData): Promise<WasteAndScrapResponse> {
-    const response = await this.client.request('POST', 'waste-and-scrap', data);
-    return this.handleCommandResponse(response);
+  override async create(data: WasteAndScrapData): Promise<WasteAndScrapResponse> {
+    return super.create(data);
   }
 
   /**
    * @param id - WasteAndScrap ID
    * @returns WasteAndScrapResponse object
    */
-  async get(id: string): Promise<WasteAndScrapResponse> {
-    const response = await this.client.request('GET', `waste-and-scrap/${id}`);
-    return this.handleCommandResponse({ update_waste_and_scrap_by_pk: response });
+  override async get(id: string): Promise<WasteAndScrapResponse> {
+    return super.get(id);
   }
 
   /**
@@ -114,27 +125,23 @@ export default class WasteAndScrap {
    * @param data - Partial<WasteAndScrapData> object
    * @returns WasteAndScrapResponse object
    */
-  async update(id: string, data: Partial<WasteAndScrapData>): Promise<WasteAndScrapResponse> {
-    const response = await this.client.request('PUT', `waste-and-scrap/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: Partial<WasteAndScrapData>): Promise<WasteAndScrapResponse> {
+    return super.update(id, data);
   }
 
   /**
    * @param params - Filtering parameters
    * @returns Array of WasteAndScrapResponse objects
    */
-  async list(params?: any): Promise<WasteAndScrapResponse[]> {
-    const response = await this.client.request('GET', 'waste-and-scrap', undefined, { params });
-    return response.map((item: any) =>
-      this.handleCommandResponse({ update_waste_and_scrap_by_pk: item })
-    );
+  override async list(params?: any): Promise<WasteAndScrapResponse[]> {
+    return super.list(params);
   }
 
   /**
    * @param id - WasteAndScrap ID
    */
-  async delete(id: string): Promise<void> {
-    await this.client.request('DELETE', `waste-and-scrap/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   /**

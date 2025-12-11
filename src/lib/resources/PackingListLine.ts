@@ -28,7 +28,7 @@ interface PackingListLineItem {
 }
 
 class PackingListLines {
-  constructor(private stateset: ApiClientLike) {}
+  constructor(private client: ApiClientLike) {}
 
   /**
    * Get all packing list line items
@@ -39,7 +39,7 @@ class PackingListLines {
     const endpoint = packingListId
       ? `packing_lists/${packingListId}/line_items`
       : 'packing_list_line_items';
-    return this.stateset.request('GET', endpoint);
+    return this.client.request('GET', endpoint);
   }
 
   /**
@@ -48,7 +48,7 @@ class PackingListLines {
    * @returns PackingListLineItem object
    */
   async get(lineItemId: string): Promise<PackingListLineItem> {
-    return this.stateset.request('GET', `packing_list_line_items/${lineItemId}`);
+    return this.client.request('GET', `packing_list_line_items/${lineItemId}`);
   }
 
   /**
@@ -57,7 +57,7 @@ class PackingListLines {
    * @returns PackingListLineItem object
    */
   async create(lineItemData: Omit<PackingListLineItem, 'id'>): Promise<PackingListLineItem> {
-    return this.stateset.request('POST', 'packing_list_line_items', lineItemData);
+    return this.client.request('POST', 'packing_list_line_items', lineItemData);
   }
 
   /**
@@ -70,7 +70,7 @@ class PackingListLines {
     lineItemId: string,
     lineItemData: Partial<PackingListLineItem>
   ): Promise<PackingListLineItem> {
-    return this.stateset.request('PUT', `packing_list_line_items/${lineItemId}`, lineItemData);
+    return this.client.request('PUT', `packing_list_line_items/${lineItemId}`, lineItemData);
   }
 
   /**
@@ -78,7 +78,7 @@ class PackingListLines {
    * @param lineItemId - Packing list line item ID
    */
   async delete(lineItemId: string): Promise<void> {
-    return this.stateset.request('DELETE', `packing_list_line_items/${lineItemId}`);
+    return this.client.request('DELETE', `packing_list_line_items/${lineItemId}`);
   }
 
   /**
@@ -91,7 +91,7 @@ class PackingListLines {
     packingListId: string,
     lineItems: Array<Omit<PackingListLineItem, 'id' | 'packing_list_id'>>
   ): Promise<PackingListLineItem[]> {
-    return this.stateset.request('POST', `packing_lists/${packingListId}/line_items/bulk`, {
+    return this.client.request('POST', `packing_lists/${packingListId}/line_items/bulk`, {
       line_items: lineItems,
     });
   }
@@ -111,7 +111,7 @@ class PackingListLines {
       notes?: string;
     }
   ): Promise<PackingListLineItem> {
-    return this.stateset.request(
+    return this.client.request(
       'PUT',
       `packing_list_line_items/${lineItemId}/verify`,
       verificationData
@@ -128,7 +128,7 @@ class PackingListLines {
     lineItemId: string,
     locationData: PackingListLineItem['location']
   ): Promise<PackingListLineItem> {
-    return this.stateset.request(
+    return this.client.request(
       'PUT',
       `packing_list_line_items/${lineItemId}/location`,
       locationData

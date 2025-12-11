@@ -1,4 +1,5 @@
 import type { ApiClientLike } from '../../types';
+import { BaseResource } from './BaseResource';
 
 // Enums and Types
 export enum JobStatus {
@@ -136,8 +137,19 @@ export class JobStateError extends Error {
 }
 
 // Main ProductionJob Class
-class ProductionJob {
-  constructor(private readonly stateset: ApiClientLike) {}
+class ProductionJob extends BaseResource {
+  constructor(client: ApiClientLike) {
+    super(client as any, 'productionjob', 'productionjob');
+    this.singleKey = 'update_productionjob_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_productionjob_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   /**
    * Validates job data
@@ -200,7 +212,7 @@ class ProductionJob {
   /**
    * List all production jobs with optional filtering
    */
-  async list(params?: {
+  override async list(params?: {
     status?: JobStatus;
     priority?: JobPriority;
     bom_id?: string;
@@ -208,19 +220,7 @@ class ProductionJob {
     start_after?: Date;
     start_before?: Date;
   }): Promise<JobResponse[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.priority) queryParams.append('priority', params.priority);
-    if (params?.bom_id) queryParams.append('bom_id', params.bom_id);
-    if (params?.org_id) queryParams.append('org_id', params.org_id);
-    if (params?.start_after) queryParams.append('start_after', params.start_after.toISOString());
-    if (params?.start_before) queryParams.append('start_before', params.start_before.toISOString());
-
-    const response = await this.stateset.request('GET', `productionjob?${queryParams.toString()}`);
-    return response.map((job: any) =>
-      this.handleCommandResponse({ update_productionjob_by_pk: job })
-    );
+    return super.list(params as any);
   }
 
   /**
@@ -228,16 +228,8 @@ class ProductionJob {
    * @param jobId - Production job ID
    * @returns JobResponse object
    */
-  async get(jobId: string): Promise<JobResponse> {
-    try {
-      const response = await this.stateset.request('GET', `productionjob/${jobId}`);
-      return this.handleCommandResponse({ update_productionjob_by_pk: response });
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new JobNotFoundError(jobId);
-      }
-      throw error;
-    }
+  override async get(jobId: string): Promise<JobResponse> {
+    return super.get(jobId);
   }
 
   /**
@@ -245,10 +237,9 @@ class ProductionJob {
    * @param jobData - JobData object
    * @returns JobResponse object
    */
-  async create(jobData: JobData): Promise<JobResponse> {
+  override async create(jobData: JobData): Promise<JobResponse> {
     this.validateJobData(jobData);
-    const response = await this.stateset.request('POST', 'productionjob', jobData);
-    return this.handleCommandResponse(response);
+    return super.create(jobData);
   }
 
   /**
@@ -257,31 +248,16 @@ class ProductionJob {
    * @param jobData - Partial<JobData> object
    * @returns JobResponse object
    */
-  async update(jobId: string, jobData: Partial<JobData>): Promise<JobResponse> {
-    try {
-      const response = await this.stateset.request('PUT', `productionjob/${jobId}`, jobData);
-      return this.handleCommandResponse(response);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new JobNotFoundError(jobId);
-      }
-      throw error;
-    }
+  override async update(jobId: string, jobData: Partial<JobData>): Promise<JobResponse> {
+    return super.update(jobId, jobData);
   }
 
   /**
    * Delete a production job
    * @param jobId - Production job ID
    */
-  async delete(jobId: string): Promise<void> {
-    try {
-      await this.stateset.request('DELETE', `productionjob/${jobId}`);
-    } catch (error: any) {
-      if (error.status === 404) {
-        throw new JobNotFoundError(jobId);
-      }
-      throw error;
-    }
+  override async delete(jobId: string): Promise<void> {
+    await super.delete(jobId);
   }
 
   /**
@@ -290,7 +266,7 @@ class ProductionJob {
    * @returns InProgressJobResponse object
    */
   async start(jobId: string): Promise<InProgressJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/start`);
+    const response = await this.client.request('POST', `productionjob/${jobId}/start`);
     return this.handleCommandResponse(response) as InProgressJobResponse;
   }
 
@@ -308,7 +284,7 @@ class ProductionJob {
       labor_hours?: number;
     }
   ): Promise<CompletedJobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `productionjob/${jobId}/complete`,
       results
@@ -323,7 +299,7 @@ class ProductionJob {
    * @returns CancelledJobResponse object
    */
   async cancel(jobId: string, reason: string): Promise<CancelledJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/cancel`, {
+    const response = await this.client.request('POST', `productionjob/${jobId}/cancel`, {
       reason,
     });
     return this.handleCommandResponse(response) as CancelledJobResponse;
@@ -336,7 +312,7 @@ class ProductionJob {
    * @returns OnHoldJobResponse object
    */
   async hold(jobId: string, reason: string): Promise<OnHoldJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/hold`, { reason });
+    const response = await this.client.request('POST', `productionjob/${jobId}/hold`, { reason });
     return this.handleCommandResponse(response) as OnHoldJobResponse;
   }
 
@@ -346,7 +322,7 @@ class ProductionJob {
    * @returns InProgressJobResponse object
    */
   async resume(jobId: string): Promise<InProgressJobResponse> {
-    const response = await this.stateset.request('POST', `productionjob/${jobId}/resume`);
+    const response = await this.client.request('POST', `productionjob/${jobId}/resume`);
     return this.handleCommandResponse(response) as InProgressJobResponse;
   }
 
@@ -362,7 +338,7 @@ class ProductionJob {
       batch_number?: string;
     }
   ): Promise<JobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `productionjob/${jobId}/materials/${materialId}/allocate`,
       allocation
@@ -382,7 +358,7 @@ class ProductionJob {
       notes?: string;
     }
   ): Promise<JobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `productionjob/${jobId}/materials/${materialId}/usage`,
       usage
@@ -394,7 +370,7 @@ class ProductionJob {
    * Quality management methods
    */
   async addQualityCheck(jobId: string, check: QualityCheck): Promise<JobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `productionjob/${jobId}/quality-checks`,
       check
@@ -414,7 +390,7 @@ class ProductionJob {
       notes?: string;
     }
   ): Promise<JobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'PUT',
       `productionjob/${jobId}/quality-checks/${checkId}`,
       result
@@ -433,7 +409,7 @@ class ProductionJob {
       notes?: string;
     }
   ): Promise<JobResponse> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'POST',
       `productionjob/${jobId}/progress`,
       progress
@@ -452,7 +428,7 @@ class ProductionJob {
     generated_at: string;
     expires_at: string;
   }> {
-    const response = await this.stateset.request(
+    const response = await this.client.request(
       'GET',
       `productionjob/${jobId}/report?type=${type}`
     );

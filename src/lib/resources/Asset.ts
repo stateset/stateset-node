@@ -1,3 +1,5 @@
+import { BaseResource } from './BaseResource';
+
 // lib/resources/Asset.ts
 
 type AssetStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'RETIRED';
@@ -39,8 +41,19 @@ interface InventoryData {
   [key: string]: any;
 }
 
-export default class Assets {
-  constructor(private client: any) {}
+export default class Assets extends BaseResource {
+  constructor(client: any) {
+    super(client, 'assets', 'assets');
+    this.singleKey = 'update_assets_by_pk';
+  }
+
+  protected override mapSingle(data: any): any {
+    return this.handleCommandResponse({ update_assets_by_pk: data });
+  }
+
+  protected override mapListItem(item: any): any {
+    return this.mapSingle(item);
+  }
 
   private handleCommandResponse(response: any): AssetResponse {
     if (response.error) {
@@ -78,9 +91,8 @@ export default class Assets {
    * @param data - AssetData object
    * @returns AssetResponse object
    */
-  async create(data: any): Promise<AssetResponse> {
-    const response = await this.client.request('POST', 'assets', data);
-    return this.handleCommandResponse(response);
+  override async create(data: any): Promise<AssetResponse> {
+    return super.create(data);
   }
 
   /**
@@ -88,9 +100,8 @@ export default class Assets {
    * @param id - Asset ID
    * @returns AssetResponse object
    */
-  async get(id: string): Promise<AssetResponse> {
-    const response = await this.client.request('GET', `assets/${id}`);
-    return this.handleCommandResponse(response);
+  override async get(id: string): Promise<AssetResponse> {
+    return super.get(id);
   }
 
   /**
@@ -99,9 +110,8 @@ export default class Assets {
    * @param data - Partial<AssetData> object
    * @returns AssetResponse object
    */
-  async update(id: string, data: any): Promise<AssetResponse> {
-    const response = await this.client.request('PUT', `assets/${id}`, data);
-    return this.handleCommandResponse(response);
+  override async update(id: string, data: any): Promise<AssetResponse> {
+    return super.update(id, data);
   }
 
   /**
@@ -109,17 +119,16 @@ export default class Assets {
    * @param params - Optional filtering parameters
    * @returns Array of AssetResponse objects
    */
-  async list(params?: any): Promise<AssetResponse[]> {
-    const response = await this.client.request('GET', 'assets', undefined, { params });
-    return response.map((asset: any) => this.handleCommandResponse({ update_assets_by_pk: asset }));
+  override async list(params?: any): Promise<AssetResponse[]> {
+    return super.list(params);
   }
 
   /**
    * Delete asset
    * @param id - Asset ID
    */
-  async delete(id: string): Promise<void> {
-    await this.client.request('DELETE', `assets/${id}`);
+  override async delete(id: string): Promise<void> {
+    await super.delete(id);
   }
 
   /**
